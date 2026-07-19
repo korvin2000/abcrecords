@@ -27,8 +27,15 @@ interface Props {
 
 /**
  * The full-screen codex — Copendum's CharacterDetail as the base (parchment,
- * ornate double border, page-turn 3D open/close, ❧ corner fleurons), extended
- * with the 4 tabs required by docs/Biography_card_Design.md.
+ * ornate double border, page-turn 3D open/close, filigree corner ornaments
+ * shared with the catalogue cards), extended with the 4 tabs required by
+ * docs/Biography_card_Design.md.
+ *
+ * Layout invariants worth keeping:
+ * - The scroll area is `absolute inset-[11px]` (not h-full) so its whole
+ *   scrollbar track — top to bottom — stays inside the double border.
+ * - The close/nav buttons sit at left-9/right-9, clear of the 44px corner
+ *   filigree, so neither covers the other.
  */
 export function CodexModal({ entry, slug, onClose, onTurn, onNavigateEntry }: Props) {
   const { t, locale } = useI18n();
@@ -120,19 +127,19 @@ export function CodexModal({ entry, slug, onClose, onTurn, onNavigateEntry }: Pr
         )}
       >
         <div className="parchment ornate-border relative flex-1 overflow-hidden rounded-sm">
-          {/* Corner fleurons */}
-          <div className="pointer-events-none absolute left-2 top-2 select-none text-2xl text-sepia-600/50">❧</div>
-          <div className="pointer-events-none absolute right-2 top-2 rotate-90 select-none text-2xl text-sepia-600/50">❧</div>
-          <div className="pointer-events-none absolute bottom-2 left-2 -rotate-90 select-none text-2xl text-sepia-600/50">❧</div>
-          <div className="pointer-events-none absolute bottom-2 right-2 rotate-180 select-none text-2xl text-sepia-600/50">❧</div>
+          {/* Filigree corners — same ornament family as the catalogue cards */}
+          <CornerOrnament className="pointer-events-none absolute left-[5px] top-[5px] z-10 h-9 w-9 opacity-80 sm:h-11 sm:w-11" />
+          <CornerOrnament flipX className="pointer-events-none absolute right-[5px] top-[5px] z-10 h-9 w-9 opacity-80 sm:h-11 sm:w-11" />
+          <CornerOrnament flipY className="pointer-events-none absolute bottom-[5px] left-[5px] z-10 h-9 w-9 opacity-80 sm:h-11 sm:w-11" />
+          <CornerOrnament flipX flipY className="pointer-events-none absolute bottom-[5px] right-[5px] z-10 h-9 w-9 opacity-80 sm:h-11 sm:w-11" />
 
-          {/* Close (dark rectangular, upper-left per design brief) */}
-          <button onClick={handleClose} className="btn-rpg absolute left-4 top-4 z-20" aria-label={t("codex.close")}>
+          {/* Close (dark rectangular, upper-left per design brief) — inset past the corner filigree */}
+          <button onClick={handleClose} className="btn-rpg absolute left-9 top-4 z-20" aria-label={t("codex.close")}>
             {t("codex.close")}
           </button>
 
-          {/* Prev / next page corners */}
-          <div className="absolute right-4 top-4 z-20 flex gap-2">
+          {/* Prev / next page turns — inset past the corner filigree */}
+          <div className="absolute right-9 top-4 z-20 flex gap-2">
             <button onClick={() => onTurn(-1)} className="btn-rpg !px-3" aria-label={t("codex.prev")} title={t("codex.prev")}>
               ←
             </button>
@@ -141,8 +148,9 @@ export function CodexModal({ entry, slug, onClose, onTurn, onNavigateEntry }: Pr
             </button>
           </div>
 
-          {/* Scrollable interior */}
-          <div ref={scrollRef} className="codex-scroll h-full overflow-y-auto px-4 pb-8 pt-16 sm:px-10 sm:pt-14">
+          {/* Scrollable interior — anchored to the frame so the scrollbar
+              track and the very last line both live inside the border */}
+          <div ref={scrollRef} className="codex-scroll absolute inset-[11px] overflow-y-auto px-4 pb-6 pt-16 sm:px-9 sm:pt-14">
             <div className="mx-auto max-w-5xl">
               <header className="mb-5 text-center">
                 <div className="mb-2 font-display text-xs tracking-[0.4em] text-sepia-600/80">{t("codex.entry")}</div>
