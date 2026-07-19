@@ -86,7 +86,7 @@ export function CharacterCard({ entry, slug, ranking, onSelect }: Props) {
     >
       <OrnateFrame
         accent="#b8902a"
-        cornerClassName="drop-glow-gold h-8 w-8 opacity-75 transition-opacity duration-500 group-hover:opacity-100 sm:h-10 sm:w-10"
+        cornerClassName="h-6 w-6 opacity-65 transition-opacity duration-300 group-hover:opacity-90 sm:h-7 sm:w-7"
       >
         <div className="relative overflow-hidden rounded-lg border border-gold-600/40 bg-paper-100 shadow-[0_4px_18px_rgba(84,56,30,0.22)]">
           {/* portrait */}

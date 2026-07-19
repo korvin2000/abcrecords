@@ -57,10 +57,10 @@ export function SiteFooter() {
       aria-labelledby="site-footer-title"
     >
       <div className="site-footer-shell relative mx-auto max-w-7xl overflow-hidden">
-        <CornerOrnament className="pointer-events-none absolute left-1 top-1 h-10 w-10 opacity-65 sm:h-12 sm:w-12" />
-        <CornerOrnament flipX className="pointer-events-none absolute right-1 top-1 h-10 w-10 opacity-65 sm:h-12 sm:w-12" />
-        <CornerOrnament flipY className="pointer-events-none absolute bottom-1 left-1 h-10 w-10 opacity-45 sm:h-12 sm:w-12" />
-        <CornerOrnament flipX flipY className="pointer-events-none absolute bottom-1 right-1 h-10 w-10 opacity-45 sm:h-12 sm:w-12" />
+        <CornerOrnament className="pointer-events-none absolute left-1 top-1 h-7 w-7 opacity-55 sm:h-8 sm:w-8" />
+        <CornerOrnament flipX className="pointer-events-none absolute right-1 top-1 h-7 w-7 opacity-55 sm:h-8 sm:w-8" />
+        <CornerOrnament flipY className="pointer-events-none absolute bottom-1 left-1 h-7 w-7 opacity-40 sm:h-8 sm:w-8" />
+        <CornerOrnament flipX flipY className="pointer-events-none absolute bottom-1 right-1 h-7 w-7 opacity-40 sm:h-8 sm:w-8" />
 
         <div className="relative px-4 pb-5 pt-7 sm:px-8 sm:pb-7 sm:pt-8 lg:px-10">
           <div className="footer-string-rule mx-auto max-w-3xl" aria-hidden>

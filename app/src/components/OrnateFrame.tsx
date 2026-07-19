@@ -2,11 +2,8 @@ import clsx from "clsx";
 import type { ReactNode } from "react";
 
 /**
- * One filigree corner — engraved-style: a rounded L-bracket hugging the two
- * edges, an inner echo line, a spiral curl in the corner pocket, a small
- * diamond on the diagonal and dot "rivets" near the arm ends. Drawn for the
- * top-left; the other corners are mirrored with flipX/flipY so the curls
- * always face inward.
+ * A restrained musical corner: one fine bracket and a small quarter-note
+ * accent. Drawn for the top-left and mirrored for the other three corners.
  */
 export function CornerOrnament({
   accent = "#b8902a",
@@ -21,43 +18,22 @@ export function CornerOrnament({
 }) {
   return (
     <svg
-      viewBox="0 0 64 64"
+      viewBox="0 0 48 48"
       fill="none"
       aria-hidden
       className={className}
       style={{ transform: `scale(${flipX ? -1 : 1}, ${flipY ? -1 : 1})` }}
     >
-      {/* main arm rounding the corner */}
       <path
-        d="M2 52 L2 14 Q2 2 14 2 L52 2"
+        d="M4 38 V13 Q4 4 13 4 H38"
         stroke={accent}
-        strokeWidth="2"
+        strokeWidth="1.35"
         strokeLinecap="round"
       />
-      {/* inner echo line */}
-      <path
-        d="M7 46 L7 16 Q7 7 16 7 L46 7"
-        stroke={accent}
-        strokeWidth="1.1"
-        strokeLinecap="round"
-        opacity="0.5"
-      />
-      {/* spiral curl in the corner pocket */}
-      <path
-        d="M12 12 C22 7.5 31 12 29.5 20 C28.4 25.6 21.6 26.2 20.4 21.4 C19.5 17.9 23.4 15.9 25.6 18.2"
-        stroke={accent}
-        strokeWidth="1.3"
-        strokeLinecap="round"
-        opacity="0.95"
-      />
-      {/* leaf flicks finishing the two arms */}
-      <path d="M2 52 Q2.8 55.5 6 57" stroke={accent} strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M52 2 Q55.5 2.8 57 6" stroke={accent} strokeWidth="1.5" strokeLinecap="round" />
-      {/* diamond on the diagonal */}
-      <path d="M34 29.8 L38.2 34 L34 38.2 L29.8 34 Z" fill={accent} opacity="0.9" />
-      {/* dot rivets */}
-      <circle cx="46" cy="11.5" r="1.6" fill={accent} opacity="0.8" />
-      <circle cx="11.5" cy="46" r="1.6" fill={accent} opacity="0.8" />
+      <g opacity="0.82">
+        <ellipse cx="15.2" cy="18" rx="2.8" ry="1.9" transform="rotate(-18 15.2 18)" fill={accent} />
+        <path d="M17.7 17.4 V10.2" stroke={accent} strokeWidth="1.15" strokeLinecap="round" />
+      </g>
     </svg>
   );
 }
@@ -70,16 +46,13 @@ const CORNERS = [
 ] as const;
 
 /**
- * Four-corner ornamental frame. Reserves a thin band around the content
- * (p-2) so the corner brackets sit *outside* the child like antique
- * photo-mount corners, their curls draping over the child's rounded
- * corners. Corners are painted after the children (on top) and mirrored
- * per corner — all four stay aligned by construction.
+ * Minimal four-corner frame. A narrow band keeps the musical marks outside
+ * the content while mirroring guarantees consistent alignment.
  */
 export function OrnateFrame({
   accent = "#b8902a",
   className,
-  cornerClassName = "h-8 w-8 sm:h-10 sm:w-10",
+  cornerClassName = "h-6 w-6 sm:h-7 sm:w-7",
   children,
 }: {
   accent?: string;
@@ -89,7 +62,7 @@ export function OrnateFrame({
   children?: ReactNode;
 }) {
   return (
-    <div className={clsx("relative p-2", className)}>
+    <div className={clsx("relative p-1.5", className)}>
       {children}
       {CORNERS.map((c) => (
         <CornerOrnament

@@ -127,13 +127,13 @@ export function CodexModal({ entry, slug, onClose, onTurn, onNavigateEntry }: Pr
         )}
       >
         <div className="parchment ornate-border relative flex-1 overflow-hidden rounded-sm">
-          {/* Filigree corners — same ornament family as the catalogue cards */}
-          <CornerOrnament className="pointer-events-none absolute left-[5px] top-[5px] z-10 h-9 w-9 opacity-80 sm:h-11 sm:w-11" />
-          <CornerOrnament flipX className="pointer-events-none absolute right-[5px] top-[5px] z-10 h-9 w-9 opacity-80 sm:h-11 sm:w-11" />
-          <CornerOrnament flipY className="pointer-events-none absolute bottom-[5px] left-[5px] z-10 h-9 w-9 opacity-80 sm:h-11 sm:w-11" />
-          <CornerOrnament flipX flipY className="pointer-events-none absolute bottom-[5px] right-[5px] z-10 h-9 w-9 opacity-80 sm:h-11 sm:w-11" />
+          {/* Minimal musical corners — same restrained motif as the catalogue cards */}
+          <CornerOrnament className="pointer-events-none absolute left-[5px] top-[5px] z-10 h-7 w-7 opacity-65 sm:h-8 sm:w-8" />
+          <CornerOrnament flipX className="pointer-events-none absolute right-[5px] top-[5px] z-10 h-7 w-7 opacity-65 sm:h-8 sm:w-8" />
+          <CornerOrnament flipY className="pointer-events-none absolute bottom-[5px] left-[5px] z-10 h-7 w-7 opacity-65 sm:h-8 sm:w-8" />
+          <CornerOrnament flipX flipY className="pointer-events-none absolute bottom-[5px] right-[5px] z-10 h-7 w-7 opacity-65 sm:h-8 sm:w-8" />
 
-          {/* Close (dark rectangular, upper-left per design brief) — inset past the corner filigree */}
+          {/* Close control stays inset past the corner mark. */}
           <button onClick={handleClose} className="btn-rpg absolute left-9 top-4 z-20" aria-label={t("codex.close")}>
             {t("codex.close")}
           </button>
