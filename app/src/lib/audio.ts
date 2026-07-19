@@ -1,8 +1,12 @@
 // ============================================================
-//  AudioEngine — procedural sound built on the Web Audio API.
-//  Ported from prototypes/CodexLegends (user-approved effects layer).
+//  AudioEngine — a quiet, procedural chamber-music sound palette built on
+//  the Web Audio API. The levels, envelopes and voicings are intentionally
+//  restrained so repeated interface cues never dominate the content.
 //
 //  • All SFX are synthesised at runtime — no audio files shipped.
+//  • Soft sine/triangle voices evoke nylon strings without sharp transients.
+//  • A short synthetic room tail (inspired by Copendum) adds natural space.
+//  • Repetitive hover/type events are rate-limited.
 //  • Each entry's "theme" is generated live from the equal-temperament
 //    formula f = root·2^(semitone/12), seeded deterministically from
 //    the entry's name hash (same hero — same melody, every visit).
@@ -44,14 +48,19 @@ const SCALES: number[][] = [
 // Open-string-ish guitar roots: E2·2, G3, A3, B3, D3, C3.
 const ROOTS = [164.81, 196.0, 220.0, 246.94, 146.83, 130.81];
 
+const MASTER_LEVEL = 0.42;
+const SFX_LEVEL = 0.46;
+const SILENCE = 0.0001;
+const HOVER_PHRASE = [329.63, 392, 493.88, 392] as const; // E4–G4–B4–G4
+
 export function themeFromSeed(seed: string): ThemeSpec {
   const rng = mulberry32(fnv1a(seed) || 1);
   return {
     root: ROOTS[Math.floor(rng() * ROOTS.length)],
     scale: SCALES[Math.floor(rng() * SCALES.length)],
-    tempo: 64 + Math.floor(rng() * 44),
-    wave: rng() < 0.6 ? "triangle" : "sine",
-    bass: rng() < 0.5 ? "sine" : "triangle",
+    tempo: 58 + Math.floor(rng() * 24),
+    wave: rng() < 0.72 ? "sine" : "triangle",
+    bass: "sine",
   };
 }
 
@@ -63,12 +72,15 @@ interface NoteOpts {
   detune?: number;
   dest?: AudioNode;
   filter?: number;
+  room?: number;
 }
 
 class AudioEngine {
   private ctx: AudioContext | null = null;
   private master: GainNode | null = null;
   private sfxBus: GainNode | null = null;
+  private limiter: DynamicsCompressorNode | null = null;
+  private room: ConvolverNode | null = null;
   private ambientGain: GainNode | null = null;
   private ambientNodes: AudioNode[] = [];
 
@@ -78,6 +90,12 @@ class AudioEngine {
 
   private _enabled = true;
   private _ambientOn = false;
+  private _unlocked = false;
+  private lastHoverAt = -Infinity;
+  private hoverStep = 0;
+  private lastTypeAt = -Infinity;
+  private lastClickAt = -Infinity;
+  private suppressOpenUntil = -Infinity;
 
   private ensure(): AudioContext | null {
     if (this.ctx) return this.ctx;
@@ -87,20 +105,59 @@ class AudioEngine {
         (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       this.ctx = new Ctx();
       this.master = this.ctx.createGain();
-      this.master.gain.value = this._enabled ? 0.9 : 0;
-      this.master.connect(this.ctx.destination);
+      this.master.gain.value = this._enabled ? MASTER_LEVEL : 0;
+
+      // Gentle peak control protects against coincident notes without
+      // flattening the dynamics of individual cues.
+      this.limiter = this.ctx.createDynamicsCompressor();
+      this.limiter.threshold.value = -24;
+      this.limiter.knee.value = 18;
+      this.limiter.ratio.value = 4;
+      this.limiter.attack.value = 0.012;
+      this.limiter.release.value = 0.28;
+      this.master.connect(this.limiter);
+      this.limiter.connect(this.ctx.destination);
 
       this.sfxBus = this.ctx.createGain();
-      this.sfxBus.gain.value = 0.85;
+      this.sfxBus.gain.value = SFX_LEVEL;
       this.sfxBus.connect(this.master);
+
+      // Copendum's synthetic convolver idea, retuned as a much shorter and
+      // quieter warm room rather than a prominent effect.
+      this.room = this.createRoom(this.ctx);
+      const roomTone = this.ctx.createBiquadFilter();
+      roomTone.type = "lowpass";
+      roomTone.frequency.value = 1800;
+      roomTone.Q.value = 0.35;
+      const roomReturn = this.ctx.createGain();
+      roomReturn.gain.value = 0.11;
+      this.room.connect(roomTone);
+      roomTone.connect(roomReturn);
+      roomReturn.connect(this.master);
     } catch {
       this.ctx = null;
     }
     return this.ctx;
   }
 
+  private createRoom(ctx: AudioContext): ConvolverNode {
+    const convolver = ctx.createConvolver();
+    const length = Math.floor(ctx.sampleRate * 1.15);
+    const impulse = ctx.createBuffer(2, length, ctx.sampleRate);
+    for (let channel = 0; channel < impulse.numberOfChannels; channel++) {
+      const data = impulse.getChannelData(channel);
+      for (let i = 0; i < length; i++) {
+        const decay = Math.pow(1 - i / length, 3.4);
+        data[i] = (Math.random() * 2 - 1) * decay * (channel === 0 ? 0.85 : 0.78);
+      }
+    }
+    convolver.buffer = impulse;
+    return convolver;
+  }
+
   /** Call on first interaction to unlock audio (autoplay policy). */
   unlock() {
+    this._unlocked = true;
     const ctx = this.ensure();
     if (ctx && ctx.state === "suspended") void ctx.resume();
   }
@@ -114,7 +171,8 @@ class AudioEngine {
     const ctx = this.ensure();
     if (ctx && this.master) {
       this.master.gain.cancelScheduledValues(ctx.currentTime);
-      this.master.gain.linearRampToValueAtTime(v ? 0.9 : 0, ctx.currentTime + 0.12);
+      this.master.gain.setValueAtTime(this.master.gain.value, ctx.currentTime);
+      this.master.gain.linearRampToValueAtTime(v ? MASTER_LEVEL : 0, ctx.currentTime + 0.25);
     }
     if (!v) {
       this.stopTheme();
@@ -128,27 +186,36 @@ class AudioEngine {
     const dest = o.dest ?? this.sfxBus;
     const osc = ctx.createOscillator();
     osc.type = o.type ?? "sine";
-    osc.frequency.value = freq;
+    osc.frequency.setValueAtTime(freq, start);
     if (o.detune) osc.detune.value = o.detune;
 
     const g = ctx.createGain();
-    const peak = o.gain ?? 0.3;
-    g.gain.setValueAtTime(0.0001, start);
-    g.gain.exponentialRampToValueAtTime(peak, start + (o.attack ?? 0.006));
-    g.gain.exponentialRampToValueAtTime(0.0001, start + dur + (o.release ?? 0.05));
+    const peak = Math.min(o.gain ?? 0.025, 0.16);
+    const attack = o.attack ?? 0.018;
+    const release = o.release ?? 0.16;
+    g.gain.setValueAtTime(SILENCE, start);
+    g.gain.exponentialRampToValueAtTime(peak, start + attack);
+    g.gain.exponentialRampToValueAtTime(SILENCE, start + dur + release);
 
     if (o.filter) {
       const f = ctx.createBiquadFilter();
       f.type = "lowpass";
       f.frequency.value = o.filter;
+      f.Q.value = 0.45;
       osc.connect(f);
       f.connect(g);
     } else {
       osc.connect(g);
     }
     g.connect(dest);
+    if (o.room && this.room) {
+      const send = ctx.createGain();
+      send.gain.value = o.room;
+      g.connect(send);
+      send.connect(this.room);
+    }
     osc.start(start);
-    osc.stop(start + dur + (o.release ?? 0.05) + 0.05);
+    osc.stop(start + dur + release + 0.05);
   }
 
   /** Equal temperament: semitone offset → frequency. */
@@ -158,84 +225,171 @@ class AudioEngine {
 
   // ---- SFX ----------------------------------------------------------
   hover() {
+    if (!this._enabled || !this._unlocked) return;
     const ctx = this.ensure();
     if (!ctx) return;
-    this.voice(880 + Math.random() * 60, ctx.currentTime, 0.09, {
+    const t = ctx.currentTime;
+    if (t - this.lastHoverAt < 0.28) return;
+    this.lastHoverAt = t;
+    const frequency = HOVER_PHRASE[this.hoverStep++ % HOVER_PHRASE.length];
+    this.voice(frequency, t, 0.065, {
+      type: "triangle",
+      gain: 0.027,
+      attack: 0.016,
+      release: 0.16,
+      detune: Math.random() * 4 - 2,
+      filter: 1250,
+      room: 0.075,
+    });
+    // A very quiet octave partial adds a nylon-string glint without sharpness.
+    this.voice(frequency * 2, t + 0.012, 0.035, {
       type: "sine",
-      gain: 0.04,
-      filter: 2200,
+      gain: 0.005,
+      attack: 0.014,
+      release: 0.11,
+      filter: 1750,
+      room: 0.04,
     });
   }
 
   type() {
+    if (!this._enabled) return;
     const ctx = this.ensure();
     if (!ctx) return;
-    this.voice(1500 + Math.random() * 200, ctx.currentTime, 0.04, {
-      type: "triangle",
-      gain: 0.025,
+    const t = ctx.currentTime;
+    const pause = t - this.lastTypeAt;
+    this.lastTypeAt = t;
+    if (pause < 0.24) return;
+    this.voice(246.94, t, 0.035, {
+      type: "sine",
+      gain: 0.006,
+      attack: 0.012,
+      release: 0.075,
+      detune: Math.random() * 5 - 2.5,
+      filter: 720,
     });
   }
 
   click() {
+    if (!this._enabled) return;
     const ctx = this.ensure();
     if (!ctx) return;
-    this.voice(660, ctx.currentTime, 0.06, { type: "square", gain: 0.05, filter: 1800 });
-    this.voice(990, ctx.currentTime + 0.03, 0.08, { type: "sine", gain: 0.05 });
+    const t = ctx.currentTime;
+    if (t - this.lastClickAt < 0.09) return;
+    this.lastClickAt = t;
+    // A quiet B3–E4 dyad: the two upper open strings of a classical guitar.
+    this.voice(246.94, t, 0.075, {
+      type: "triangle",
+      gain: 0.026,
+      attack: 0.014,
+      release: 0.21,
+      filter: 1150,
+      room: 0.12,
+    });
+    this.voice(329.63, t + 0.018, 0.065, {
+      type: "sine",
+      gain: 0.013,
+      attack: 0.018,
+      release: 0.2,
+      filter: 1300,
+      room: 0.14,
+    });
   }
 
-  /** Ascending major arpeggio — "match found". */
+  /** Restrained E-major cadence — "match found". */
   found() {
+    if (!this._enabled) return;
     const ctx = this.ensure();
     if (!ctx) return;
     const t = ctx.currentTime;
     [0, 4, 7, 12].forEach((s, i) =>
-      this.voice(AudioEngine.freq(523.25, s), t + i * 0.06, 0.18, {
-        type: "triangle",
-        gain: 0.08,
-        filter: 4000,
+      this.voice(AudioEngine.freq(329.63, s), t + i * 0.085, 0.11, {
+        type: i === 0 ? "triangle" : "sine",
+        gain: 0.024 - i * 0.002,
+        attack: 0.02,
+        release: 0.24,
+        filter: 1450,
+        room: 0.12,
       }),
     );
   }
 
   error() {
-    const ctx = this.ensure();
-    if (!ctx) return;
-    this.voice(180, ctx.currentTime, 0.18, { type: "sawtooth", gain: 0.06, filter: 800 });
-  }
-
-  /** Codex open — filtered-noise whoosh + soft chord. */
-  open() {
+    if (!this._enabled) return;
     const ctx = this.ensure();
     if (!ctx) return;
     const t = ctx.currentTime;
-    this.noiseSweep(t, 0.55, 400, 5000, 0.1);
-    [0, 7, 12, 16].forEach((s, i) =>
-      this.voice(AudioEngine.freq(392, s), t + 0.05 + i * 0.05, 0.7, {
-        type: "sine",
-        gain: 0.06,
-        filter: 6000,
-        release: 0.5,
+    this.voice(220, t, 0.1, {
+      type: "triangle",
+      gain: 0.022,
+      attack: 0.028,
+      release: 0.25,
+      filter: 620,
+      room: 0.06,
+    });
+    this.voice(196, t + 0.09, 0.1, {
+      type: "sine",
+      gain: 0.017,
+      attack: 0.03,
+      release: 0.28,
+      filter: 560,
+      room: 0.06,
+    });
+  }
+
+  /** Codex open — a soft paper breath and an E-minor add-nine voicing. */
+  open() {
+    if (!this._enabled) return;
+    const ctx = this.ensure();
+    if (!ctx) return;
+    const t = ctx.currentTime;
+    if (t < this.suppressOpenUntil) return;
+    this.noiseSweep(t, 0.42, 420, 1550, 0.012);
+    [0, 7, 12, 15, 19].forEach((s, i) =>
+      this.voice(AudioEngine.freq(164.81, s), t + 0.04 + i * 0.038, 0.22, {
+        type: i === 0 ? "triangle" : "sine",
+        gain: 0.022 - i * 0.0025,
+        attack: 0.045,
+        filter: 1450,
+        release: 0.62,
+        room: 0.16,
       }),
     );
   }
 
   close() {
+    if (!this._enabled) return;
     const ctx = this.ensure();
     if (!ctx) return;
     const t = ctx.currentTime;
-    this.noiseSweep(t, 0.3, 3000, 300, 0.07);
+    this.noiseSweep(t, 0.28, 1300, 380, 0.009);
     [12, 7, 0].forEach((s, i) =>
-      this.voice(AudioEngine.freq(392, s), t + i * 0.04, 0.25, { type: "sine", gain: 0.05 }),
+      this.voice(AudioEngine.freq(164.81, s), t + i * 0.055, 0.11, {
+        type: "sine",
+        gain: 0.017 - i * 0.002,
+        attack: 0.025,
+        release: 0.3,
+        filter: 1050,
+        room: 0.1,
+      }),
     );
   }
 
-  /** Page turn — a burst of filtered paper-noise + a soft tick. */
+  /** Page turn — a brief, low-level paper movement with no percussive tick. */
   pageTurn() {
+    if (!this._enabled) return;
     const ctx = this.ensure();
     if (!ctx) return;
     const t = ctx.currentTime;
-    this.noiseSweep(t, 0.22, 1200, 6000, 0.05);
-    this.voice(420, t, 0.05, { type: "square", gain: 0.03, filter: 1200 });
+    this.suppressOpenUntil = t + 0.5;
+    this.noiseSweep(t, 0.24, 650, 2100, 0.015);
+    this.voice(293.66, t + 0.035, 0.045, {
+      type: "sine",
+      gain: 0.007,
+      attack: 0.02,
+      release: 0.13,
+      filter: 720,
+    });
   }
 
   // ---- filtered noise -------------------------------------------------
@@ -259,13 +413,13 @@ class AudioEngine {
     src.loop = true;
     const f = ctx.createBiquadFilter();
     f.type = "bandpass";
-    f.Q.value = 0.8;
+    f.Q.value = 0.55;
     f.frequency.setValueAtTime(fromHz, start);
     f.frequency.exponentialRampToValueAtTime(Math.max(40, toHz), start + dur);
     const g = ctx.createGain();
-    g.gain.setValueAtTime(0.0001, start);
-    g.gain.exponentialRampToValueAtTime(gain, start + 0.04);
-    g.gain.exponentialRampToValueAtTime(0.0001, start + dur);
+    g.gain.setValueAtTime(SILENCE, start);
+    g.gain.exponentialRampToValueAtTime(Math.min(gain, 0.025), start + Math.min(0.045, dur * 0.2));
+    g.gain.exponentialRampToValueAtTime(SILENCE, start + dur);
     src.connect(f);
     f.connect(g);
     g.connect(this.sfxBus);
@@ -291,27 +445,35 @@ class AudioEngine {
     if (!ctx || !this.master || this.ambientGain) return;
     const g = ctx.createGain();
     g.gain.value = 0;
-    g.gain.linearRampToValueAtTime(0.05, ctx.currentTime + 2);
+    g.gain.linearRampToValueAtTime(0.02, ctx.currentTime + 3.2);
     g.connect(this.master);
     this.ambientGain = g;
 
-    const freqs = [55, 82.4, 110, 164.8];
+    const tone = ctx.createBiquadFilter();
+    tone.type = "lowpass";
+    tone.frequency.value = 620;
+    tone.Q.value = 0.4;
+    tone.connect(g);
+
+    // E2–B2–E3–G3: a stable, open classical-guitar sonority.
+    const freqs = [82.41, 123.47, 164.81, 196];
+    const levels = [0.42, 0.22, 0.14, 0.09];
     const nodes: AudioNode[] = [];
     freqs.forEach((f, i) => {
       const osc = ctx.createOscillator();
-      osc.type = i % 2 === 0 ? "sine" : "triangle";
+      osc.type = i === 0 ? "triangle" : "sine";
       osc.frequency.value = f;
-      osc.detune.value = (i - 1.5) * 4;
+      osc.detune.value = (i - 1.5) * 1.2;
       const lfo = ctx.createOscillator();
-      lfo.frequency.value = 0.05 + i * 0.02;
+      lfo.frequency.value = 0.025 + i * 0.012;
       const lfoGain = ctx.createGain();
-      lfoGain.gain.value = 2 + i;
+      lfoGain.gain.value = 0.7 + i * 0.25;
       lfo.connect(lfoGain);
       lfoGain.connect(osc.detune);
       const og = ctx.createGain();
-      og.gain.value = 0.5 / (i + 1);
+      og.gain.value = levels[i];
       osc.connect(og);
-      og.connect(g);
+      og.connect(tone);
       osc.start();
       lfo.start();
       nodes.push(osc, lfo);
@@ -352,8 +514,14 @@ class AudioEngine {
 
     const bus = ctx.createGain();
     bus.gain.value = 0;
-    bus.gain.linearRampToValueAtTime(0.5, ctx.currentTime + 0.8);
+    bus.gain.linearRampToValueAtTime(0.2, ctx.currentTime + 1.4);
     bus.connect(this.master!);
+    if (this.room) {
+      const roomSend = ctx.createGain();
+      roomSend.gain.value = 0.045;
+      bus.connect(roomSend);
+      roomSend.connect(this.room);
+    }
     this.themeGain = bus;
 
     this.themeState = { spec, step: 0, nextTime: ctx.currentTime + 0.1 };
@@ -370,12 +538,12 @@ class AudioEngine {
       const g = this.themeGain;
       g.gain.cancelScheduledValues(ctx.currentTime);
       g.gain.setValueAtTime(g.gain.value, ctx.currentTime);
-      g.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.4);
+      g.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.8);
       setTimeout(() => {
         try {
           g.disconnect();
         } catch { /* already disconnected */ }
-      }, 600);
+      }, 1000);
     }
     this.themeGain = null;
     this.themeState = null;
@@ -412,42 +580,47 @@ class AudioEngine {
     if (bar % 4 === 0) {
       this.voice(AudioEngine.freq(root / 2, 0), time, secPerBeat * 0.9, {
         type: spec.bass,
-        gain: 0.2,
+        gain: 0.1,
         dest: bus,
-        filter: 600,
-        release: 0.1,
+        filter: 430,
+        attack: 0.045,
+        release: 0.34,
       });
     }
 
-    // Arpeggio — walk the scale, octave up (plucked envelope)
+    // Quiet nylon-like arpeggio — a measured walk through the mode.
     const deg = scale[(step * 3) % scale.length];
     this.voice(AudioEngine.freq(root, deg + 12), time, secPerBeat * 0.5, {
       type: spec.wave,
-      gain: 0.08,
+      gain: 0.042,
       dest: bus,
-      filter: 3200,
-      attack: 0.008,
+      filter: 1450,
+      attack: 0.022,
+      release: 0.24,
     });
 
-    // Shimmering high echo on off-beats
-    if (bar % 8 === 5) {
-      this.voice(AudioEngine.freq(root, scale[(step + 2) % scale.length] + 24), time, secPerBeat * 0.4, {
+    // Sparse mid-register echo, kept below the main line.
+    if (bar % 8 === 6) {
+      this.voice(AudioEngine.freq(root, scale[(step + 2) % scale.length] + 12), time, secPerBeat * 0.45, {
         type: "sine",
-        gain: 0.04,
+        gain: 0.014,
         dest: bus,
-        filter: 5000,
+        filter: 1200,
+        attack: 0.035,
+        release: 0.3,
       });
     }
 
-    // Warm pad chord at the start of each bar
+    // Low, slow pad at the start of each bar.
     if (bar % 8 === 0) {
       for (const s of scale.slice(0, 3)) {
         this.voice(AudioEngine.freq(root, s), time, secPerBeat * 3.2, {
           type: "sine",
-          gain: 0.04,
+          gain: 0.02,
           dest: bus,
-          filter: 1600,
-          release: 0.6,
+          filter: 880,
+          attack: 0.22,
+          release: 1.1,
         });
       }
     }

@@ -75,7 +75,6 @@ export function CharacterCard({ entry, slug, ranking, onSelect }: Props) {
       onMouseEnter={() => audio.hover()}
       onClick={() => {
         audio.unlock();
-        audio.click();
         window.setTimeout(() => onSelect(slug), 70);
       }}
       style={reduced ? undefined : { rotateX, rotateY, transformPerspective: 900 }}
