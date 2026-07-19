@@ -11,6 +11,7 @@ import { AnimatedTitle } from "@/components/AnimatedTitle";
 import { SearchBar } from "@/components/SearchBar";
 import { CharacterGrid } from "@/components/CharacterGrid";
 import { CodexModal } from "@/components/codex/CodexModal";
+import { SiteFooter } from "@/components/SiteFooter";
 
 type LoadState = { kind: "loading" } | { kind: "error" } | { kind: "ready"; entries: IndexEntry[] };
 
@@ -225,11 +226,9 @@ export default function App() {
           </>
         )}
 
-        <footer className="mx-auto mt-10 max-w-xl px-6 text-center">
-          <div className="mx-auto mb-3 h-px w-32 bg-gradient-to-r from-transparent via-gold-600/50 to-transparent" />
-          <p className="font-body text-xs italic text-sepia-600/80">{t("app.footer")}</p>
-        </footer>
       </main>
+
+      <SiteFooter />
 
       <AnimatePresence>
         {selectedDoc && (
