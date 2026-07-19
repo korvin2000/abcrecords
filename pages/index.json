@@ -1,0 +1,72 @@
+[
+  {
+    "title": "Agustín Barrios Mangoré",
+    "type": "guitarist",
+    "forename": "Agustín",
+    "surname": "Barrios Mangoré",
+    "country": "Paraguay",
+    "json": "/agustin-barrios.bio.json",
+    "md": "/agustin-barrios.bio.md",
+    "img": "photos/agustin-barrios.jpg"
+  },
+  {
+    "title": "Andrés Segovia",
+    "type": "guitarist",
+    "forename": "Andrés",
+    "surname": "Segovia",
+    "country": "Spain",
+    "json": "/andres-segovia.bio.json",
+    "md": "/andres-segovia.bio.md",
+    "img": "photos/andres-segovia.jpg"
+  },
+  {
+    "title": "Авторы проекта",
+    "type": "musician",
+    "forename": "Коллектив",
+    "surname": "Тавровские",
+    "country": "Ukraine",
+    "json": "/authors.bio.json",
+    "md": "/authors.bio.md",
+    "img": "photos/authors.jpg"
+  },
+  {
+    "title": "Django Reinhardt",
+    "type": "guitarist",
+    "forename": "Django",
+    "surname": "Reinhardt",
+    "country": "France",
+    "json": "/django-reinhardt.bio.json",
+    "md": "/django-reinhardt.bio.md",
+    "img": "photos/django-reinhardt.jpg"
+  },
+  {
+    "title": "Jimi Hendrix",
+    "type": "guitarist",
+    "forename": "Jimi",
+    "surname": "Hendrix",
+    "country": "United States",
+    "json": "/jimi-hendrix.bio.json",
+    "md": "/jimi-hendrix.bio.md",
+    "img": "photos/jimi-hendrix.jpg"
+  },
+  {
+    "title": "Јован Јовичић",
+    "type": "guitarist",
+    "forename": "Јован",
+    "surname": "Јовичић",
+    "country": "Serbia",
+    "json": "/jovan-jovicic.bio.json",
+    "md": "/jovan-jovicic.bio.md",
+    "img": "photos/jovan-jovicic.jpg"
+  },
+  {
+    "title": "Paco de Lucía",
+    "type": "guitarist",
+    "forename": "Paco",
+    "surname": "de Lucía",
+    "country": "Spain",
+    "json": "/paco-de-lucia.bio.json",
+    "md": "/paco-de-lucia.bio.md",
+    "img": "photos/paco-de-lucia.jpg"
+  }
+]

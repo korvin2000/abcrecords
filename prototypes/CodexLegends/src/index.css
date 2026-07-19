@@ -1,0 +1,196 @@
+@import "tailwindcss";
+
+/* ============================================================
+   THE CODEX OF LEGENDS — Design Tokens
+   ============================================================ */
+@theme {
+  --font-display: "Cinzel Decorative", Georgia, serif;
+  --font-heading: "Cinzel", Georgia, serif;
+  --font-body: "EB Garamond", Georgia, serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  /* Voids / ink (backgrounds) */
+  --color-ink-950: #05040c;
+  --color-ink-900: #0a0817;
+  --color-ink-850: #0f0c20;
+  --color-ink-800: #161230;
+  --color-ink-700: #211b42;
+
+  /* Antique gold */
+  --color-gold-100: #fbf3d2;
+  --color-gold-200: #f7e7b4;
+  --color-gold-300: #efd585;
+  --color-gold-400: #e6c25b;
+  --color-gold-500: #d4af37;
+  --color-gold-600: #b8902a;
+  --color-gold-700: #8a6a1f;
+
+  /* Arcane teal */
+  --color-arcane-200: #b9f5e6;
+  --color-arcane-300: #7fe9d6;
+  --color-arcane-400: #34d3b8;
+  --color-arcane-500: #14b8a6;
+
+  /* Mystic violet */
+  --color-mystic-200: #ddd6fe;
+  --color-mystic-300: #c4b5fd;
+  --color-mystic-400: #a78bfa;
+  --color-mystic-500: #8b5cf6;
+
+  /* Ember / crimson */
+  --color-ember-300: #fca5a5;
+  --color-ember-400: #f87171;
+  --color-ember-500: #ef4444;
+
+  --color-parchment: #ece3cc;
+}
+
+/* ============================================================
+   Base
+   ============================================================ */
+html {
+  background-color: #05040c;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  color: var(--color-parchment);
+  font-family: var(--font-body);
+  background-color: #05040c;
+  background-image:
+    radial-gradient(1200px 700px at 50% -10%, rgba(139, 92, 246, 0.16), transparent 60%),
+    radial-gradient(900px 600px at 85% 10%, rgba(20, 184, 166, 0.1), transparent 55%),
+    radial-gradient(1000px 800px at 10% 100%, rgba(212, 175, 55, 0.08), transparent 55%);
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: rgba(212, 175, 55, 0.35);
+  color: #fff;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 11px;
+  height: 11px;
+}
+::-webkit-scrollbar-track {
+  background: #0a0817;
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #8a6a1f, #d4af37);
+  border-radius: 99px;
+  border: 2px solid #0a0817;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #b8902a, #efd585);
+}
+
+/* ============================================================
+   Utilities
+   ============================================================ */
+@layer utilities {
+  .font-display { font-family: var(--font-display); }
+  .font-heading { font-family: var(--font-heading); }
+  .font-body { font-family: var(--font-body); }
+
+  .preserve-3d { transform-style: preserve-3d; }
+  .backface-hidden { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+  .perspective-near { perspective: 900px; }
+  .perspective-mid { perspective: 1600px; }
+  .perspective-far { perspective: 2400px; }
+
+  .text-glow-gold { text-shadow: 0 0 14px rgba(212, 175, 55, 0.55), 0 0 32px rgba(212, 175, 55, 0.25); }
+  .text-glow-soft { text-shadow: 0 0 18px rgba(230, 194, 91, 0.35); }
+  .text-glow-arcane { text-shadow: 0 0 16px rgba(52, 211, 184, 0.6), 0 0 40px rgba(52, 211, 184, 0.25); }
+
+  .drop-glow-gold { filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.45)); }
+
+  .bg-grain {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  }
+
+  .mask-fade-b { -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent 100%); mask-image: linear-gradient(to bottom, black 70%, transparent 100%); }
+
+  .gold-gradient-text {
+    background: linear-gradient(180deg, #fbf3d2 0%, #efd585 40%, #d4af37 60%, #8a6a1f 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .shimmer-text {
+    background: linear-gradient(100deg, #b8902a 0%, #fbf3d2 20%, #ffffff 35%, #fbf3d2 50%, #b8902a 70%, #fbf3d2 90%, #b8902a 100%);
+    background-size: 250% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: shimmer 6s linear infinite;
+  }
+
+  .card-ornate {
+    background:
+      linear-gradient(180deg, rgba(22, 18, 48, 0.92), rgba(10, 8, 23, 0.96));
+  }
+}
+
+/* ============================================================
+   Keyframes
+   ============================================================ */
+@keyframes shimmer {
+  to { background-position: -250% center; }
+}
+@keyframes floaty {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+@keyframes floaty-slow {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-16px) rotate(0.4deg); }
+}
+@keyframes spin-slow {
+  to { transform: rotate(360deg); }
+}
+@keyframes spin-rev {
+  to { transform: rotate(-360deg); }
+}
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+@keyframes twinkle {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 1; }
+}
+@keyframes sweep {
+  0% { transform: translateX(-120%) skewX(-18deg); }
+  100% { transform: translateX(220%) skewX(-18deg); }
+}
+@keyframes dash {
+  to { stroke-dashoffset: 0; }
+}
+@keyframes aura {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.75; }
+}
+
+.anim-floaty { animation: floaty 5.5s ease-in-out infinite; }
+.anim-floaty-slow { animation: floaty-slow 8s ease-in-out infinite; }
+.anim-spin-slow { animation: spin-slow 60s linear infinite; }
+.anim-spin-rev { animation: spin-rev 90s linear infinite; }
+.anim-pulse-glow { animation: pulse-glow 3.4s ease-in-out infinite; }
+.anim-aura { animation: aura 4s ease-in-out infinite; }
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

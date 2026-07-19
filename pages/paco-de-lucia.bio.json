@@ -1,0 +1,51 @@
+{
+  "metadata": {
+    "id": "0007",
+    "title": "Пако де Лусия",
+    "birthname": "Francisco Gustavo Sánchez Gómez",
+    "gender": "m",
+    "type": "guitarist",
+    "surname": "Sánchez Gómez",
+    "forename": "Francisco",
+    "country": "ES",
+    "birthplace": "Algeciras, Spain",
+    "deathplace": "Playa del Carmen, Mexico",
+    "dates": {
+      "born": "21.12.1947",
+      "died": "25.02.2014",
+      "activeFrom": "01.01.1961",
+      "activeTo": "25.02.2014"
+    },
+    "relatives": "Ramón de Algeciras,Pepe de Lucía",
+    "instruments": "flamenco guitar",
+    "genres": "flamenco,jazz fusion,world music",
+    "bands": "Paco de Lucía Sextet,Los Chiquitos de Algeciras",
+    "awards": "Prince of Asturias Award for the Arts,Latin Grammy awards",
+    "teachers": "Antonio Sánchez Pecino,Ramón de Algeciras",
+    "jobs": "Guitarist,Composer,Producer",
+    "ranking": 98,
+    "bio": "paco-de-lucia.bio.md",
+    "url": "https://fundacionpacodelucia.com/legado/",
+    "dataStatus": "test fixture: extracted facts with generated catalogue values"
+  },
+  "media": {
+    "photos": [
+      {
+        "label": "Main portrait",
+        "target": "https://placehold.co/420x560?text=Paco+de+Lucia"
+      },
+      {
+        "label": "Flamenco recordings",
+        "target": "https://placehold.co/500x500?text=Flamenco+Recordings"
+      }
+    ],
+    "music": []
+  },
+  "documents": [
+    {
+      "label": "Official Fundación Paco de Lucía biography",
+      "type": "REFERENCE",
+      "target": "https://fundacionpacodelucia.com/legado/"
+    }
+  ]
+}

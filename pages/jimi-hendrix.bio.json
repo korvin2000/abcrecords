@@ -1,0 +1,47 @@
+{
+  "metadata": {
+    "id": "0005",
+    "title": "Джими Хендрикс",
+    "birthname": "James Marshall Hendrix",
+    "gender": "m",
+    "type": "guitarist",
+    "surname": "Hendrix",
+    "forename": "Jimi",
+    "country": "US",
+    "birthplace": "Seattle, Washington, United States",
+    "deathplace": "London, England, United Kingdom",
+    "dates": {
+      "born": "27.11.1942",
+      "died": "18.09.1970",
+      "activeFrom": "01.01.1963",
+      "activeTo": "18.09.1970"
+    },
+    "relatives": "Al Hendrix,Leon Hendrix",
+    "instruments": "electric guitar,vocals",
+    "genres": "rock,blues,psychedelic rock,R&B",
+    "bands": "The Jimi Hendrix Experience,Band of Gypsys",
+    "awards": "Rock and Roll Hall of Fame induction,Grammy Lifetime Achievement Award",
+    "teachers": "Self-taught",
+    "jobs": "Guitarist,Singer,Songwriter,Producer",
+    "ranking": 99,
+    "bio": "jimi-hendrix.bio.md",
+    "url": "https://www.jimihendrix.com/biography/",
+    "dataStatus": "test fixture: extracted facts with generated catalogue values"
+  },
+  "media": {
+    "photos": [
+      {
+        "label": "Main portrait",
+        "target": "https://placehold.co/420x560?text=Jimi+Hendrix"
+      }
+    ],
+    "music": []
+  },
+  "documents": [
+    {
+      "label": "Official Jimi Hendrix biography",
+      "type": "REFERENCE",
+      "target": "https://www.jimihendrix.com/biography/"
+    }
+  ]
+}

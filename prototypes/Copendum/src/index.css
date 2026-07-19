@@ -1,0 +1,413 @@
+@import "tailwindcss";
+
+@theme {
+  --font-serif: "Cormorant Garamond", "IM Fell English", serif;
+  --font-display: "Cinzel", "MedievalSharp", serif;
+  --font-body: "Cormorant Garamond", serif;
+  --font-accent: "IM Fell English", serif;
+
+  --color-parchment: #e8d9b0;
+  --color-parchment-dark: #c9b488;
+  --color-ink: #1a0f08;
+  --color-gold: #d4af37;
+  --color-gold-bright: #ffd24a;
+  --color-crimson: #8b0000;
+  --color-blood: #5a0a0a;
+  --color-shadow: #0a0604;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  background: #05030a;
+  color: #e8d9b0;
+  font-family: "Cormorant Garamond", serif;
+}
+
+body {
+  background:
+    radial-gradient(ellipse at 20% 10%, rgba(120, 40, 20, 0.25) 0%, transparent 55%),
+    radial-gradient(ellipse at 85% 80%, rgba(60, 20, 100, 0.25) 0%, transparent 55%),
+    radial-gradient(ellipse at 50% 50%, rgba(30, 10, 50, 0.6) 0%, transparent 70%),
+    linear-gradient(180deg, #06030a 0%, #0b0614 50%, #040206 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
+/* Parchment texture for inner panels */
+.parchment {
+  background:
+    radial-gradient(ellipse at top left, rgba(0,0,0,0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at bottom right, rgba(0,0,0,0.2) 0%, transparent 50%),
+    repeating-linear-gradient(
+      45deg,
+      rgba(120, 80, 40, 0.03) 0px,
+      rgba(120, 80, 40, 0.03) 1px,
+      transparent 1px,
+      transparent 4px
+    ),
+    linear-gradient(135deg, #e8d9b0 0%, #d4c290 50%, #c9b488 100%);
+  color: #1a0f08;
+  box-shadow:
+    inset 0 0 60px rgba(80, 40, 10, 0.35),
+    inset 0 0 4px rgba(0, 0, 0, 0.5),
+    0 10px 40px rgba(0, 0, 0, 0.8);
+}
+
+.parchment-dark {
+  background:
+    radial-gradient(ellipse at top, rgba(0,0,0,0.25) 0%, transparent 60%),
+    repeating-linear-gradient(
+      45deg,
+      rgba(0,0,0,0.05) 0px,
+      rgba(0,0,0,0.05) 1px,
+      transparent 1px,
+      transparent 4px
+    ),
+    linear-gradient(135deg, #3a2a1a 0%, #2a1d10 50%, #1a110a 100%);
+  color: #e8d9b0;
+  box-shadow:
+    inset 0 0 60px rgba(0, 0, 0, 0.5),
+    0 10px 40px rgba(0, 0, 0, 0.8);
+}
+
+/* Ornate borders */
+.ornate-border {
+  position: relative;
+  border: 2px solid rgba(212, 175, 55, 0.6);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.8),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.5),
+    0 0 20px rgba(212, 175, 55, 0.2),
+    0 10px 30px rgba(0, 0, 0, 0.6);
+}
+
+.ornate-border::before,
+.ornate-border::after {
+  content: "";
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border: 2px solid #d4af37;
+  pointer-events: none;
+}
+
+.ornate-border::before {
+  top: -6px;
+  left: -6px;
+  border-right: none;
+  border-bottom: none;
+}
+
+.ornate-border::after {
+  bottom: -6px;
+  right: -6px;
+  border-left: none;
+  border-top: none;
+}
+
+/* Gold text effect */
+.gold-text {
+  background: linear-gradient(180deg, #ffe68a 0%, #d4af37 40%, #8a6a1a 60%, #d4af37 80%, #ffe68a 100%);
+  background-size: 100% 200%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  filter: drop-shadow(0 0 6px rgba(255, 210, 80, 0.35));
+  animation: gold-shimmer 6s ease-in-out infinite;
+}
+
+@keyframes gold-shimmer {
+  0%, 100% { background-position: 0% 0%; }
+  50% { background-position: 0% 100%; }
+}
+
+/* Glowing rune title */
+.rune-title {
+  text-shadow:
+    0 0 4px rgba(255, 210, 80, 0.9),
+    0 0 12px rgba(255, 180, 60, 0.6),
+    0 0 24px rgba(200, 120, 20, 0.4),
+    0 0 48px rgba(150, 80, 10, 0.3);
+  letter-spacing: 0.15em;
+}
+
+/* Stat bar */
+.stat-bar {
+  background: linear-gradient(90deg, #1a0a04 0%, #2a1a0a 100%);
+  border: 1px solid rgba(212, 175, 55, 0.5);
+  box-shadow: inset 0 0 4px rgba(0,0,0,0.6);
+  overflow: hidden;
+  position: relative;
+}
+
+.stat-fill {
+  background: linear-gradient(90deg, #8b0000 0%, #d4af37 60%, #ffe68a 100%);
+  box-shadow: 0 0 8px rgba(255, 210, 80, 0.6);
+  height: 100%;
+  position: relative;
+}
+
+.stat-fill::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.5) 50%,
+    transparent 100%
+  );
+  animation: shine 3s linear infinite;
+}
+
+@keyframes shine {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Card 3D tilt container */
+.card-tilt {
+  transform-style: preserve-3d;
+  perspective: 1000px;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+::-webkit-scrollbar-track {
+  background: #0a0604;
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #d4af37, #8a6a1a);
+  border-radius: 6px;
+  border: 2px solid #0a0604;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #ffe68a, #d4af37);
+}
+
+/* Divider ornament */
+.divider-ornament {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  color: #d4af37;
+}
+
+.divider-ornament::before,
+.divider-ornament::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(212, 175, 55, 0.6) 50%,
+    transparent 100%
+  );
+}
+
+/* Page turn */
+@keyframes page-turn-open {
+  0% {
+    transform: rotateY(-90deg) scale(0.9);
+    opacity: 0;
+    filter: blur(8px);
+  }
+  60% {
+    transform: rotateY(-10deg) scale(1.02);
+    opacity: 1;
+    filter: blur(0);
+  }
+  100% {
+    transform: rotateY(0deg) scale(1);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+.page-turn-open {
+  transform-origin: left center;
+  animation: page-turn-open 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+  backface-visibility: hidden;
+}
+
+@keyframes page-turn-close {
+  0% {
+    transform: rotateY(0deg) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: rotateY(90deg) scale(0.9);
+    opacity: 0;
+  }
+}
+
+.page-turn-close {
+  transform-origin: right center;
+  animation: page-turn-close 0.5s cubic-bezier(0.55, 0, 1, 0.45) both;
+}
+
+/* Floating runes */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+.floating {
+  animation: float 4s ease-in-out infinite;
+}
+
+/* Pulsing glow */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.3), 0 0 40px rgba(212, 175, 55, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(212, 175, 55, 0.6), 0 0 60px rgba(212, 175, 55, 0.3);
+  }
+}
+
+.pulse-glow {
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+/* Ink reveal for text */
+@keyframes ink-reveal {
+  0% {
+    clip-path: inset(0 100% 0 0);
+    opacity: 0;
+  }
+  100% {
+    clip-path: inset(0 0 0 0);
+    opacity: 1;
+  }
+}
+
+.ink-reveal {
+  animation: ink-reveal 1.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Vignette */
+.vignette::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  box-shadow: inset 0 0 200px rgba(0, 0, 0, 0.8);
+  z-index: 50;
+}
+
+/* Noise overlay */
+.noise::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.04;
+  z-index: 40;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/></filter><rect width='200' height='200' filter='url(%23n)' opacity='0.8'/></svg>");
+  mix-blend-mode: overlay;
+}
+
+/* Bio content styling */
+.bio-content h3 {
+  font-family: "Cinzel", serif;
+  font-weight: 600;
+  color: #5a0a0a;
+  letter-spacing: 0.1em;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(90, 10, 10, 0.3);
+  padding-bottom: 0.25rem;
+  font-size: 1.2rem;
+}
+
+.bio-content p {
+  font-family: "IM Fell English", serif;
+  font-size: 1.05rem;
+  line-height: 1.7;
+  margin-bottom: 0.75rem;
+  color: #2a1810;
+}
+
+.bio-content p::first-letter {
+  font-size: 1.4em;
+  color: #8b0000;
+  font-weight: 600;
+}
+
+.bio-content blockquote {
+  border-left: 3px solid #d4af37;
+  padding-left: 1rem;
+  margin: 1rem 0;
+  font-style: italic;
+  color: #5a3a1a;
+  font-family: "IM Fell English", serif;
+}
+
+.bio-content .media-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.bio-content .media-gallery img {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border: 1px solid #d4af37;
+  filter: sepia(0.3);
+  transition: filter 0.3s;
+}
+
+.bio-content .media-gallery img:hover {
+  filter: sepia(0);
+}
+
+.bio-content a {
+  color: #8b0000;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+}
+
+/* Custom button */
+.btn-rpg {
+  position: relative;
+  padding: 0.5rem 1.5rem;
+  font-family: "Cinzel", serif;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: #e8d9b0;
+  background: linear-gradient(180deg, #2a1a0a 0%, #1a0a04 100%);
+  border: 1px solid rgba(212, 175, 55, 0.6);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+}
+
+.btn-rpg:hover {
+  color: #ffe68a;
+  border-color: #ffe68a;
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+  background: linear-gradient(180deg, #3a2a1a 0%, #2a1a0a 100%);
+}
+
+.btn-rpg:active {
+  transform: translateY(1px);
+}

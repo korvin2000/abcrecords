@@ -1,0 +1,484 @@
+/* Fonts: Cormorant has full Cyrillic coverage — mandatory for a primarily
+   Russian catalogue. Subset CSS uses unicode-range, so browsers download
+   only the scripts a page actually shows. */
+@import "@fontsource/cormorant-sc/400.css";
+@import "@fontsource/cormorant-sc/600.css";
+@import "@fontsource/cormorant-sc/700.css";
+@import "@fontsource/cormorant-garamond/400.css";
+@import "@fontsource/cormorant-garamond/400-italic.css";
+@import "@fontsource/cormorant-garamond/500.css";
+@import "@fontsource/cormorant-garamond/600.css";
+@import "@fontsource/cormorant-garamond/700.css";
+
+@import "tailwindcss";
+
+/* ============================================================
+   КОДЕКС ГИТАРИСТОВ — Design tokens
+   Light solarized manuscript: warm ivory / yellowed paper,
+   muted gold, burgundy, dark brown. (docs/Biography_card_Design.md)
+   ============================================================ */
+@theme {
+  --font-display: "Cormorant SC", Georgia, serif;
+  --font-heading: "Cormorant SC", Georgia, serif;
+  --font-body: "Cormorant Garamond", Georgia, serif;
+
+  /* Yellowed-paper scale (light → aged) */
+  --color-paper-50: #faf5e6;
+  --color-paper-100: #f4ecd6;
+  --color-paper-200: #ecdfc0;
+  --color-paper-300: #e2d1a8;
+  --color-paper-400: #d4bf8d;
+  --color-paper-500: #c9b488;
+
+  /* Ink (dark brown text) */
+  --color-ink-700: #4a3423;
+  --color-ink-800: #33220f;
+  --color-ink-900: #2a1810;
+  --color-ink-950: #1a0f08;
+
+  /* Sepia mid-tones */
+  --color-sepia-500: #8a6f4d;
+  --color-sepia-600: #6b4a2a;
+  --color-sepia-700: #54381e;
+
+  /* Muted antique gold */
+  --color-gold-100: #fbf3d2;
+  --color-gold-200: #f7e7b4;
+  --color-gold-300: #efd585;
+  --color-gold-400: #e6c25b;
+  --color-gold-500: #d4af37;
+  --color-gold-600: #b8902a;
+  --color-gold-700: #8a6a1f;
+  --color-gold-800: #6e5419;
+
+  /* Burgundy / deep red */
+  --color-burgundy-400: #a33d4d;
+  --color-burgundy-500: #8b2635;
+  --color-burgundy-600: #7a1f2b;
+  --color-burgundy-700: #5e1220;
+  --color-burgundy-800: #4a0d18;
+}
+
+/* ============================================================
+   Base
+   ============================================================ */
+:root {
+  color-scheme: light;
+}
+
+html {
+  background-color: #f4ecd6;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  color: var(--color-ink-900);
+  font-family: var(--font-body);
+  background-color: #f4ecd6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: rgba(212, 175, 55, 0.4);
+  color: #1a0f08;
+}
+
+/* Custom scrollbar — dark track, gold thumb (design brief) */
+::-webkit-scrollbar {
+  width: 11px;
+  height: 11px;
+}
+::-webkit-scrollbar-track {
+  background: #e2d1a8;
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #b8902a, #8a6a1f);
+  border-radius: 99px;
+  border: 2px solid #e2d1a8;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #d4af37, #b8902a);
+}
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #b8902a #e2d1a8;
+}
+
+/* ============================================================
+   Utilities
+   ============================================================ */
+@layer utilities {
+  .font-display { font-family: var(--font-display); }
+  .font-heading { font-family: var(--font-heading); }
+  .font-body { font-family: var(--font-body); }
+
+  .preserve-3d { transform-style: preserve-3d; }
+
+  /* Aged-paper page background */
+  .bg-manuscript {
+    background:
+      radial-gradient(1100px 600px at 50% -8%, rgba(212, 175, 55, 0.13), transparent 60%),
+      radial-gradient(900px 700px at 100% 100%, rgba(139, 38, 53, 0.06), transparent 55%),
+      radial-gradient(800px 600px at 0% 100%, rgba(107, 74, 42, 0.09), transparent 55%),
+      linear-gradient(180deg, #f6efdb 0%, #f4ecd6 45%, #ecdfc0 100%);
+  }
+
+  /* Fine paper grain (SVG turbulence, data URI — zero requests) */
+  .bg-grain {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  }
+
+  /* Burgundy title lettering — engraved, not glowing */
+  .burgundy-gradient-text {
+    background: linear-gradient(180deg, #8b2635 0%, #7a1f2b 45%, #5e1220 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: none;
+  }
+
+  .drop-glow-gold { filter: drop-shadow(0 1px 4px rgba(138, 106, 31, 0.35)); }
+}
+
+/* ============================================================
+   Parchment panel (codex modal) — light re-theme of Copendum
+   ============================================================ */
+.parchment {
+  background:
+    radial-gradient(ellipse at top left, rgba(107, 74, 42, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at bottom right, rgba(107, 74, 42, 0.12) 0%, transparent 50%),
+    repeating-linear-gradient(
+      45deg,
+      rgba(120, 80, 40, 0.03) 0px,
+      rgba(120, 80, 40, 0.03) 1px,
+      transparent 1px,
+      transparent 4px
+    ),
+    linear-gradient(135deg, #f6efdb 0%, #efe3c4 50%, #e6d6b0 100%);
+  color: var(--color-ink-900);
+  box-shadow:
+    inset 0 0 70px rgba(138, 106, 31, 0.18),
+    inset 0 0 3px rgba(84, 56, 30, 0.25),
+    0 12px 45px rgba(51, 34, 15, 0.35);
+}
+
+/* Thin double border: muted gold outside, dark brown inside (design brief) */
+.ornate-border {
+  position: relative;
+  border: 1.5px solid rgba(184, 144, 42, 0.75);
+  outline: 1px solid rgba(84, 56, 30, 0.45);
+  outline-offset: -5px;
+}
+
+/* (Corner accents are drawn by <CornerOrnament> in the markup — the old
+   two-corner ::before/::after brackets clashed with them and are gone.) */
+
+/* Ornamental divider with centered symbol */
+.divider-ornament {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  color: #b8902a;
+}
+.divider-ornament::before,
+.divider-ornament::after {
+  content: "";
+  flex: 1;
+  max-width: 14rem;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(184, 144, 42, 0.7) 50%, transparent 100%);
+}
+
+/* Dark rectangular RPG button ("Close Codex").
+   NB: must not set `position` — this class is un-layered and would beat
+   Tailwind's layered `.absolute` utility on the codex close button
+   (that bug once pushed the codex scroll area out of its frame). */
+.btn-rpg {
+  padding: 0.45rem 1.1rem;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: #f4ecd6;
+  background: linear-gradient(180deg, #4a3423 0%, #2a1810 100%);
+  border: 1px solid rgba(184, 144, 42, 0.7);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+}
+.btn-rpg:hover {
+  color: #f7e7b4;
+  border-color: #d4af37;
+  box-shadow: 0 0 16px rgba(184, 144, 42, 0.45);
+  background: linear-gradient(180deg, #54381e 0%, #33220f 100%);
+}
+.btn-rpg:active {
+  transform: translateY(1px);
+}
+
+/* ============================================================
+   Codex interior scroll area — a golden "ribbon" scrollbar.
+   The scroll container is inset from the parchment border, so the
+   whole track (top to bottom) lives inside the double frame.
+   Track is transparent; the thumb is a slim gold rod inside a wider
+   12px grab gutter (transparent borders + padding-box clip).
+   ============================================================ */
+.codex-scroll::-webkit-scrollbar {
+  width: 12px;
+}
+.codex-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.codex-scroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #d4af37, #b8902a 45%, #8a6a1f);
+  background-clip: padding-box;
+  border: 3px solid transparent;
+  border-radius: 99px;
+  box-shadow: inset 0 0 0 1px rgba(110, 84, 25, 0.55);
+  min-height: 40px;
+}
+.codex-scroll::-webkit-scrollbar-thumb:hover,
+.codex-scroll::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(180deg, #efd585, #d4af37 45%, #b8902a);
+  background-clip: padding-box;
+  border-width: 2px;
+}
+.codex-scroll {
+  scrollbar-width: auto; /* Firefox: `thin` was too skinny for the design */
+  scrollbar-color: #b8902a transparent;
+}
+
+/* ============================================================
+   Page-turn 3D animations (from Copendum, tuned)
+   ============================================================ */
+@keyframes page-turn-open {
+  0% {
+    transform: rotateY(-90deg) scale(0.92);
+    opacity: 0;
+    filter: blur(6px);
+  }
+  60% {
+    transform: rotateY(-8deg) scale(1.015);
+    opacity: 1;
+    filter: blur(0);
+  }
+  100% {
+    transform: rotateY(0deg) scale(1);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+.page-turn-open {
+  transform-origin: left center;
+  animation: page-turn-open 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
+  backface-visibility: hidden;
+}
+
+@keyframes page-turn-close {
+  0% {
+    transform: rotateY(0deg) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: rotateY(84deg) scale(0.92);
+    opacity: 0;
+  }
+}
+.page-turn-close {
+  transform-origin: right center;
+  animation: page-turn-close 0.45s cubic-bezier(0.55, 0, 1, 0.45) both;
+}
+
+/* Leaf-through effect for tab switches */
+@keyframes leaf-in {
+  0% {
+    transform: perspective(1400px) rotateY(-14deg) translateX(24px);
+    opacity: 0;
+    filter: blur(3px);
+  }
+  100% {
+    transform: perspective(1400px) rotateY(0) translateX(0);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+.leaf-in {
+  transform-origin: left center;
+  animation: leaf-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ============================================================
+   Article (BioMD) typography
+   ============================================================ */
+.bio-article {
+  font-size: 1.13rem;
+  line-height: 1.75;
+  color: var(--color-ink-900);
+}
+.bio-article p {
+  margin: 0 0 0.9em;
+}
+.bio-article h2,
+.bio-article h3 {
+  font-family: var(--font-heading);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--color-burgundy-600);
+  border-bottom: 1px solid rgba(184, 144, 42, 0.45);
+  padding-bottom: 0.3rem;
+  margin: 1.6em 0 0.7em;
+}
+.bio-article h2 { font-size: 1.35rem; }
+.bio-article h3 { font-size: 1.15rem; }
+
+.bio-article a {
+  color: var(--color-burgundy-600);
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 3px;
+  transition: color 0.2s;
+}
+.bio-article a:hover {
+  color: var(--color-burgundy-400);
+}
+
+.bio-article blockquote {
+  border-left: 3px solid #d4af37;
+  margin: 1.2em 0;
+  padding: 0.2em 0 0.2em 1.1em;
+  font-style: italic;
+  color: var(--color-sepia-700);
+  font-size: 1.1em;
+}
+
+.bio-article mark {
+  background: linear-gradient(180deg, transparent 35%, rgba(212, 175, 55, 0.45) 35%, rgba(212, 175, 55, 0.45) 92%, transparent 92%);
+  color: inherit;
+  padding: 0 0.15em;
+}
+
+.bio-article hr {
+  border: none;
+  height: 1px;
+  margin: 1.6em auto;
+  max-width: 20rem;
+  background: linear-gradient(90deg, transparent, rgba(184, 144, 42, 0.7), transparent);
+}
+
+.bio-article table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95em;
+  margin: 1em 0;
+}
+.bio-article th {
+  font-family: var(--font-heading);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.82em;
+  color: var(--color-burgundy-700);
+  border-bottom: 1.5px solid rgba(184, 144, 42, 0.6);
+  padding: 0.4em 0.6em;
+  text-align: left;
+}
+.bio-article td {
+  border-bottom: 1px solid rgba(138, 111, 77, 0.25);
+  padding: 0.4em 0.6em;
+  vertical-align: top;
+}
+
+.bio-article ol,
+.bio-article ul {
+  padding-left: 1.4em;
+  margin: 0 0 0.9em;
+}
+.bio-article li {
+  margin-bottom: 0.15em;
+}
+.bio-article li::marker {
+  color: var(--color-gold-700);
+  font-weight: 600;
+}
+
+/* Red drop capital for lead paragraphs (design brief) */
+.drop-cap > p:first-of-type::first-letter {
+  font-family: var(--font-display);
+  float: left;
+  font-size: 3.1em;
+  line-height: 0.82;
+  padding: 0.06em 0.12em 0 0;
+  color: var(--color-burgundy-600);
+  font-weight: 700;
+}
+
+/* Lead block — emphasized intro */
+.bio-lead {
+  font-size: 1.24rem;
+  line-height: 1.7;
+  color: var(--color-ink-800);
+}
+
+/* Images inside the article get thin gold borders */
+.bio-figure img {
+  border: 1px solid rgba(184, 144, 42, 0.8);
+  outline: 1px solid rgba(84, 56, 30, 0.35);
+  outline-offset: 2px;
+  background: #ecdfc0;
+  filter: sepia(0.22);
+  transition: filter 0.35s;
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.bio-figure:hover img {
+  filter: sepia(0);
+}
+.bio-figure figcaption {
+  font-style: italic;
+  font-size: 0.9rem;
+  color: var(--color-sepia-600);
+  text-align: center;
+  margin-top: 0.45rem;
+  line-height: 1.4;
+}
+
+/* ============================================================
+   Keyframes shared by components
+   ============================================================ */
+@keyframes floaty {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-9px); }
+}
+.anim-floaty { animation: floaty 5.5s ease-in-out infinite; }
+
+@keyframes shimmer-slide {
+  to { background-position: -200% center; }
+}
+
+@keyframes eq-bounce {
+  from { transform: scaleY(0.25); }
+  to { transform: scaleY(1); }
+}
+
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+.skeleton {
+  background: linear-gradient(135deg, #ecdfc0, #e2d1a8);
+  animation: skeleton-pulse 1.6s ease-in-out infinite;
+}
+
+/* Reduced motion: kill all animation */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

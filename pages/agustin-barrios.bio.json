@@ -1,0 +1,57 @@
+{
+  "metadata": {
+    "id": "0001",
+    "title": "Агустин Барриос",
+    "birthname": "Agustín Pío Barrios Ferreira",
+    "gender": "m",
+    "type": "guitarist",
+    "surname": "Barrios",
+    "forename": "Agustín",
+    "country": "PY",
+    "birthplace": "Misiones, Paraguay",
+    "deathplace": "San Salvador, El Salvador",
+    "dates": {
+      "born": "05.05.1885",
+      "died": "07.08.1944",
+      "activeFrom": "01.01.1900",
+      "activeTo": "07.08.1944"
+    },
+    "instruments": "classical guitar",
+    "genres": "classical,Paraguayan folk",
+    "teachers": "Gustavo Sosa Escalada",
+    "jobs": "Guitarist,Composer,Teacher",
+    "ranking": 94,
+    "bio": "agustin-barrios.bio.md",
+    "url": "https://en.wikipedia.org/wiki/Agust%C3%ADn_Barrios",
+    "dataStatus": "test fixture: extracted facts with generated catalogue values"
+  },
+  "media": {
+    "photos": [
+      {
+        "label": "Main portrait",
+        "target": "https://placehold.co/324x438?text=Agustin+Barrios"
+      },
+      {
+        "label": "Large portrait",
+        "target": "https://placehold.co/794x1142?text=Agustin+Barrios+Portrait"
+      }
+    ],
+    "music": [
+      {
+        "label": "Julia Florida",
+        "target": "music/mp/juliaflorida.mp3"
+      },
+      {
+        "label": "La Catedral — Prelude",
+        "target": "music/wma/la_catedral_prelude.wma"
+      }
+    ]
+  },
+  "documents": [
+    {
+      "label": "Барриос Мангори — жизнь и творчество",
+      "type": "ARTICLE",
+      "target": "barrios1.htm"
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+    "metadata": {
+        "id": "0001",
+        "title": "Абреу Зекинья",
+        "birthname": "Абреу Зекинья Викторович",
+        "gender": "m",
+        "type": "guitarist",
+        "surname": "Абреу",
+        "forename": "Зекинья",
+        "country": "RU",
+        "birthplace": "Москва",
+        "deathplace": "Москва",
+        "dates": {
+            "born": "11.02.1920",
+            "died": "11.02.1990",
+            "activeFrom": "11.02.1940",
+            "activeTo": "11.02.1980"
+        },
+        "relatives": "Иван Зекинья",
+        "instruments": "guitar",
+        "genres": "rock,pop",
+        "bands": "Kino",
+        "awards": "AVN Premium Award",
+        "teachers": "Сеговия Андрей",
+        "disciples": "Сергей Руднев",
+        "jobs": "Дирижер",
+        "ranking": 50,
+        "bio": "zekinia.md",
+        "url": "http://www.guitar-times.ru/index.htm"
+    },
+    "media": {
+        "photos": [
+            {
+                "label": "main Photo",
+                "target": "/characters/vesper-reed.jpg"
+            }
+        ],
+        "music": [
+            {
+                "label": "Love song",
+                "target": "/music/song.mp3"
+            }
+        ]
+    },
+    "documents": [
+        {
+            "label": "Expulsion hearing",
+            "type": "TRANSCRIPT",
+            "target": "embedded"
+        },
+        {
+            "label": "Sealed bloodwork",
+            "type": "DOSSIER",
+            "target": "kael-voss"
+        }
+    ]
+}
