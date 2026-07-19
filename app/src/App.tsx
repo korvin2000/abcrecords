@@ -37,10 +37,14 @@ export default function App() {
   // unlock audio on first user gesture (autoplay policy)
   useEffect(() => {
     const unlock = () => audio.unlock();
+    // Per the HTML spec, activation comes from pointerdown only for mice;
+    // touch/pen grant it on pointerup — listen for both, plus keydown.
     window.addEventListener("pointerdown", unlock, { once: true });
+    window.addEventListener("pointerup", unlock, { once: true });
     window.addEventListener("keydown", unlock, { once: true });
     return () => {
       window.removeEventListener("pointerdown", unlock);
+      window.removeEventListener("pointerup", unlock);
       window.removeEventListener("keydown", unlock);
     };
   }, []);

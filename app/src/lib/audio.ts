@@ -12,6 +12,10 @@
 //    the entry's name hash (same hero — same melody, every visit).
 //  • Theme playback uses a look-ahead scheduler (classic game-audio
 //    technique for sample-accurate timing).
+//  • Autoplay policy: browsers keep the context "suspended" until the first
+//    real user gesture (click / key / tap — hover never qualifies), so no
+//    cue can sound before that. ensure() retries resume() on every call and
+//    App.tsx unlocks on the first gesture; nothing else is permitted.
 // ============================================================
 
 import { fnv1a } from "./metadata";
@@ -90,7 +94,6 @@ class AudioEngine {
 
   private _enabled = true;
   private _ambientOn = false;
-  private _unlocked = false;
   private lastHoverAt = -Infinity;
   private hoverStep = 0;
   private lastTypeAt = -Infinity;
@@ -98,7 +101,14 @@ class AudioEngine {
   private suppressOpenUntil = -Infinity;
 
   private ensure(): AudioContext | null {
-    if (this.ctx) return this.ctx;
+    if (this.ctx) {
+      // Autoplay policy: a context created before the first user gesture is
+      // "suspended". resume() is a no-op (pending promise) until the page has
+      // sticky user activation, then succeeds — so retrying on every call
+      // self-heals the engine right after the first real interaction.
+      if (this.ctx.state === "suspended") void this.ctx.resume();
+      return this.ctx;
+    }
     try {
       const Ctx =
         window.AudioContext ||
@@ -157,7 +167,6 @@ class AudioEngine {
 
   /** Call on first interaction to unlock audio (autoplay policy). */
   unlock() {
-    this._unlocked = true;
     const ctx = this.ensure();
     if (ctx && ctx.state === "suspended") void ctx.resume();
   }
@@ -225,9 +234,15 @@ class AudioEngine {
 
   // ---- SFX ----------------------------------------------------------
   hover() {
-    if (!this._enabled || !this._unlocked) return;
+    if (!this._enabled) return;
     const ctx = this.ensure();
     if (!ctx) return;
+    // Hover cues are transient decorations. While the context is suspended
+    // (no user activation yet) its clock is frozen, so scheduling here would
+    // only queue stale notes that all replay at once after unlock — and the
+    // frozen timestamps would jam the rate limiter. Skip instead; ensure()
+    // above has already requested resume() for the earliest legal moment.
+    if (ctx.state !== "running") return;
     const t = ctx.currentTime;
     if (t - this.lastHoverAt < 0.28) return;
     this.lastHoverAt = t;
