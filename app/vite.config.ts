@@ -28,5 +28,17 @@ export default defineConfig({
     alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
   },
   server: { port: 5173 },
-  build: { target: "es2020" },
+  build: {
+    target: "baseline-widely-available",
+    rollupOptions: {
+      output: {
+        // Stable framework chunks cache independently from application code.
+        manualChunks: {
+          react: ["react", "react-dom"],
+          motion: ["framer-motion"],
+          markdown: ["react-markdown", "remark-gfm", "unist-util-visit"],
+        },
+      },
+    },
+  },
 });

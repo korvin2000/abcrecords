@@ -47,6 +47,7 @@ export function CharacterGrid({ docs, nativeCount, rankings, onSelect }: Props) 
         ranking={rankings.get(doc.slug)}
         foreign={foreign}
         langs={doc.langs}
+        eager={i < 4}
         onSelect={onSelect}
       />
     </m.div>
@@ -79,7 +80,7 @@ export function CharacterGrid({ docs, nativeCount, rankings, onSelect }: Props) 
           </m.div>
         )}
 
-        {docs.slice(nativeCount).map((doc, i) => card(doc, i, true))}
+        {docs.slice(nativeCount).map((doc, i) => card(doc, nativeCount + i, true))}
       </AnimatePresence>
     </m.div>
   );

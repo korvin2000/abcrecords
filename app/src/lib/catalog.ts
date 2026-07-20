@@ -25,26 +25,33 @@ export async function loadIndex(signal?: AbortSignal): Promise<IndexEntry[]> {
 }
 
 const bundleCache = new Map<string, Promise<EntryBundle>>();
+const jsonCache = new Map<string, Promise<EntryData | null>>();
+const textCache = new Map<string, Promise<string | null>>();
 
-async function fetchJson(path: string): Promise<EntryData | null> {
-  try {
-    const res = await fetch(resolveContentPath(path));
-    if (!res.ok) return null;
-    const data = (await res.json()) as EntryData;
-    return data && typeof data === "object" && data.metadata ? data : null;
-  } catch {
-    return null;
+function fetchJson(path: string): Promise<EntryData | null> {
+  let request = jsonCache.get(path);
+  if (!request) {
+    request = fetch(resolveContentPath(path))
+      .then(async (res) => {
+        if (!res.ok) return null;
+        const data = (await res.json()) as EntryData;
+        return data && typeof data === "object" && data.metadata ? data : null;
+      })
+      .catch(() => null);
+    jsonCache.set(path, request);
   }
+  return request;
 }
 
-async function fetchText(path: string): Promise<string | null> {
-  try {
-    const res = await fetch(resolveContentPath(path));
-    if (!res.ok) return null;
-    return await res.text();
-  } catch {
-    return null;
+function fetchText(path: string): Promise<string | null> {
+  let request = textCache.get(path);
+  if (!request) {
+    request = fetch(resolveContentPath(path))
+      .then((res) => (res.ok ? res.text() : null))
+      .catch(() => null);
+    textCache.set(path, request);
   }
+  return request;
 }
 
 /** Load (and cache) one language edition of an entry — metadata + biography
@@ -62,15 +69,16 @@ export function loadEntry(entry: IndexEntry, lang: Lang): Promise<EntryBundle> {
   return p;
 }
 
-/** Warm the cache during idle time so opening a codex feels instant and
- *  cards can show ranking stars. Each entry is prefetched in the reader's
- *  language when available, else its original one. Sequential on purpose —
- *  low-end friendly. */
+/** Warm only lightweight metadata during idle time so cards can show ranking
+ *  stars. Biography Markdown remains lazy until its codex is opened. */
 export function prefetchAll(
   entries: IndexEntry[],
   preferredLang: Lang,
-  onOne?: (slug: string, bundle: EntryBundle) => void,
+  onOne?: (slug: string, data: EntryData | null) => void,
 ): void {
+  const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
+  if (connection?.saveData) return;
+
   const queue = [...entries];
   const idle: (cb: () => void) => void =
     typeof requestIdleCallback === "function"
@@ -81,8 +89,8 @@ export function prefetchAll(
     const next = queue.shift();
     if (!next) return;
     const lang = pickContentLang(entryLangs(next), preferredLang);
-    void loadEntry(next, lang).then((bundle) => {
-      onOne?.(slugOf(next), bundle);
+    void fetchJson(localizeContentPath(next.json, lang)).then((data) => {
+      onOne?.(slugOf(next), data);
       idle(step);
     });
   };

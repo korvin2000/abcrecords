@@ -13,6 +13,7 @@ import { accentFor, countryDisplay, rankStars } from "@/lib/metadata";
 import { initialsOf, placeholderPortrait } from "@/lib/placeholder";
 import { audio } from "@/lib/audio";
 import { typeLabel, useI18n } from "@/lib/i18n";
+import { preloadCodexModal } from "./codex/LazyCodexModal";
 import clsx from "clsx";
 import { Flag } from "./Flag";
 import { OrnateFrame, RankStars } from "./OrnateFrame";
@@ -27,6 +28,8 @@ interface Props {
   foreign?: boolean;
   /** Languages this entry is available in (shown on foreign cards). */
   langs?: Lang[];
+  /** Load above-the-fold portraits immediately; defer the rest. */
+  eager?: boolean;
   onSelect: (slug: string) => void;
 }
 
@@ -35,7 +38,7 @@ interface Props {
  * shine sweep, re-themed to the light manuscript palette. The 3D tilt only
  * engages on fine pointers; touch devices get the cheap path.
  */
-export function CharacterCard({ entry, slug, ranking, foreign = false, langs = [], onSelect }: Props) {
+export function CharacterCard({ entry, slug, ranking, foreign = false, langs = [], eager = false, onSelect }: Props) {
   const { t, locale } = useI18n();
   const accent = foreign ? "#8b2635" : accentFor(slug);
   const stars = rankStars(ranking);
@@ -78,6 +81,8 @@ export function CharacterCard({ entry, slug, ranking, foreign = false, langs = [
       type="button"
       onMouseMove={onMove}
       onMouseLeave={onLeave}
+      onPointerEnter={preloadCodexModal}
+      onFocus={preloadCodexModal}
       onMouseEnter={() => audio.hover()}
       onClick={() => {
         audio.unlock();
@@ -107,7 +112,8 @@ export function CharacterCard({ entry, slug, ranking, foreign = false, langs = [
             <img
               src={portraitSrc}
               alt={displayTitle}
-              loading="lazy"
+              loading={eager ? "eager" : "lazy"}
+              fetchPriority={eager ? "high" : undefined}
               decoding="async"
               className={clsx(
                 "absolute inset-0 h-full w-full object-cover object-top transition-[transform,filter] duration-[1200ms] [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] group-hover:scale-110",

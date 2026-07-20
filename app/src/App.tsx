@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import type { IndexEntry } from "@/lib/types";
 import { loadIndex, prefetchAll } from "@/lib/catalog";
@@ -12,7 +12,7 @@ import { AnimatedTitle } from "@/components/AnimatedTitle";
 import { LanguageMenu } from "@/components/LanguageMenu";
 import { SearchBar } from "@/components/SearchBar";
 import { CharacterGrid } from "@/components/CharacterGrid";
-import { CodexModal } from "@/components/codex/CodexModal";
+import { LazyCodexModal } from "@/components/codex/LazyCodexModal";
 import { SiteFooter } from "@/components/SiteFooter";
 
 type LoadState = { kind: "loading" } | { kind: "error" } | { kind: "ready"; entries: IndexEntry[] };
@@ -66,8 +66,8 @@ export default function App() {
   // instantly, so repeat passes are cheap).
   useEffect(() => {
     if (state.kind !== "ready") return;
-    prefetchAll(state.entries, lang, (slug, bundle) => {
-      const r = bundle.data?.metadata?.ranking;
+    prefetchAll(state.entries, lang, (slug, data) => {
+      const r = data?.metadata?.ranking;
       if (typeof r === "number") {
         setRankings((prev) => new Map(prev).set(slug, r));
       }
@@ -253,18 +253,20 @@ export default function App() {
 
       <SiteFooter />
 
-      <AnimatePresence>
-        {selectedDoc && (
-          <CodexModal
-            key={selectedDoc.slug}
-            entry={selectedDoc.entry}
-            slug={selectedDoc.slug}
-            onClose={() => openEntry(null)}
-            onTurn={turnPage}
-            onNavigateEntry={navigateByMdPath}
-          />
-        )}
-      </AnimatePresence>
+      <Suspense fallback={selectedDoc ? <CodexFallback /> : null}>
+        <AnimatePresence>
+          {selectedDoc && (
+            <LazyCodexModal
+              key={selectedDoc.slug}
+              entry={selectedDoc.entry}
+              slug={selectedDoc.slug}
+              onClose={() => openEntry(null)}
+              onTurn={turnPage}
+              onNavigateEntry={navigateByMdPath}
+            />
+          )}
+        </AnimatePresence>
+      </Suspense>
     </div>
   );
 }
@@ -302,6 +304,14 @@ function GridSkeleton() {
       {Array.from({ length: 7 }).map((_, i) => (
         <div key={i} className="skeleton aspect-[3/4.4] rounded-lg" style={{ animationDelay: `${i * 0.12}s` }} />
       ))}
+    </div>
+  );
+}
+
+function CodexFallback() {
+  return (
+    <div className="fixed inset-0 z-40 grid place-items-center bg-ink-950/40 backdrop-blur-[2px]" aria-busy="true">
+      <span className="h-12 w-12 animate-spin rounded-full border-2 border-gold-300/40 border-t-gold-500" />
     </div>
   );
 }
