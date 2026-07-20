@@ -3,7 +3,6 @@ import {
   m,
   useMotionTemplate,
   useMotionValue,
-  useReducedMotion,
   useSpring,
   useTransform,
 } from "framer-motion";
@@ -38,7 +37,6 @@ interface Props {
  */
 export function CharacterCard({ entry, slug, ranking, foreign = false, langs = [], onSelect }: Props) {
   const { t, locale } = useI18n();
-  const reduced = useReducedMotion();
   const accent = foreign ? "#8b2635" : accentFor(slug);
   const stars = rankStars(ranking);
   const [imgFailed, setImgFailed] = useState(false);
@@ -47,9 +45,9 @@ export function CharacterCard({ entry, slug, ranking, foreign = false, langs = [
   // pointer-driven tilt
   const px = useMotionValue(0);
   const py = useMotionValue(0);
-  const spring = { stiffness: 180, damping: 16, mass: 0.4 };
-  const rotateX = useSpring(useTransform(py, [-0.5, 0.5], [9, -9]), spring);
-  const rotateY = useSpring(useTransform(px, [-0.5, 0.5], [-9, 9]), spring);
+  const spring = { stiffness: 95, damping: 18, mass: 0.7 };
+  const rotateX = useSpring(useTransform(py, [-0.5, 0.5], [12, -12]), spring);
+  const rotateY = useSpring(useTransform(px, [-0.5, 0.5], [-12, 12]), spring);
 
   // cursor glare (warm paper light, not white neon)
   const glareX = useTransform(px, [-0.5, 0.5], ["0%", "100%"]);
@@ -57,7 +55,6 @@ export function CharacterCard({ entry, slug, ranking, foreign = false, langs = [
   const glare = useMotionTemplate`radial-gradient(circle at ${glareX} ${glareY}, rgba(251,243,210,0.5), transparent 46%)`;
 
   function onMove(e: React.MouseEvent<HTMLButtonElement>) {
-    if (reduced) return;
     const r = e.currentTarget.getBoundingClientRect();
     px.set((e.clientX - r.left) / r.width - 0.5);
     py.set((e.clientY - r.top) / r.height - 0.5);
@@ -86,15 +83,16 @@ export function CharacterCard({ entry, slug, ranking, foreign = false, langs = [
         audio.unlock();
         window.setTimeout(() => onSelect(slug), 70);
       }}
-      style={reduced ? undefined : { rotateX, rotateY, transformPerspective: 900 }}
-      whileHover={reduced ? undefined : { scale: 1.04 }}
+      style={{ rotateX, rotateY, transformPerspective: 720 }}
+      whileHover={{ y: -8, scale: 1.045 }}
+      transition={{ type: "spring", stiffness: 90, damping: 18, mass: 0.7 }}
       whileTap={{ scale: 0.97 }}
       className="group preserve-3d relative block w-full cursor-pointer text-left"
       aria-label={t("card.open", { name: displayTitle })}
     >
       <OrnateFrame
         accent={foreign ? "#8b2635" : "#b8902a"}
-        cornerClassName="h-6 w-6 opacity-65 transition-opacity duration-300 group-hover:opacity-90 sm:h-7 sm:w-7"
+        cornerClassName="h-6 w-6 opacity-65 transition-opacity duration-500 group-hover:opacity-90 sm:h-7 sm:w-7"
       >
         <div
           className={clsx(
@@ -112,10 +110,10 @@ export function CharacterCard({ entry, slug, ranking, foreign = false, langs = [
               loading="lazy"
               decoding="async"
               className={clsx(
-                "absolute inset-0 h-full w-full object-cover object-top transition-transform duration-700 ease-out group-hover:scale-108",
+                "absolute inset-0 h-full w-full object-cover object-top transition-[transform,filter] duration-[1200ms] [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] group-hover:scale-110",
                 foreign
-                  ? "[filter:sepia(0.42)_grayscale(0.38)_brightness(0.96)] group-hover:[filter:sepia(0.2)_grayscale(0.12)]"
-                  : "[filter:sepia(0.28)] group-hover:[filter:sepia(0.05)]",
+                  ? "[filter:sepia(0.42)_grayscale(0.38)_brightness(0.96)_blur(0.5px)] group-hover:[filter:sepia(0.2)_grayscale(0.12)_blur(0)]"
+                  : "[filter:sepia(0.28)_blur(0.5px)] group-hover:[filter:sepia(0.05)_blur(0)]",
               )}
               onError={() => setImgFailed(true)}
             />
@@ -128,16 +126,14 @@ export function CharacterCard({ entry, slug, ranking, foreign = false, langs = [
             <div className="absolute inset-x-0 bottom-0 h-1/4 bg-gradient-to-t from-paper-100 to-transparent" />
 
             {/* cursor glare */}
-            {!reduced && (
-              <m.div
-                className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-                style={{ background: glare }}
-              />
-            )}
+            <m.div
+              className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+              style={{ background: glare }}
+            />
 
             {/* shine sweep */}
             <span className="pointer-events-none absolute inset-0 overflow-hidden">
-              <span className="absolute -inset-y-2 -left-1/3 w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-gold-100/50 to-transparent opacity-0 transition-all duration-700 group-hover:left-[120%] group-hover:opacity-100" />
+              <span className="absolute -inset-y-2 -left-1/3 w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-gold-100/50 to-transparent opacity-0 transition-all duration-1000 group-hover:left-[120%] group-hover:opacity-100" />
             </span>
 
             {/* top badges */}
@@ -200,7 +196,7 @@ export function CharacterCard({ entry, slug, ranking, foreign = false, langs = [
 
           {/* hover glow ring — gold for native finds, burgundy for foreign */}
           <div
-            className="pointer-events-none absolute inset-0 rounded-lg opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+            className="pointer-events-none absolute inset-0 rounded-lg opacity-0 transition-opacity duration-700 group-hover:opacity-100"
             style={{
               boxShadow: foreign
                 ? `inset 0 0 0 1.5px #8b2635, 0 10px 34px rgba(122,31,43,0.3)`
