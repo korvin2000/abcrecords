@@ -183,7 +183,7 @@ function parseBlock(block: RawBlock, warnings: string[]): BioNode | null {
       }
       const cols = ([2, 3, 4] as const).includes(columns as 2 | 3 | 4)
         ? (columns as 2 | 3 | 4)
-        : ((Math.min(Math.max(images.length, 2), 4) as 2 | 3 | 4) ?? 2);
+        : (Math.min(Math.max(images.length, 2), 4) as 2 | 3 | 4);
       return { kind: "images", columns: cols, images };
     }
 

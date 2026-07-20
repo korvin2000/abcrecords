@@ -28,30 +28,38 @@ const bundleCache = new Map<string, Promise<EntryBundle>>();
 const jsonCache = new Map<string, Promise<EntryData | null>>();
 const textCache = new Map<string, Promise<string | null>>();
 
-function fetchJson(path: string): Promise<EntryData | null> {
-  let request = jsonCache.get(path);
+/** Memoize a request per path so each file is fetched at most once. */
+function cached<T>(
+  store: Map<string, Promise<T>>,
+  path: string,
+  load: (p: string) => Promise<T>,
+): Promise<T> {
+  let request = store.get(path);
   if (!request) {
-    request = fetch(resolveContentPath(path))
+    request = load(path);
+    store.set(path, request);
+  }
+  return request;
+}
+
+function fetchJson(path: string): Promise<EntryData | null> {
+  return cached(jsonCache, path, (p) =>
+    fetch(resolveContentPath(p))
       .then(async (res) => {
         if (!res.ok) return null;
         const data = (await res.json()) as EntryData;
         return data && typeof data === "object" && data.metadata ? data : null;
       })
-      .catch(() => null);
-    jsonCache.set(path, request);
-  }
-  return request;
+      .catch(() => null),
+  );
 }
 
 function fetchText(path: string): Promise<string | null> {
-  let request = textCache.get(path);
-  if (!request) {
-    request = fetch(resolveContentPath(path))
+  return cached(textCache, path, (p) =>
+    fetch(resolveContentPath(p))
       .then((res) => (res.ok ? res.text() : null))
-      .catch(() => null);
-    textCache.set(path, request);
-  }
-  return request;
+      .catch(() => null),
+  );
 }
 
 /** Load (and cache) one language edition of an entry — metadata + biography

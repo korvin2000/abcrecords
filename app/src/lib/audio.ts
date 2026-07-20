@@ -229,16 +229,26 @@ class AudioEngine {
     return root * Math.pow(2, semitones / 12);
   }
 
+  /**
+   * Shared preamble for one-shot cues: null when muted or the audio context
+   * is unavailable, otherwise the live context and its current time.
+   */
+  private cue(): { ctx: AudioContext; t: number } | null {
+    if (!this._enabled) return null;
+    const ctx = this.ensure();
+    if (!ctx) return null;
+    return { ctx, t: ctx.currentTime };
+  }
+
   // ---- SFX ----------------------------------------------------------
   hover() {
-    if (!this._enabled) return;
-    const ctx = this.ensure();
-    if (!ctx) return;
-    if (ctx.state !== "running") {
+    const c = this.cue();
+    if (!c) return;
+    if (c.ctx.state !== "running") {
       this.pendingHover = true;
       return;
     }
-    this.playHover(ctx);
+    this.playHover(c.ctx);
   }
 
   private onContextStateChange = () => {
@@ -274,10 +284,9 @@ class AudioEngine {
   }
 
   type() {
-    if (!this._enabled) return;
-    const ctx = this.ensure();
-    if (!ctx) return;
-    const t = ctx.currentTime;
+    const c = this.cue();
+    if (!c) return;
+    const { t } = c;
     const pause = t - this.lastTypeAt;
     this.lastTypeAt = t;
     if (pause < 0.24) return;
@@ -292,10 +301,9 @@ class AudioEngine {
   }
 
   click() {
-    if (!this._enabled) return;
-    const ctx = this.ensure();
-    if (!ctx) return;
-    const t = ctx.currentTime;
+    const c = this.cue();
+    if (!c) return;
+    const { t } = c;
     if (t - this.lastClickAt < 0.09) return;
     this.lastClickAt = t;
     // A quiet B3–E4 dyad: the two upper open strings of a classical guitar.
@@ -319,10 +327,9 @@ class AudioEngine {
 
   /** Restrained E-major cadence — "match found". */
   found() {
-    if (!this._enabled) return;
-    const ctx = this.ensure();
-    if (!ctx) return;
-    const t = ctx.currentTime;
+    const c = this.cue();
+    if (!c) return;
+    const { t } = c;
     [0, 4, 7, 12].forEach((s, i) =>
       this.voice(AudioEngine.freq(329.63, s), t + i * 0.085, 0.11, {
         type: i === 0 ? "triangle" : "sine",
@@ -336,10 +343,9 @@ class AudioEngine {
   }
 
   error() {
-    if (!this._enabled) return;
-    const ctx = this.ensure();
-    if (!ctx) return;
-    const t = ctx.currentTime;
+    const c = this.cue();
+    if (!c) return;
+    const { t } = c;
     this.voice(220, t, 0.1, {
       type: "triangle",
       gain: 0.022,
@@ -360,10 +366,9 @@ class AudioEngine {
 
   /** Codex open — a soft paper breath and an E-minor add-nine voicing. */
   open() {
-    if (!this._enabled) return;
-    const ctx = this.ensure();
-    if (!ctx) return;
-    const t = ctx.currentTime;
+    const c = this.cue();
+    if (!c) return;
+    const { t } = c;
     if (t < this.suppressOpenUntil) return;
     this.noiseSweep(t, 0.42, 420, 1550, 0.012);
     [0, 7, 12, 15, 19].forEach((s, i) =>
@@ -379,10 +384,9 @@ class AudioEngine {
   }
 
   close() {
-    if (!this._enabled) return;
-    const ctx = this.ensure();
-    if (!ctx) return;
-    const t = ctx.currentTime;
+    const c = this.cue();
+    if (!c) return;
+    const { t } = c;
     this.noiseSweep(t, 0.28, 1300, 380, 0.009);
     [12, 7, 0].forEach((s, i) =>
       this.voice(AudioEngine.freq(164.81, s), t + i * 0.055, 0.11, {
@@ -398,10 +402,9 @@ class AudioEngine {
 
   /** Page turn — a brief, low-level paper movement with no percussive tick. */
   pageTurn() {
-    if (!this._enabled) return;
-    const ctx = this.ensure();
-    if (!ctx) return;
-    const t = ctx.currentTime;
+    const c = this.cue();
+    if (!c) return;
+    const { t } = c;
     this.suppressOpenUntil = t + 0.5;
     this.noiseSweep(t, 0.24, 650, 2100, 0.015);
     this.voice(293.66, t + 0.035, 0.045, {

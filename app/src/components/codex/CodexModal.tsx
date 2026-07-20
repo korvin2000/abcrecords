@@ -4,7 +4,7 @@ import clsx from "clsx";
 import type { EntryBundle, IndexEntry } from "@/lib/types";
 import { loadEntry } from "@/lib/catalog";
 import { entryLangs, pickContentLang, type Lang } from "@/lib/languages";
-import { countryDisplay, regionName, yearOf } from "@/lib/metadata";
+import { resolveCountry, yearOf } from "@/lib/metadata";
 import { audio } from "@/lib/audio";
 import { typeLabel, useI18n } from "@/lib/i18n";
 import { LanguageMenu } from "../LanguageMenu";
@@ -112,8 +112,7 @@ export function CodexModal({ entry, slug, onClose, onTurn, onNavigateEntry }: Pr
   const born = yearOf(meta?.dates?.born);
   const died = yearOf(meta?.dates?.died);
   const years = born ? `${born} — ${died ?? "…"}` : null;
-  const country =
-    (meta?.country ? regionName(meta.country, locale) : null) ?? countryDisplay(entry.country, locale);
+  const country = resolveCountry(meta?.country, entry.country, locale);
   const subtitle = [typeLabel(t, meta?.type ?? entry.type), country, years].filter(Boolean).join(" · ");
 
   return (

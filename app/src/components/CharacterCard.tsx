@@ -89,7 +89,7 @@ export function CharacterCard({ entry, slug, ranking, foreign = false, langs = [
         audio.unlock();
         preloadCodexModal();
         void loadEntry(entry, pickContentLang(entryLangs(entry), lang));
-        window.setTimeout(() => onSelect(slug), 70);
+        onSelect(slug);
       }}
       style={{ rotateX, rotateY, transformPerspective: 720 }}
       whileHover={{ y: -8, scale: 1.045 }}

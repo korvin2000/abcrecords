@@ -1,13 +1,6 @@
 import type { ReactNode } from "react";
 import type { EntryBundle, IndexEntry } from "@/lib/types";
-import {
-  ageOf,
-  countryDisplay,
-  formatDmy,
-  rankStars,
-  regionName,
-  splitList,
-} from "@/lib/metadata";
+import { ageOf, formatDmy, rankStars, resolveCountry, splitList } from "@/lib/metadata";
 import { typeLabel, useI18n, type TFunc } from "@/lib/i18n";
 import { RankStars } from "../OrnateFrame";
 
@@ -28,8 +21,7 @@ export function LoreTab({ entry, bundle }: { entry: IndexEntry; bundle: EntryBun
   const dates = meta.dates ?? {};
   const age = ageOf(dates.born, dates.died);
   const stars = rankStars(meta.ranking);
-  const country =
-    (meta.country ? regionName(meta.country, locale) : null) ?? countryDisplay(entry.country, locale);
+  const country = resolveCountry(meta.country, entry.country, locale);
   const genderKey = meta.gender === "m" || meta.gender === "f" ? (`lore.gender.${meta.gender}` as const) : null;
   const active =
     dates.activeFrom || dates.activeTo

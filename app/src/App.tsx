@@ -1,12 +1,11 @@
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence } from "framer-motion";
-import type { IndexEntry } from "@/lib/types";
-import { loadIndex, prefetchAll } from "@/lib/catalog";
 import { LANG_CODES } from "@/lib/languages";
 import { slugOf } from "@/lib/paths";
 import { buildSearchDoc, searchEntries, type SearchFilters } from "@/lib/search";
 import { audio } from "@/lib/audio";
 import { useI18n } from "@/lib/i18n";
+import { useAudioUnlock, useCatalog, useHashRoute } from "@/lib/hooks";
 import { Background } from "@/components/Background";
 import { AnimatedTitle } from "@/components/AnimatedTitle";
 import { LanguageMenu } from "@/components/LanguageMenu";
@@ -15,80 +14,18 @@ import { CharacterGrid } from "@/components/CharacterGrid";
 import { LazyCodexModal } from "@/components/codex/LazyCodexModal";
 import { SiteFooter } from "@/components/SiteFooter";
 
-type LoadState = { kind: "loading" } | { kind: "error" } | { kind: "ready"; entries: IndexEntry[] };
-
-/** #/slug ↔ open codex — deep-linkable, back-button friendly. */
-function slugFromHash(): string | null {
-  const m2 = /^#\/([\w-]+)$/.exec(window.location.hash);
-  return m2 ? m2[1] : null;
-}
-
 export default function App() {
   const { t, lang, setLang } = useI18n();
-  const [state, setState] = useState<LoadState>({ kind: "loading" });
+  useAudioUnlock();
+  const { state, retry, rankings } = useCatalog(lang);
+  const { selectedSlug, openEntry } = useHashRoute();
   const [query, setQuery] = useState("");
   const [filters, setFilters] = useState<SearchFilters>({
     types: new Set<string>(),
     countries: new Set<string>(),
   });
-  const [selectedSlug, setSelectedSlug] = useState<string | null>(slugFromHash);
-  const [rankings, setRankings] = useState<ReadonlyMap<string, number>>(new Map());
   const [sound, setSound] = useState(true);
   const [ambient, setAmbient] = useState(false);
-
-  // unlock audio on first user gesture (autoplay policy)
-  useEffect(() => {
-    const unlock = () => audio.unlock();
-    // Per the HTML spec, activation comes from pointerdown only for mice;
-    // touch/pen grant it on pointerup — listen for both, plus keydown.
-    window.addEventListener("pointerdown", unlock, { once: true });
-    window.addEventListener("pointerup", unlock, { once: true });
-    window.addEventListener("keydown", unlock, { once: true });
-    return () => {
-      window.removeEventListener("pointerdown", unlock);
-      window.removeEventListener("pointerup", unlock);
-      window.removeEventListener("keydown", unlock);
-    };
-  }, []);
-
-  // catalogue index
-  const fetchIndex = useCallback(() => {
-    setState({ kind: "loading" });
-    loadIndex()
-      .then((entries) => setState({ kind: "ready", entries }))
-      .catch(() => setState({ kind: "error" }));
-  }, []);
-
-  useEffect(fetchIndex, [fetchIndex]);
-
-  // warm per-entry data in idle time → ranking stars + instant codex.
-  // Re-runs on language change to warm the new tongue (cached langs resolve
-  // instantly, so repeat passes are cheap).
-  useEffect(() => {
-    if (state.kind !== "ready") return;
-    prefetchAll(state.entries, lang, (slug, data) => {
-      const r = data?.metadata?.ranking;
-      if (typeof r === "number") {
-        setRankings((prev) => new Map(prev).set(slug, r));
-      }
-    });
-  }, [state, lang]);
-
-  // hash routing
-  useEffect(() => {
-    const onHash = () => setSelectedSlug(slugFromHash());
-    window.addEventListener("hashchange", onHash);
-    return () => window.removeEventListener("hashchange", onHash);
-  }, []);
-
-  const openEntry = useCallback((slug: string | null) => {
-    const target = slug ? `#/${slug}` : "";
-    if (window.location.hash !== target) {
-      if (slug) window.location.hash = target;
-      else history.pushState("", document.title, window.location.pathname + window.location.search);
-    }
-    setSelectedSlug(slug);
-  }, []);
 
   const entries = state.kind === "ready" ? state.entries : [];
   const docs = useMemo(() => entries.map(buildSearchDoc), [entries]);
@@ -178,7 +115,12 @@ export default function App() {
   // Single owner of the body scroll lock — per-modal locking miscounts when
   // AnimatePresence overlaps an exiting and an entering codex during ← → turns.
   useEffect(() => {
-    document.body.style.overflow = selectedDoc ? "hidden" : "";
+    if (!selectedDoc) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
   }, [selectedDoc]);
 
   return (
@@ -221,7 +163,7 @@ export default function App() {
         {state.kind === "error" && (
           <div className="mx-auto mt-14 max-w-md px-6 text-center">
             <p className="font-display text-xl text-burgundy-600">{t("app.loadError")}</p>
-            <button onClick={fetchIndex} className="btn-rpg mt-5">
+            <button onClick={retry} className="btn-rpg mt-5">
               {t("app.retry")}
             </button>
           </div>

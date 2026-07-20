@@ -32,8 +32,10 @@ export function isLang(x: unknown): x is Lang {
   return typeof x === "string" && (LANG_CODES as readonly string[]).includes(x);
 }
 
+const DEFAULT_LANG_INFO = LANGUAGES.find((l) => l.code === DEFAULT_LANG)!;
+
 export function langInfo(code: Lang): (typeof LANGUAGES)[number] {
-  return LANGUAGES.find((l) => l.code === code) ?? LANGUAGES[7]; // ru
+  return LANGUAGES.find((l) => l.code === code) ?? DEFAULT_LANG_INFO;
 }
 
 /** `"ru, en"` → `["ru", "en"]`; unknown codes dropped; empty → [DEFAULT_LANG].

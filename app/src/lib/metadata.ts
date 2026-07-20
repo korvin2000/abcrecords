@@ -105,6 +105,17 @@ export function countryDisplay(freeText: string | undefined, locale: string): st
   return (iso ? regionName(iso, locale) : null) ?? freeText;
 }
 
+/** Country for display: the entry's ISO metadata country (localized) when
+ *  present, else the free-text country from index.json. Centralizes the
+ *  fallback shared by the codex header and the Lore tab. */
+export function resolveCountry(
+  metaCountry: string | undefined,
+  indexCountry: string | undefined,
+  locale: string,
+): string {
+  return (metaCountry ? regionName(metaCountry, locale) : null) ?? countryDisplay(indexCountry, locale);
+}
+
 /** metadata.ranking (~0–100) → 1..5 star tier (the light-theme replacement
  *  for the prototypes' fantasy "rarity"). */
 export function rankStars(ranking: number | undefined): number | null {
