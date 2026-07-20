@@ -13,6 +13,20 @@ npm run dev        # http://localhost:5173
 npm run build      # dist/ (pages/ is copied in as the content root)
 ```
 
+## Deployment paths
+
+Vite's `base` controls the application itself (for example `/fable/`). Entry
+resources are intentionally independent and resolve from the domain root via
+`VITE_RESOURCE_BASE_PATH`, which defaults to `/pages`:
+
+```env
+VITE_RESOURCE_BASE_PATH=/pages
+```
+
+Thus an entry target such as `music/mp/track.mp3` becomes
+`/pages/music/mp/track.mp3`, even when the app is built with `--base=/fable/`.
+The paths declared by `index.json` continue to use the application base.
+
 ## How it works
 
 | Layer | Where | Notes |

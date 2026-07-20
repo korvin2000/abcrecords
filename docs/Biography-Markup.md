@@ -337,6 +337,12 @@ Do not preserve exact margins or coordinates.
 5. Render semantic HTML.
 6. Apply the selected visual theme.
 
+Relative image, media, document, and ordinary file-link targets resolve
+against the application's configurable resource base (default: `/pages`),
+not against the deployment path of the application itself. For example, when
+the app is deployed at `/fable/`, `music/mp/track.mp3` still resolves to
+`/pages/music/mp/track.mp3`. Absolute URLs and fragment links remain unchanged.
+
 ---
 
 ## 13. Rendering Rules

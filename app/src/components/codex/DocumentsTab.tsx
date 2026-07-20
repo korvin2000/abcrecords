@@ -1,5 +1,5 @@
 import type { DocumentItem, EntryBundle } from "@/lib/types";
-import { isExternalUrl, resolveContentPath } from "@/lib/paths";
+import { isExternalUrl, resolveResourcePath } from "@/lib/paths";
 import { useI18n } from "@/lib/i18n";
 
 /**
@@ -25,7 +25,7 @@ export function DocumentsTab({ bundle }: { bundle: EntryBundle }) {
 
       {sourceUrl && (
         <a
-          href={sourceUrl}
+          href={resolveResourcePath(sourceUrl)}
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-4 border border-gold-600/50 bg-paper-100/70 px-4 py-3 no-underline transition-shadow hover:shadow-[0_2px_14px_rgba(138,106,31,0.3)]"
@@ -87,7 +87,7 @@ function DocumentRow({ doc }: { doc: DocumentItem }) {
 
   return (
     <a
-      href={external ? doc.target : resolveContentPath(doc.target)}
+      href={resolveResourcePath(doc.target)}
       target="_blank"
       rel="noopener noreferrer"
       className="flex items-center gap-4 border border-gold-600/50 bg-paper-100/70 px-4 py-3 no-underline transition-shadow hover:shadow-[0_2px_14px_rgba(138,106,31,0.3)]"

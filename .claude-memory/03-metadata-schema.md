@@ -71,7 +71,9 @@ Biography tab uses the Markdown file at `metadata.bio`.
   (day/month order would break).
 - Normalize lists only when the UI needs arrays:
   `split(",") → trim → drop empties`.
-- Resolve relative paths against configured public base.
+- Resolve per-entry media/document paths against the configurable resource
+  base (default `/pages`), independently of Vite's application base;
+  `index.json` is explicitly excluded.
 - Missing optional value → render as an **absent row**, not an empty label.
 - Ignore/preserve unknown fields rather than reject the document.
 

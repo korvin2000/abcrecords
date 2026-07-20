@@ -89,7 +89,9 @@ On narrow screens, columns stack in **source order**.
 ## Engine rules (for renderer work)
 
 1. Parse Markdown → 2. parse BioMD blocks → 3. validate required props →
-4. resolve relative links/files → 5. render semantic HTML → 6. apply theme.
+4. resolve relative links/files against the configurable resource base
+   (default `/pages`, independent of the app deployment base) → 5. render
+   semantic HTML → 6. apply theme.
 
 - **Source order = logical reading order**; visual position must not override it.
 - Captions stay attached to images. Embedded docs always keep a link fallback.

@@ -285,7 +285,9 @@ This is a practical minimum inferred from the intended UI, not a formally valida
 5. Validate required application fields such as `metadata.id`, `metadata.title`, and `metadata.bio`.
 6. Parse dates explicitly as `DD.MM.YYYY`; do not pass them directly to JavaScript `Date`.
 7. Normalize comma-separated list fields only when the UI needs arrays.
-8. Resolve relative paths against the directory or configured public base path.
+8. Resolve relative media/document paths against the configurable resource
+   base (default: `/pages`), independently of the application's deployment
+   base. This rule applies to per-entry JSON, not to `index.json`.
 9. Ignore or preserve unknown fields rather than rejecting the complete document.
 10. Render missing optional values as absent rows, not as empty labels.
 

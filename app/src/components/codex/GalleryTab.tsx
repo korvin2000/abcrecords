@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, m } from "framer-motion";
 import clsx from "clsx";
 import type { EntryBundle, IndexEntry, MediaItem } from "@/lib/types";
-import { isExternalUrl, resolveContentPath } from "@/lib/paths";
+import { resolveContentPath, resolveResourcePath } from "@/lib/paths";
 import { audio, themeFromSeed } from "@/lib/audio";
 import { useI18n } from "@/lib/i18n";
 import { Divider } from "../OrnateFrame";
@@ -21,8 +21,11 @@ export function GalleryTab({ entry, slug, bundle }: Props) {
 
   const photos: MediaItem[] = [
     // the index portrait always leads the gallery
-    { label: entry.title, target: entry.img },
-    ...(bundle.data?.media?.photos ?? []),
+    { label: entry.title, target: resolveContentPath(entry.img) },
+    ...(bundle.data?.media?.photos ?? []).map((photo) => ({
+      ...photo,
+      target: resolveResourcePath(photo.target),
+    })),
   ];
   const music = bundle.data?.media?.music ?? [];
 
@@ -49,10 +52,10 @@ export function GalleryTab({ entry, slug, bundle }: Props) {
           <figure
             key={i}
             className="bio-figure m-0 cursor-zoom-in"
-            onClick={() => setLightbox({ src: resolveContentPath(p.target), label: p.label })}
+            onClick={() => setLightbox({ src: p.target, label: p.label })}
           >
             <img
-              src={resolveContentPath(p.target)}
+              src={p.target}
               alt={p.label}
               loading="lazy"
               decoding="async"
@@ -149,7 +152,7 @@ function TrackRow({ track }: { track: MediaItem }) {
       </div>
       <audio
         ref={ref}
-        src={isExternalUrl(track.target) ? track.target : resolveContentPath(track.target)}
+        src={resolveResourcePath(track.target)}
         preload="none"
         onEnded={() => setState("idle")}
         onError={() => setState("broken")}

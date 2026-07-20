@@ -4,7 +4,7 @@ import remarkGfm from "remark-gfm";
 import clsx from "clsx";
 import { remarkHighlight } from "./remarkHighlight";
 import { parseBioMd, type BioNode, type ImageNode } from "./parse";
-import { isExternalUrl, resolveContentPath } from "../paths";
+import { isExternalUrl, resolveResourcePath } from "../paths";
 import { useI18n } from "../i18n";
 
 /**
@@ -55,7 +55,7 @@ function Md({ text, onNavigateEntry }: { text: string; onNavigateEntry?: (p: str
           // Legacy relative link (e.g. barrios1.htm) — archival reference.
           return (
             <a
-              href={resolveContentPath(url)}
+              href={resolveResourcePath(url)}
               title={t("bio.archiveLink")}
               target="_blank"
               rel="noopener noreferrer"
@@ -71,7 +71,12 @@ function Md({ text, onNavigateEntry }: { text: string; onNavigateEntry?: (p: str
         ),
         img: ({ src, alt }) => (
           <span className="bio-figure my-3 block">
-            <img src={typeof src === "string" ? src : undefined} alt={alt ?? ""} loading="lazy" decoding="async" />
+            <img
+              src={typeof src === "string" ? resolveResourcePath(src) : undefined}
+              alt={alt ?? ""}
+              loading="lazy"
+              decoding="async"
+            />
           </span>
         ),
       }}
@@ -98,7 +103,7 @@ function Figure({ node }: { node: ImageNode }) {
   return (
     <figure className={clsx("bio-figure my-4 w-full", SIZE_CLASS[node.size], float)}>
       <img
-        src={resolveContentPath(node.src)}
+        src={resolveResourcePath(node.src)}
         alt={node.caption ?? ""}
         loading="lazy"
         decoding="async"
@@ -178,7 +183,7 @@ function DocumentCard({ src, title }: { src: string; title?: string }) {
   return (
     <a
       className="my-4 flex items-center gap-3 border border-gold-600/50 bg-paper-100/70 px-4 py-3 no-underline transition-shadow hover:shadow-[0_2px_14px_rgba(138,106,31,0.25)]"
-      href={isExternalUrl(src) ? src : resolveContentPath(src)}
+      href={resolveResourcePath(src)}
       target="_blank"
       rel="noopener noreferrer"
     >

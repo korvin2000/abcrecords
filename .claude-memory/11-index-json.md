@@ -37,8 +37,9 @@ out to the full metadata (`json`) and biography (`md`) for that entry. It is
 - `lang` lists the available editions (`"ru"`, `"ru,en"`, `"ru,de"`);
   missing/empty is treated as `"ru"`. Ten languages are supported by the UI:
   en, es, ja, de, fr, it, pt, ru, zh, ko (`app/src/lib/languages.ts`).
-- **Media/photos/documents are shared across languages** and keep resolving
-  against the content root — never localize those paths.
+- **Media/photos/documents are shared across languages** and resolve against
+  the independent resource base (default `/pages`) — never localize those
+  paths. The paths declared directly by `index.json` still use the app base.
 - As of 2026-07-20 the `en`/`de` files are still **untranslated copies of the
   Russian originals** (placeholder editions) — the plumbing works; the
   translated content doesn't exist yet.

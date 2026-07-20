@@ -14,9 +14,9 @@ import tailwindcss from "@tailwindcss/vite";
  * Deployment path prefix (e.g. "/fable/" when the app is served from
  * abc-guitars.com/fable/ instead of the domain root). Overridable per build
  * via `--base=/some/path/` (Vite's own CLI flag) or the DEPLOY_BASE env var;
- * everything that fetches pages/ content already resolves relative to
- * import.meta.env.BASE_URL (see src/lib/paths.ts), so no other code needs
- * to change when this moves.
+ * index.json and its json/md/img values resolve relative to BASE_URL.
+ * Resources referenced inside biography files use the independent
+ * VITE_RESOURCE_BASE_PATH setting (default: "/pages").
  */
 const base = process.env.DEPLOY_BASE ?? "/";
 

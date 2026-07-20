@@ -10,6 +10,10 @@ See [`app/README.md`](../app/README.md) for the full layer table.
 - **Content stays in `pages/`** — mounted as Vite `publicDir`, fetched at
   runtime (`src/lib/catalog.ts`, cached + idle-prefetched). Nothing from
   `pages/` is bundled; the app is a pure renderer.
+- **Two deployment bases**: `import.meta.env.BASE_URL` locates `index.json`
+  and its json/md/img targets under the app (for example `/fable/`), while
+  `VITE_RESOURCE_BASE_PATH` locates resources referenced inside BioMD and
+  per-entry JSON independently (default `/pages`).
 - **BioMD Lite parser**: `src/lib/biomd/parse.ts` (recursive fence parser,
   tolerant per spec: unknown blocks render inner content, unclosed fences
   warn), rendering via react-markdown + remark-gfm + a custom
