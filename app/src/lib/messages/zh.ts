@@ -68,6 +68,9 @@ export const zh: Record<MsgKey, Message> = {
   "gallery.empty": "此条目的画廊尚且空空。",
   "gallery.close": "关闭图片",
   "audio.unavailable": "该录音沉眠于档案之中,无法播放",
+  "audio.play": "播放",
+  "audio.pause": "暂停",
+  "audio.download": "下载",
 
   "docs.source": "原始文献",
   "docs.external": "外部来源",

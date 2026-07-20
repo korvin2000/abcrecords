@@ -68,6 +68,9 @@ export const ja: Record<MsgKey, Message> = {
   "gallery.empty": "この記録の画廊はまだ空です。",
   "gallery.close": "画像を閉じる",
   "audio.unavailable": "この録音は書庫に眠っており、再生できません",
+  "audio.play": "再生",
+  "audio.pause": "一時停止",
+  "audio.download": "ダウンロード",
 
   "docs.source": "一次資料",
   "docs.external": "外部資料",

@@ -5,7 +5,9 @@ import clsx from "clsx";
 import { remarkHighlight } from "./remarkHighlight";
 import { parseBioMd, type BioNode, type ImageNode } from "./parse";
 import { isExternalUrl, resolveResourcePath } from "../paths";
+import { audioKind } from "../playback";
 import { useI18n } from "../i18n";
+import { InlineAudioPlayer } from "@/components/AudioPlayer";
 
 /**
  * BioMD Lite → React renderer.
@@ -44,6 +46,11 @@ function Md({ text, onNavigateEntry }: { text: string; onNavigateEntry?: (p: str
                 {children}
               </a>
             );
+          }
+          const kind = audioKind(url);
+          if (kind) {
+            const src = isExternalUrl(url) ? url : resolveResourcePath(url);
+            return <InlineAudioPlayer src={src} label={linkText(children) || filename(url)} kind={kind} />;
           }
           if (isExternalUrl(url)) {
             return (
@@ -84,6 +91,17 @@ function Md({ text, onNavigateEntry }: { text: string; onNavigateEntry?: (p: str
       {text}
     </ReactMarkdown>
   );
+}
+
+/** Flatten a react-markdown link's children to plain text for a11y labels. */
+function linkText(children: ReactNode): string {
+  if (typeof children === "string") return children;
+  if (Array.isArray(children)) return children.map(linkText).join("");
+  return "";
+}
+
+function filename(url: string): string {
+  return url.split(/[?#]/, 1)[0].split("/").pop() || "audio";
 }
 
 const SIZE_CLASS: Record<ImageNode["size"], string> = {

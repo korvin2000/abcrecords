@@ -75,6 +75,9 @@ export const ru = {
   "gallery.empty": "Галерея этой записи пока пуста.",
   "gallery.close": "Закрыть изображение",
   "audio.unavailable": "запись хранится в архиве и недоступна",
+  "audio.play": "Слушать",
+  "audio.pause": "Пауза",
+  "audio.download": "Скачать",
 
   "docs.source": "Первоисточник",
   "docs.external": "внешний источник",

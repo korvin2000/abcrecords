@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { AnimatePresence, m } from "framer-motion";
-import clsx from "clsx";
 import type { EntryBundle, IndexEntry, MediaItem } from "@/lib/types";
 import { resolveContentPath, resolveResourcePath } from "@/lib/paths";
 import { audio, themeFromSeed } from "@/lib/audio";
+import { audioKind, stopAllPlayback } from "@/lib/playback";
 import { useI18n } from "@/lib/i18n";
+import { AudioPlayer } from "../AudioPlayer";
 import { Divider } from "../OrnateFrame";
 
 interface Props {
@@ -76,7 +77,12 @@ export function GalleryTab({ entry, slug, bundle }: Props) {
       </h3>
       <div className="mx-auto max-w-xl space-y-2">
         {music.map((track, i) => (
-          <TrackRow key={i} track={track} />
+          <AudioPlayer
+            key={i}
+            src={resolveResourcePath(track.target)}
+            label={track.label}
+            kind={audioKind(track.target) ?? "native"}
+          />
         ))}
         <ThemeRow slug={slug} name={entry.title} />
       </div>
@@ -110,57 +116,6 @@ export function GalleryTab({ entry, slug, bundle }: Props) {
   );
 }
 
-/** One archival recording. Missing files fail soft into an archive note. */
-function TrackRow({ track }: { track: MediaItem }) {
-  const { t } = useI18n();
-  const ref = useRef<HTMLAudioElement>(null);
-  const [state, setState] = useState<"idle" | "playing" | "broken">("idle");
-
-  const toggle = useCallback(() => {
-    const el = ref.current;
-    if (!el || state === "broken") return;
-    if (state === "playing") {
-      el.pause();
-      setState("idle");
-    } else {
-      audio.stopTheme();
-      el.play().then(
-        () => setState("playing"),
-        () => setState("broken"),
-      );
-    }
-  }, [state]);
-
-  return (
-    <div
-      className={clsx(
-        "flex items-center gap-3 border border-gold-600/40 bg-paper-100/70 px-4 py-2.5",
-        state === "broken" && "opacity-70",
-      )}
-    >
-      <button
-        onClick={toggle}
-        className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-gold-600/60 text-gold-800 transition-colors hover:bg-gold-500/20 disabled:cursor-not-allowed"
-        aria-label={track.label}
-        disabled={state === "broken"}
-      >
-        {state === "playing" ? "❚❚" : "♪"}
-      </button>
-      <div className="min-w-0">
-        <div className="truncate font-heading text-sm text-ink-800">{track.label}</div>
-        {state === "broken" && <div className="text-xs italic text-sepia-600">{t("audio.unavailable")}</div>}
-      </div>
-      <audio
-        ref={ref}
-        src={resolveResourcePath(track.target)}
-        preload="none"
-        onEnded={() => setState("idle")}
-        onError={() => setState("broken")}
-      />
-    </div>
-  );
-}
-
 /** The entry's generated leitmotif — same name, same melody, every visit. */
 function ThemeRow({ slug, name }: { slug: string; name: string }) {
   const { t } = useI18n();
@@ -175,6 +130,7 @@ function ThemeRow({ slug, name }: { slug: string; name: string }) {
       audio.stopTheme();
       setPlaying(false);
     } else {
+      stopAllPlayback(); // any playing recording yields to the hero theme
       audio.startTheme(themeFromSeed(slug));
       setPlaying(true);
     }

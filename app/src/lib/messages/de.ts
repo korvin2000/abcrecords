@@ -70,6 +70,9 @@ export const de: Record<MsgKey, Message> = {
   "gallery.empty": "Die Galerie dieses Eintrags ist noch leer.",
   "gallery.close": "Bild schließen",
   "audio.unavailable": "die Aufnahme ruht im Archiv und kann nicht abgespielt werden",
+  "audio.play": "Abspielen",
+  "audio.pause": "Pause",
+  "audio.download": "Herunterladen",
 
   "docs.source": "Primärquelle",
   "docs.external": "externe Quelle",

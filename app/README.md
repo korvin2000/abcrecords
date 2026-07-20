@@ -37,6 +37,7 @@ The paths declared by `index.json` continue to use the application base.
 | Search | `src/lib/search.ts` | Case/diacritic folding + bounded Cyrillic↔Latin transliteration variants («сеговия» → Segovia; "jovan" → Јован via the Latin slug). |
 | i18n | `src/lib/i18n.tsx` | ru (primary) / en, `Intl.PluralRules`, persisted in localStorage. |
 | Sound | `src/lib/audio.ts` | Procedural WebAudio (no audio files): hover/click/page-turn SFX, ambient drone, and a deterministic per-entry theme from `f = f₀·2^(n/12)` seeded by the entry slug. |
+| Audio player | `src/lib/playback.ts` · `src/lib/midi.ts` · `src/components/AudioPlayer.tsx` | Built-in player for `media.music` and audio links in biographies. Native `<audio>` (mp3/wav/ogg/…) plus a MIDI synth (`.mid` parsed with the lazily-loaded `@tonejs/midi`, rendered through oscillators — no SoundFont). One source sounds at a time; every player also offers a download. |
 | Browse UI | `src/components/` | CodexLegends card/search/grid (3D pointer tilt, cursor glare, shine sweep, ornate frames) re-themed light per `.claude-memory/10-ui-component-decision.md`. |
 | Codex modal | `src/components/codex/` | Copendum CharacterDetail base: parchment, double gold/brown border, 3D page-turn open/close, 4 tabs (Летопись · Галерея · Свитки · Атрибуты), `#/slug` deep links, ← → turns entries. |
 

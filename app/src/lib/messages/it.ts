@@ -70,6 +70,9 @@ export const it: Record<MsgKey, Message> = {
   "gallery.empty": "La galleria di questa voce è ancora vuota.",
   "gallery.close": "Chiudi l'immagine",
   "audio.unavailable": "la registrazione riposa nell'archivio e non può essere riprodotta",
+  "audio.play": "Riproduci",
+  "audio.pause": "Pausa",
+  "audio.download": "Scarica",
 
   "docs.source": "Fonte primaria",
   "docs.external": "fonte esterna",

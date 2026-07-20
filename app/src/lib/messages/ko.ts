@@ -68,6 +68,9 @@ export const ko: Record<MsgKey, Message> = {
   "gallery.empty": "이 기록의 화랑은 아직 비어 있습니다.",
   "gallery.close": "이미지 닫기",
   "audio.unavailable": "이 녹음은 서고에 잠들어 있어 재생할 수 없습니다",
+  "audio.play": "재생",
+  "audio.pause": "일시정지",
+  "audio.download": "다운로드",
 
   "docs.source": "원사료",
   "docs.external": "외부 출처",
