@@ -1,4 +1,5 @@
 import type { IndexEntry } from "./types";
+import { entryLangs, type Lang } from "./languages";
 import { slugOf } from "./paths";
 
 /**
@@ -57,6 +58,8 @@ export interface SearchDoc {
   entry: IndexEntry;
   slug: string;
   haystacks: string[];
+  /** Languages this entry is available in (from index.json `lang`). */
+  langs: Lang[];
 }
 
 export function buildSearchDoc(entry: IndexEntry): SearchDoc {
@@ -67,7 +70,7 @@ export function buildSearchDoc(entry: IndexEntry): SearchDoc {
     fold(`${entry.surname ?? ""} ${entry.forename ?? ""}`),
     slug.replace(/-/g, " "),
   ].filter(Boolean);
-  return { entry, slug, haystacks };
+  return { entry, slug, haystacks, langs: entryLangs(entry) };
 }
 
 function tokenMatches(doc: SearchDoc, token: string): boolean {

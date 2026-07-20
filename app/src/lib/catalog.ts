@@ -1,9 +1,15 @@
 import type { EntryBundle, EntryData, IndexEntry } from "./types";
-import { resolveContentPath, slugOf } from "./paths";
+import { localizeContentPath, resolveContentPath, slugOf } from "./paths";
+import { entryLangs, pickContentLang, type Lang } from "./languages";
 
 /**
  * Catalogue store — fetches and caches all content from the served
  * pages/ directory. Nothing is bundled: data stays in JSON/MD files.
+ *
+ * Each entry's json/md pair exists once per language, in pages/<lang>/…
+ * (index.json's `lang` field lists the editions). Bundles are cached per
+ * (entry, language) so switching tongues on an open codex is instant after
+ * the first read.
  */
 
 export async function loadIndex(signal?: AbortSignal): Promise<IndexEntry[]> {
@@ -41,24 +47,28 @@ async function fetchText(path: string): Promise<string | null> {
   }
 }
 
-/** Load (and cache) an entry's metadata + biography in parallel.
- *  Each half fails soft: a missing file yields null, not an exception. */
-export function loadEntry(entry: IndexEntry): Promise<EntryBundle> {
-  const key = slugOf(entry);
+/** Load (and cache) one language edition of an entry — metadata + biography
+ *  in parallel. Each half fails soft: a missing file yields null. */
+export function loadEntry(entry: IndexEntry, lang: Lang): Promise<EntryBundle> {
+  const key = `${slugOf(entry)}::${lang}`;
   let p = bundleCache.get(key);
   if (!p) {
-    p = Promise.all([fetchJson(entry.json), fetchText(entry.md)]).then(
-      ([data, md]) => ({ data, md }),
-    );
+    p = Promise.all([
+      fetchJson(localizeContentPath(entry.json, lang)),
+      fetchText(localizeContentPath(entry.md, lang)),
+    ]).then(([data, md]) => ({ data, md }));
     bundleCache.set(key, p);
   }
   return p;
 }
 
 /** Warm the cache during idle time so opening a codex feels instant and
- *  cards can show ranking stars. Sequential on purpose — low-end friendly. */
+ *  cards can show ranking stars. Each entry is prefetched in the reader's
+ *  language when available, else its original one. Sequential on purpose —
+ *  low-end friendly. */
 export function prefetchAll(
   entries: IndexEntry[],
+  preferredLang: Lang,
   onOne?: (slug: string, bundle: EntryBundle) => void,
 ): void {
   const queue = [...entries];
@@ -70,7 +80,8 @@ export function prefetchAll(
   const step = () => {
     const next = queue.shift();
     if (!next) return;
-    void loadEntry(next).then((bundle) => {
+    const lang = pickContentLang(entryLangs(next), preferredLang);
+    void loadEntry(next, lang).then((bundle) => {
       onOne?.(slugOf(next), bundle);
       idle(step);
     });

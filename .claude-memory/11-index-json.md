@@ -16,15 +16,32 @@ out to the full metadata (`json`) and biography (`md`) for that entry. It is
 ```json
 {
   "title":    "Full display name",
+  "lang":     "ru,en",            // comma-separated ISO 639-1 codes; FIRST code = original language
   "type":     "guitarist | composer | musician | …",
   "forename": "Forename",
   "surname":  "Surname",
   "country":  "Nationality (free-text country name)",
-  "json":     "/slug.bio.json",   // relative path to the full metadata file
-  "md":       "/slug.bio.md",     // relative path to the biography (BioMD Lite)
-  "img":      "photos/slug.jpg"   // relative path to the preview/avatar image
+  "json":     "/slug.bio.json",   // declared root-relative; ACTUAL file lives at /<lang>/slug.bio.json
+  "md":       "/slug.bio.md",     // declared root-relative; ACTUAL file lives at /<lang>/slug.bio.md
+  "img":      "photos/slug.jpg"   // relative path to the preview/avatar image — NOT per-language
 }
 ```
+
+## Multi-language layout (added 2026-07-20)
+
+- Each entry's `json`/`md` pair exists **once per language** in a
+  per-language directory named by ISO code: `pages/ru/…`, `pages/en/…`,
+  `pages/de/…`. The `json`/`md` paths in `index.json` stay written as if the
+  files sat at the root; the app maps them via
+  `localizeContentPath(path, lang)` (`app/src/lib/paths.ts`).
+- `lang` lists the available editions (`"ru"`, `"ru,en"`, `"ru,de"`);
+  missing/empty is treated as `"ru"`. Ten languages are supported by the UI:
+  en, es, ja, de, fr, it, pt, ru, zh, ko (`app/src/lib/languages.ts`).
+- **Media/photos/documents are shared across languages** and keep resolving
+  against the content root — never localize those paths.
+- As of 2026-07-20 the `en`/`de` files are still **untranslated copies of the
+  Russian originals** (placeholder editions) — the plumbing works; the
+  translated content doesn't exist yet.
 
 ## Role in the UI (maps onto the codex modal's tabs — see [`04-biography-card-design.md`](04-biography-card-design.md))
 
@@ -36,15 +53,13 @@ out to the full metadata (`json`) and biography (`md`) for that entry. It is
 | `md` | Path to the entry's `BioMD Lite` biography (feeds the Biography tab). |
 | `type`, `forename`, `surname`, `country` | Extra facets/labels available without loading `json` — cheap enough to show directly on the card or use as search/filter facets. |
 
-## Observed real content (as of this scan)
+## Observed real content (updated 2026-07-20)
 
-7 entries; only **3 correspond to existing files** already surveyed in
-[`08-pages-examples.md`](08-pages-examples.md) — `agustin-barrios`,
-`authors`, `jovan-jovicic`. The other **4 reference `.bio.md`/`.bio.json`
-files that do not exist yet** in `pages/` (`andres-segovia`,
-`django-reinhardt`, `jimi-hendrix`, `paco-de-lucia`) — i.e. `index.json` is
-ahead of the content; treat these four as **planned/placeholder entries**,
-not broken links to fix.
+7 entries; **all 7 now have `.bio.md` + `.bio.json` files** under
+`pages/ru/` (the earlier flat root files were moved there). Additionally
+`django-reinhardt`, `jovan-jovicic`, `paco-de-lucia` have `pages/en/`
+editions and `andres-segovia` a `pages/de/` edition (currently untranslated
+copies — see the multi-language section above).
 
 The `authors` entry (the multi-person roster page) is squeezed into the
 single-person index shape with an **invented pseudo-identity**:

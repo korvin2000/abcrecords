@@ -1,6 +1,7 @@
 [
   {
     "title": "Agustín Barrios Mangoré",
+    "lang": "ru",
     "type": "guitarist",
     "forename": "Agustín",
     "surname": "Barrios Mangoré",
@@ -11,6 +12,7 @@
   },
   {
     "title": "Andrés Segovia",
+    "lang": "ru,de",	
     "type": "guitarist",
     "forename": "Andrés",
     "surname": "Segovia",
@@ -21,6 +23,7 @@
   },
   {
     "title": "Авторы проекта",
+    "lang": "ru",	
     "type": "musician",
     "forename": "Коллектив",
     "surname": "Тавровские",
@@ -31,6 +34,7 @@
   },
   {
     "title": "Django Reinhardt",
+    "lang": "ru,en",	
     "type": "guitarist",
     "forename": "Django",
     "surname": "Reinhardt",
@@ -41,6 +45,7 @@
   },
   {
     "title": "Jimi Hendrix",
+    "lang": "ru",	
     "type": "guitarist",
     "forename": "Jimi",
     "surname": "Hendrix",
@@ -51,6 +56,7 @@
   },
   {
     "title": "Јован Јовичић",
+    "lang": "ru,en",	
     "type": "guitarist",
     "forename": "Јован",
     "surname": "Јовичић",
@@ -61,6 +67,7 @@
   },
   {
     "title": "Paco de Lucía",
+    "lang": "ru,en",	
     "type": "guitarist",
     "forename": "Paco",
     "surname": "de Lucía",

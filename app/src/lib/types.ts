@@ -1,16 +1,22 @@
 /** One row of pages/index.json — the live search/browse index. */
 export interface IndexEntry {
   title: string;
+  /** Comma-separated ISO 639-1 codes ("ru" or "ru,en"); the first code is
+   *  the entry's original language. Missing → treated as "ru". */
+  lang?: string;
   type: string;
   forename: string;
   surname: string;
   /** Free-text country name (NOT ISO code — a known index.json deviation). */
   country: string;
-  /** Root-relative path to the entry's full metadata (leading slash). */
+  /** Root-relative path to the entry's full metadata (leading slash).
+   *  The file itself lives in a per-language dir: /<lang>/<file>. */
   json: string;
-  /** Root-relative path to the BioMD Lite biography (leading slash). */
+  /** Root-relative path to the BioMD Lite biography (leading slash).
+   *  The file itself lives in a per-language dir: /<lang>/<file>. */
   md: string;
-  /** Bucket-relative path to the preview portrait (no leading slash). */
+  /** Bucket-relative path to the preview portrait (no leading slash).
+   *  Media is shared across languages — never localized. */
   img: string;
 }
 

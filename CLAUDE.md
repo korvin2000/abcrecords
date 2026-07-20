@@ -25,7 +25,7 @@ Each entry combines:
 |-----------------|---------------------------------------------------------------------|
 | `app/`          | **The production catalogue app** (Vite + React + TS). Renders `pages/` content at runtime; see `app/README.md` and [`.claude-memory/12-app-architecture.md`](.claude-memory/12-app-architecture.md). |
 | `docs/`         | Source specifications & guides (the source of truth — see below).   |
-| `pages/`        | Content pages / migrated entries — 3 example `*.bio.md` articles + `pages/photos/` (real image assets). |
+| `pages/`        | Content pages / migrated entries. Per-language layout: each entry's `*.bio.md` + `*.bio.json` pair lives in `pages/<iso-lang>/` (`ru/`, `en/`, `de/`, …) per the `lang` field in `index.json`; `pages/photos/` (shared image assets) stays at the root and is never localized. |
 | `prototypes/`   | Two throwaway React reference apps (`CodexLegends`, `Copendum`) exploring the codex UI. Not production code — see below. |
 | `.claude-memory/` | Condensed, indexed knowledge distilled from `docs/`, `pages/`, and `prototypes/` for fast recall. |
 
@@ -51,7 +51,8 @@ Each entry combines:
 - `pages/photos/*.jpg` — 5 real photo assets not yet linked to any entry.
 - `pages/index.json` — the **live main-menu/search index** (7 entries): search
   by `title`, preview via `img`, link out to full metadata (`json`) and
-  biography (`md`) per entry. See
+  biography (`md`) per entry; the `lang` field ("ru" / "ru,en") lists which
+  `pages/<lang>/` editions exist (first code = original language). See
   [`.claude-memory/11-index-json.md`](.claude-memory/11-index-json.md) — it
   has a few real deviations from the `MetaData.md` spec (free-text `country`,
   no `id`) that should be raised with the user, not silently "corrected".

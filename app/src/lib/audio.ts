@@ -12,10 +12,9 @@
 //    the entry's name hash (same hero — same melody, every visit).
 //  • Theme playback uses a look-ahead scheduler (classic game-audio
 //    technique for sample-accurate timing).
-//  • Autoplay policy: browsers keep the context "suspended" until the first
-//    real user gesture (click / key / tap — hover never qualifies), so no
-//    cue can sound before that. ensure() retries resume() on every call and
-//    App.tsx unlocks on the first gesture; nothing else is permitted.
+//  • Context startup is asynchronous in some browsers. The first hover is
+//    retained until an autoplay-permitted context reaches "running"; a real
+//    gesture cancels that transient cue before performing the normal unlock.
 // ============================================================
 
 import { fnv1a } from "./metadata";
@@ -94,6 +93,7 @@ class AudioEngine {
 
   private _enabled = true;
   private _ambientOn = false;
+  private pendingHover = false;
   private lastHoverAt = -Infinity;
   private hoverStep = 0;
   private lastTypeAt = -Infinity;
@@ -101,19 +101,13 @@ class AudioEngine {
   private suppressOpenUntil = -Infinity;
 
   private ensure(): AudioContext | null {
-    if (this.ctx) {
-      // Autoplay policy: a context created before the first user gesture is
-      // "suspended". resume() is a no-op (pending promise) until the page has
-      // sticky user activation, then succeeds — so retrying on every call
-      // self-heals the engine right after the first real interaction.
-      if (this.ctx.state === "suspended") void this.ctx.resume();
-      return this.ctx;
-    }
+    if (this.ctx) return this.ctx;
     try {
       const Ctx =
         window.AudioContext ||
         (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       this.ctx = new Ctx();
+      this.ctx.addEventListener("statechange", this.onContextStateChange);
       this.master = this.ctx.createGain();
       this.master.gain.value = this._enabled ? MASTER_LEVEL : 0;
 
@@ -167,6 +161,8 @@ class AudioEngine {
 
   /** Call on first interaction to unlock audio (autoplay policy). */
   unlock() {
+    // A gesture-triggered cue supersedes any hover retained during cold start.
+    this.pendingHover = false;
     const ctx = this.ensure();
     if (ctx && ctx.state === "suspended") void ctx.resume();
   }
@@ -184,6 +180,7 @@ class AudioEngine {
       this.master.gain.linearRampToValueAtTime(v ? MASTER_LEVEL : 0, ctx.currentTime + 0.25);
     }
     if (!v) {
+      this.pendingHover = false;
       this.stopTheme();
       this.setAmbient(false);
     }
@@ -237,12 +234,21 @@ class AudioEngine {
     if (!this._enabled) return;
     const ctx = this.ensure();
     if (!ctx) return;
-    // Hover cues are transient decorations. While the context is suspended
-    // (no user activation yet) its clock is frozen, so scheduling here would
-    // only queue stale notes that all replay at once after unlock — and the
-    // frozen timestamps would jam the rate limiter. Skip instead; ensure()
-    // above has already requested resume() for the earliest legal moment.
-    if (ctx.state !== "running") return;
+    if (ctx.state !== "running") {
+      this.pendingHover = true;
+      return;
+    }
+    this.playHover(ctx);
+  }
+
+  private onContextStateChange = () => {
+    const ctx = this.ctx;
+    if (!ctx || ctx.state !== "running" || !this.pendingHover) return;
+    this.pendingHover = false;
+    if (this._enabled) this.playHover(ctx);
+  };
+
+  private playHover(ctx: AudioContext) {
     const t = ctx.currentTime;
     if (t - this.lastHoverAt < 0.28) return;
     this.lastHoverAt = t;

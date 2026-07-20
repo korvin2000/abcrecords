@@ -1,0 +1,51 @@
+{
+  "metadata": {
+    "id": "0006",
+    "title": "Йован Йовичич",
+    "birthname": "Јован Јовичић",
+    "gender": "m",
+    "type": "guitarist",
+    "surname": "Јовичић",
+    "forename": "Јован",
+    "country": "RS",
+    "birthplace": "Vrdnik, Serbia",
+    "dates": {
+      "born": "05.07.1926",
+      "activeFrom": "01.01.1948"
+    },
+    "instruments": "classical guitar,violin",
+    "genres": "classical,Serbian folk,Balkan folk",
+    "bands": "Solo artist",
+    "awards": "Silver medal at the 1957 Moscow competition,Belgrade City Prize",
+    "teachers": "Andrés Segovia",
+    "jobs": "Guitarist,Composer,Physicist,Teacher,Author",
+    "ranking": 88,
+    "bio": "jovan-jovicic.bio.md",
+    "url": "http://www.guitar-times.ru/pages/jovicic.htm",
+    "dataStatus": "test fixture: extracted facts with generated catalogue values"
+  },
+  "media": {
+    "photos": [
+      {
+        "label": "Portrait 1",
+        "target": "https://placehold.co/500x595?text=Jovan+Jovicic+1"
+      },
+      {
+        "label": "Portrait 2",
+        "target": "https://placehold.co/500x595?text=Jovan+Jovicic+2"
+      },
+      {
+        "label": "Performing",
+        "target": "https://placehold.co/738x946?text=Jovan+Jovicic+Performing"
+      }
+    ],
+    "music": []
+  },
+  "documents": [
+    {
+      "label": "Jovan Jovicic — Classical Guitar track listing",
+      "type": "DISCOGRAPHY",
+      "target": "embedded"
+    }
+  ]
+}

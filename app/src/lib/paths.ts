@@ -17,6 +17,19 @@ export function resolveContentPath(p: string): string {
   return `${BASE}/${p.replace(/^\/+/, "")}`;
 }
 
+/**
+ * index.json keeps json/md paths as if the files sat at the content root
+ * ("/andres-segovia.bio.md"), but each language edition physically lives in
+ * a per-language directory: pages/ru/…, pages/en/…, pages/de/….
+ * This maps the declared path into the chosen language's directory.
+ * Applies ONLY to json/md — media/document paths inside entries stay
+ * root-relative and must never be localized.
+ */
+export function localizeContentPath(p: string, lang: string): string {
+  if (!p || isExternalUrl(p)) return p;
+  return `/${lang}/${p.replace(/^\/+/, "")}`;
+}
+
 /** Stable slug for an index entry, derived from its md path
  *  ("/jovan-jovicic.bio.md" → "jovan-jovicic"). index.json has no id field. */
 export function slugOf(entry: { md: string }): string {

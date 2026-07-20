@@ -1,0 +1,47 @@
+{
+  "metadata": {
+    "id": "0002",
+    "title": "Андрес Сеговия",
+    "birthname": "Andrés Segovia Torres",
+    "gender": "m",
+    "type": "guitarist",
+    "surname": "Segovia",
+    "forename": "Andrés",
+    "country": "ES",
+    "birthplace": "Linares, Spain",
+    "deathplace": "Madrid, Spain",
+    "dates": {
+      "born": "21.02.1893",
+      "died": "02.06.1987",
+      "activeFrom": "01.01.1909",
+      "activeTo": "02.06.1987"
+    },
+    "instruments": "classical guitar",
+    "genres": "classical",
+    "bands": "Solo artist",
+    "awards": "Grammy Lifetime Achievement Award,Marquis of Salobreña",
+    "teachers": "Primarily self-taught",
+    "disciples": "John Williams,Christopher Parkening",
+    "jobs": "Guitarist,Teacher,Editor,Arranger",
+    "ranking": 96,
+    "bio": "andres-segovia.bio.md",
+    "url": "https://www.guitarfoundation.org/default.aspx?page=HoFSegovia",
+    "dataStatus": "test fixture: extracted facts with generated catalogue values"
+  },
+  "media": {
+    "photos": [
+      {
+        "label": "Main portrait",
+        "target": "https://placehold.co/420x560?text=Andres+Segovia"
+      }
+    ],
+    "music": []
+  },
+  "documents": [
+    {
+      "label": "Guitar Foundation of America biography",
+      "type": "REFERENCE",
+      "target": "https://www.guitarfoundation.org/default.aspx?page=HoFSegovia"
+    }
+  ]
+}

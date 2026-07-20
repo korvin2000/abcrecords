@@ -2,12 +2,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import type { IndexEntry } from "@/lib/types";
 import { loadIndex, prefetchAll } from "@/lib/catalog";
+import { LANG_CODES } from "@/lib/languages";
 import { slugOf } from "@/lib/paths";
 import { buildSearchDoc, searchEntries, type SearchFilters } from "@/lib/search";
 import { audio } from "@/lib/audio";
 import { useI18n } from "@/lib/i18n";
 import { Background } from "@/components/Background";
 import { AnimatedTitle } from "@/components/AnimatedTitle";
+import { LanguageMenu } from "@/components/LanguageMenu";
 import { SearchBar } from "@/components/SearchBar";
 import { CharacterGrid } from "@/components/CharacterGrid";
 import { CodexModal } from "@/components/codex/CodexModal";
@@ -53,20 +55,24 @@ export default function App() {
   const fetchIndex = useCallback(() => {
     setState({ kind: "loading" });
     loadIndex()
-      .then((entries) => {
-        setState({ kind: "ready", entries });
-        // warm per-entry data in idle time → ranking stars + instant codex
-        prefetchAll(entries, (slug, bundle) => {
-          const r = bundle.data?.metadata?.ranking;
-          if (typeof r === "number") {
-            setRankings((prev) => new Map(prev).set(slug, r));
-          }
-        });
-      })
+      .then((entries) => setState({ kind: "ready", entries }))
       .catch(() => setState({ kind: "error" }));
   }, []);
 
   useEffect(fetchIndex, [fetchIndex]);
+
+  // warm per-entry data in idle time → ranking stars + instant codex.
+  // Re-runs on language change to warm the new tongue (cached langs resolve
+  // instantly, so repeat passes are cheap).
+  useEffect(() => {
+    if (state.kind !== "ready") return;
+    prefetchAll(state.entries, lang, (slug, bundle) => {
+      const r = bundle.data?.metadata?.ranking;
+      if (typeof r === "number") {
+        setRankings((prev) => new Map(prev).set(slug, r));
+      }
+    });
+  }, [state, lang]);
 
   // hash routing
   useEffect(() => {
@@ -88,7 +94,15 @@ export default function App() {
   const docs = useMemo(() => entries.map(buildSearchDoc), [entries]);
   const bySlug = useMemo(() => new Map(docs.map((d) => [d.slug, d])), [docs]);
 
-  const filtered = useMemo(() => searchEntries(docs, query, filters), [docs, query, filters]);
+  // One shared index searches all tongues; entries available in the chosen
+  // language lead, the rest follow after a divider (dimmed, flagged in the
+  // grid). ← → page-turn order matches this visual order.
+  const { filtered, nativeCount } = useMemo(() => {
+    const found = searchEntries(docs, query, filters);
+    const native = found.filter((d) => d.langs.includes(lang));
+    const foreign = found.filter((d) => !d.langs.includes(lang));
+    return { filtered: [...native, ...foreign], nativeCount: native.length };
+  }, [docs, query, filters, lang]);
 
   // resonate with the search: chime on first match, low hum on none
   const prevHasResults = useRef(true);
@@ -180,9 +194,14 @@ export default function App() {
           <span className="font-display text-sm font-bold tracking-[0.25em] text-burgundy-700">{t("app.brand")}</span>
         </div>
         <div className="flex items-center gap-2">
-          <CtrlButton onClick={() => setLang(lang === "ru" ? "en" : "ru")} title={t("lang.switch")} active={false}>
-            <span className="font-heading text-[0.68rem] font-bold tracking-wider">{lang === "ru" ? "EN" : "RU"}</span>
-          </CtrlButton>
+          <LanguageMenu
+            variant="header"
+            value={lang}
+            options={LANG_CODES}
+            onSelect={setLang}
+            title={t("lang.menu")}
+            heading={t("lang.title")}
+          />
           <CtrlButton active={ambient} onClick={toggleAmbient} title={ambient ? t("ambient.on") : t("ambient.off")}>
             <span className="text-sm" aria-hidden>
               {ambient ? "🎼" : "🎵"}
@@ -225,7 +244,7 @@ export default function App() {
             />
 
             <div className="mt-10">
-              <CharacterGrid docs={filtered} rankings={rankings} onSelect={openEntry} />
+              <CharacterGrid docs={filtered} nativeCount={nativeCount} rankings={rankings} onSelect={openEntry} />
             </div>
           </>
         )}

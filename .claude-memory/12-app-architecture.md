@@ -16,10 +16,24 @@ See [`app/README.md`](../app/README.md) for the full layer table.
   `==highlight==` remark plugin → `<mark>`.
 - **Search** (`src/lib/search.ts`): diacritic folding + bounded Cyrillic↔Latin
   transliteration variant expansion; the Latin slug doubles as a haystack so
-  Latin queries reach Cyrillic-titled entries.
-- **i18n** (`src/lib/i18n.tsx`): ru primary / en secondary, Intl.PluralRules,
-  stored under localStorage key `codex-lang`. Entry `type` labels localized
-  via `type.*` keys; unknown types pass through raw.
+  Latin queries reach Cyrillic-titled entries. One index searches ALL
+  languages; `App` orders results native-language-first and `CharacterGrid`
+  renders foreign finds behind a burgundy divider as dimmed red-tinted cards
+  with flag chips (`CharacterCard foreign` prop).
+- **i18n** (`src/lib/i18n.tsx` + `src/lib/messages/*.ts`): TEN UI languages
+  (en es ja de fr it pt ru zh ko — registry in `src/lib/languages.ts`), one
+  complete dictionary per language typed against the ru key set,
+  Intl.PluralRules per locale, fallback lang→en→ru, stored under localStorage
+  key `codex-lang`, navigator.languages detection (default ru). Entry `type`
+  labels localized via `type.*` keys; unknown types pass through raw.
+- **Multi-language content** (2026-07-20): index rows carry `lang: "ru,en"`;
+  each entry's json/md pair lives in `pages/<lang>/…`. `loadEntry(entry, lang)`
+  caches per (slug, lang); `localizeContentPath` maps the declared root paths
+  into the language dir — media paths are never localized. `CodexModal` keeps
+  its own `contentLang` (reader's lang if available, else the entry's first
+  code) switchable on the fly via the top-center `LanguageMenu`; the header
+  hosts the full 10-language menu. Flags are hand-drawn inline SVGs
+  (`src/components/Flag.tsx`) because Windows renders flag emoji as letters.
 - **Audio** (`src/lib/audio.ts`): ported CodexLegends procedural engine; the
   per-entry theme is seeded deterministically from the slug
   (`themeFromSeed`, FNV-1a → mulberry32 → guitar-ish scales/roots).

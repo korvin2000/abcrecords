@@ -1,11 +1,13 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { m } from "framer-motion";
 import clsx from "clsx";
 import type { EntryBundle, IndexEntry } from "@/lib/types";
 import { loadEntry } from "@/lib/catalog";
+import { entryLangs, pickContentLang, type Lang } from "@/lib/languages";
 import { countryDisplay, regionName, yearOf } from "@/lib/metadata";
 import { audio } from "@/lib/audio";
 import { typeLabel, useI18n } from "@/lib/i18n";
+import { LanguageMenu } from "../LanguageMenu";
 import { CornerOrnament } from "../OrnateFrame";
 import { BiographyTab } from "./BiographyTab";
 import { GalleryTab } from "./GalleryTab";
@@ -38,24 +40,34 @@ interface Props {
  *   filigree, so neither covers the other.
  */
 export function CodexModal({ entry, slug, onClose, onTurn, onNavigateEntry }: Props) {
-  const { t, locale } = useI18n();
+  const { t, lang, locale } = useI18n();
   const [closing, setClosing] = useState(false);
   const [tab, setTab] = useState<CodexTab>("biography");
   const [bundle, setBundle] = useState<EntryBundle | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
 
-  // Load entry data (cached after first open)
+  // Which language edition of THIS entry is open. Starts in the reader's
+  // tongue when the entry has it (else the entry's original language) and
+  // can be flipped on the fly from the top-bar menu.
+  const langs = useMemo(() => entryLangs(entry), [entry]);
+  const [contentLang, setContentLang] = useState<Lang>(() => pickContentLang(langs, lang));
+  useEffect(() => {
+    setContentLang(pickContentLang(langs, lang));
+  }, [langs, lang]);
+
+  // Load entry data (cached per language after first open)
   useEffect(() => {
     let alive = true;
     setBundle(null);
-    void loadEntry(entry).then((b) => {
+    scrollRef.current?.scrollTo({ top: 0 });
+    void loadEntry(entry, contentLang).then((b) => {
       if (alive) setBundle(b);
     });
     return () => {
       alive = false;
     };
-  }, [entry]);
+  }, [entry, contentLang]);
 
   // Reset to Biography when the person changes; announce the page turn.
   useEffect(() => {
@@ -135,8 +147,26 @@ export function CodexModal({ entry, slug, onClose, onTurn, onNavigateEntry }: Pr
 
           {/* Close control stays inset past the corner mark. */}
           <button onClick={handleClose} className="btn-rpg absolute left-9 top-4 z-20" aria-label={t("codex.close")}>
-            {t("codex.close")}
+            <span className="hidden sm:inline">{t("codex.close")}</span>
+            <span className="sm:hidden" aria-hidden>
+              ✕
+            </span>
           </button>
+
+          {/* Language of this entry — only when the chronicle exists in
+              several tongues; switches the open page on the fly. */}
+          {langs.length > 1 && (
+            <div className="absolute left-1/2 top-4 z-30 -translate-x-1/2">
+              <LanguageMenu
+                variant="codex"
+                value={contentLang}
+                options={langs}
+                onSelect={setContentLang}
+                title={t("lang.entry")}
+                heading={t("lang.entry")}
+              />
+            </div>
+          )}
 
           {/* Prev / next page turns — inset past the corner filigree */}
           <div className="absolute right-9 top-4 z-20 flex gap-2">

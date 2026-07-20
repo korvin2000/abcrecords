@@ -7,254 +7,21 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { DEFAULT_LANG, isLang, langInfo, type Lang } from "./languages";
+import { DICTS, type Message, type MsgKey } from "./messages";
 
 /**
- * Tiny i18n layer: Russian is the primary language, English secondary.
- * UI chrome only — catalogue content (biographies) is data and renders as-is.
- * Plurals use Intl.PluralRules (ru: one/few/many).
+ * i18n layer for the UI chrome — ten languages, one dictionary each (see
+ * src/lib/messages/). Russian is the catalogue's primary language and the
+ * reference key set; missing runtime lookups fall back en → ru.
+ * Plurals use Intl.PluralRules per locale (ru: one/few/many; CJK: other).
+ *
+ * Catalogue content (biographies/metadata) is NOT translated here — it is
+ * data, loaded per language from pages/<lang>/ (see catalog.ts).
  */
 
-export type Lang = "ru" | "en";
+export type { Lang };
 
-type Plural = Partial<Record<Intl.LDMLPluralRule, string>> & { other: string };
-type Message = string | Plural;
-
-const ru = {
-  "app.title": "Кодекс Гитаристов",
-  "app.volume": "✦ Том I · Классическая гитара ✦",
-  "app.subtitle":
-    "Энциклопедия музыкантов — их имена, судьбы и предания, записанные на пожелтевших страницах.",
-  "app.brand": "КОДЕКС",
-  "app.footer": "✦ Переплетено золотом · имя в летописи откроет её страницу · клавиши ← → листают записи ✦",
-  "app.loadError": "Летопись не открылась. Свиток index.json недоступен.",
-  "app.retry": "Попробовать снова",
-
-  "footer.kicker": "Архив · Навигация · Связь",
-  "footer.title": "Разделы проекта",
-  "footer.navLabel": "Навигация по разделам проекта",
-  "footer.about": "О проекте",
-  "footer.sources": "Источники",
-  "footer.literature": "Литература",
-  "footer.links": "Ссылки",
-  "footer.news": "Новости",
-  "footer.guestbook": "Гостевая книга",
-  "footer.search": "Поиск",
-  "footer.email": "E-mail",
-  "footer.audioMap": "Аудио-карта",
-  "footer.placeholderTitle": "Раздел готовится",
-  "footer.placeholder": "Раздел «{section}» будет добавлен позднее.",
-  "footer.usageNotice":
-    "При использовании материалов ссылка на проект «Гитаристы и Композиторы» ОБЯЗАТЕЛЬНА",
-  "footer.rights": "Все права защищены © Тавровские В.В., А.В. и С.В., 2001–2026",
-
-  "search.placeholder": "Искать по имени — например, Сеговия, Джанго, Йован…",
-  "search.clear": "Очистить поиск",
-  "search.count": {
-    one: "{n} запись в летописи",
-    few: "{n} записи в летописи",
-    many: "{n} записей в летописи",
-    other: "{n} записи в летописи",
-  } as Plural,
-  "search.countFiltered": "Найдено {n} из {total}",
-  "search.empty.title": "Ни одно имя не отзывается.",
-  "search.empty.hint": "В кодексе нет записи с таким именем. Попробуйте иначе или снимите фильтры.",
-
-  "facet.type": "Ремесло",
-  "facet.country": "Страна",
-
-  "type.guitarist": "Гитарист",
-  "type.musician": "Музыкант",
-  "type.composer": "Композитор",
-  "type.conductor": "Дирижёр",
-  "type.luthier": "Мастер",
-
-  "card.open": "Открыть запись: {name}",
-
-  "codex.entry": "❖ ЗАПИСЬ В КОДЕКСЕ ❖",
-  "codex.close": "✕ Закрыть кодекс",
-  "codex.end": "❦ Конец записи · переверните страницу, чтобы вернуться ❦",
-  "codex.prev": "Предыдущая запись",
-  "codex.next": "Следующая запись",
-  "codex.notFound": "Страница этой записи ещё не вписана в кодекс.",
-
-  "tabs.biography": "Летопись",
-  "tabs.gallery": "Галерея",
-  "tabs.documents": "Свитки",
-  "tabs.lore": "Атрибуты",
-
-  "gallery.photos": "Портреты и снимки",
-  "gallery.music": "Музыка",
-  "gallery.theme": "Тема героя",
-  "gallery.themePlay": "▶ Слушать тему",
-  "gallery.themeStop": "■ Остановить",
-  "gallery.themeHint": "Мелодия порождается формулой f = f₀·2^(n/12) из имени героя",
-  "gallery.empty": "Галерея этой записи пока пуста.",
-  "gallery.close": "Закрыть изображение",
-  "audio.unavailable": "запись хранится в архиве и недоступна",
-
-  "docs.source": "Первоисточник",
-  "docs.external": "внешний источник",
-  "docs.archive": "архивная ссылка",
-  "docs.embedded": "вложено в кодекс",
-  "docs.empty": "К этой записи не приложено ни одного свитка.",
-  "docs.open": "Открыть",
-
-  "lore.title": "Досье",
-  "lore.identity": "Личность",
-  "lore.career": "Ремесло и путь",
-  "lore.relations": "Наставники и ученики",
-  "lore.birthname": "Имя при рождении",
-  "lore.gender": "Пол",
-  "lore.gender.m": "Мужской",
-  "lore.gender.f": "Женский",
-  "lore.type": "Ремесло",
-  "lore.country": "Страна",
-  "lore.birthplace": "Место рождения",
-  "lore.deathplace": "Место смерти",
-  "lore.born": "Родился",
-  "lore.died": "Умер",
-  "lore.age": "Возраст",
-  "lore.years": { one: "{n} год", few: "{n} года", many: "{n} лет", other: "{n} лет" } as Plural,
-  "lore.activeYears": "Годы деятельности",
-  "lore.instruments": "Инструменты",
-  "lore.genres": "Жанры",
-  "lore.bands": "Ансамбли",
-  "lore.jobs": "Занятия",
-  "lore.teachers": "Наставники",
-  "lore.disciples": "Ученики",
-  "lore.relatives": "Родня",
-  "lore.awards": "Награды",
-  "lore.ranking": "Слава",
-  "lore.noData": "Досье этой записи ещё не составлено.",
-
-  "bio.missing": "Летопись этой записи ещё не написана.",
-  "bio.archiveLink": "Архивная ссылка из старой летописи",
-  "bio.attachedDocument": "Приложенный свиток",
-
-  "sound.on": "Звуки: вкл",
-  "sound.off": "Звуки: выкл",
-  "ambient.on": "Атмосфера: вкл",
-  "ambient.off": "Атмосфера: выкл",
-  "lang.switch": "Switch to English",
-} satisfies Record<string, Message>;
-
-type MsgKey = keyof typeof ru;
-
-const en: Record<MsgKey, Message> = {
-  "app.title": "The Guitar Codex",
-  "app.volume": "✦ Volume I · The Classical Guitar ✦",
-  "app.subtitle":
-    "An encyclopaedia of musicians — their names, fates and legends, inked on yellowed pages.",
-  "app.brand": "CODEX",
-  "app.footer": "✦ Bound in gold · a name within a tale opens its page · use ← → to turn between entries ✦",
-  "app.loadError": "The chronicle would not open. The index.json scroll is unreachable.",
-  "app.retry": "Try again",
-
-  "footer.kicker": "Archive · Navigation · Correspondence",
-  "footer.title": "Project sections",
-  "footer.navLabel": "Project section navigation",
-  "footer.about": "About the project",
-  "footer.sources": "Sources",
-  "footer.literature": "Bibliography",
-  "footer.links": "Links",
-  "footer.news": "News",
-  "footer.guestbook": "Guestbook",
-  "footer.search": "Search",
-  "footer.email": "E-mail",
-  "footer.audioMap": "Audio map",
-  "footer.placeholderTitle": "Section in preparation",
-  "footer.placeholder": "The “{section}” section will be added later.",
-  "footer.usageNotice":
-    "When using these materials, a link to the “Guitarists and Composers” project is REQUIRED",
-  "footer.rights": "All rights reserved © Tavrovsky V.V., A.V. and S.V., 2001–2026",
-
-  "search.placeholder": "Seek by name — e.g. Segovia, Django, Jovan…",
-  "search.clear": "Clear search",
-  "search.count": { one: "{n} entry recorded", other: "{n} entries recorded" },
-  "search.countFiltered": "{n} of {total} revealed",
-  "search.empty.title": "No name answers the call.",
-  "search.empty.hint": "The codex holds no record matching your seek. Try another name, or release the filters.",
-
-  "facet.type": "Craft",
-  "facet.country": "Country",
-
-  "type.guitarist": "Guitarist",
-  "type.musician": "Musician",
-  "type.composer": "Composer",
-  "type.conductor": "Conductor",
-  "type.luthier": "Luthier",
-
-  "card.open": "Open entry: {name}",
-
-  "codex.entry": "❖ ENTRY IN THE CODEX ❖",
-  "codex.close": "✕ Close Codex",
-  "codex.end": "❦ End of entry · turn the page to return ❦",
-  "codex.prev": "Previous entry",
-  "codex.next": "Next entry",
-  "codex.notFound": "This entry's page has not yet been inked into the codex.",
-
-  "tabs.biography": "Biography",
-  "tabs.gallery": "Gallery",
-  "tabs.documents": "Documents",
-  "tabs.lore": "Attributes",
-
-  "gallery.photos": "Portraits & photographs",
-  "gallery.music": "Music",
-  "gallery.theme": "Character theme",
-  "gallery.themePlay": "▶ Play theme",
-  "gallery.themeStop": "■ Stop",
-  "gallery.themeHint": "The melody is generated by the formula f = f₀·2^(n/12) from the hero's name",
-  "gallery.empty": "This entry's gallery is still empty.",
-  "gallery.close": "Close image",
-  "audio.unavailable": "the recording rests in the archive and cannot be played",
-
-  "docs.source": "Primary source",
-  "docs.external": "external source",
-  "docs.archive": "archival reference",
-  "docs.embedded": "embedded in the codex",
-  "docs.empty": "No scrolls are attached to this entry.",
-  "docs.open": "Open",
-
-  "lore.title": "Dossier",
-  "lore.identity": "Identity",
-  "lore.career": "Craft & path",
-  "lore.relations": "Mentors & disciples",
-  "lore.birthname": "Birth name",
-  "lore.gender": "Gender",
-  "lore.gender.m": "Male",
-  "lore.gender.f": "Female",
-  "lore.type": "Craft",
-  "lore.country": "Country",
-  "lore.birthplace": "Birthplace",
-  "lore.deathplace": "Place of death",
-  "lore.born": "Born",
-  "lore.died": "Died",
-  "lore.age": "Age",
-  "lore.years": { one: "{n} year", other: "{n} years" },
-  "lore.activeYears": "Active years",
-  "lore.instruments": "Instruments",
-  "lore.genres": "Genres",
-  "lore.bands": "Ensembles",
-  "lore.jobs": "Occupations",
-  "lore.teachers": "Teachers",
-  "lore.disciples": "Disciples",
-  "lore.relatives": "Kin",
-  "lore.awards": "Honours",
-  "lore.ranking": "Renown",
-  "lore.noData": "This entry's dossier has not yet been compiled.",
-
-  "bio.missing": "This entry's chronicle has not yet been written.",
-  "bio.archiveLink": "Archival link from the legacy chronicle",
-  "bio.attachedDocument": "Attached scroll",
-
-  "sound.on": "Sound: on",
-  "sound.off": "Sound: off",
-  "ambient.on": "Ambience: on",
-  "ambient.off": "Ambience: off",
-  "lang.switch": "Переключить на русский",
-};
-
-const DICTS: Record<Lang, Record<MsgKey, Message>> = { ru, en };
 const STORAGE_KEY = "codex-lang";
 
 export type TFunc = (key: MsgKey, params?: Record<string, string | number>) => string;
@@ -271,11 +38,21 @@ const I18nContext = createContext<I18nValue | null>(null);
 function detectLang(): Lang {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored === "ru" || stored === "en") return stored;
+    if (isLang(stored)) return stored;
   } catch {
     /* private mode */
   }
-  return "ru"; // primary language of the catalogue
+  // No stored choice — offer the reader their browser tongue if the codex
+  // speaks it; otherwise the catalogue's primary language.
+  try {
+    for (const l of navigator.languages ?? [navigator.language]) {
+      const code = l?.slice(0, 2).toLowerCase();
+      if (isLang(code)) return code;
+    }
+  } catch {
+    /* SSR / exotic environments */
+  }
+  return DEFAULT_LANG;
 }
 
 export function I18nProvider({ children }: { children: ReactNode }) {
@@ -296,7 +73,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   const t = useCallback<TFunc>(
     (key, params) => {
-      const msg: Message = DICTS[lang][key] ?? DICTS.ru[key] ?? key;
+      const msg: Message = DICTS[lang][key] ?? DICTS.en[key] ?? DICTS.ru[key] ?? key;
       let text: string;
       if (typeof msg === "string") {
         text = msg;
@@ -316,7 +93,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   );
 
   const value = useMemo<I18nValue>(
-    () => ({ lang, locale: lang === "ru" ? "ru-RU" : "en-GB", t, setLang }),
+    () => ({ lang, locale: langInfo(lang).locale, t, setLang }),
     [lang, t, setLang],
   );
 
