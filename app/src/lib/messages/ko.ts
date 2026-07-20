@@ -72,6 +72,16 @@ export const ko: Record<MsgKey, Message> = {
   "audio.pause": "일시정지",
   "audio.download": "다운로드",
 
+  "viewer.zoomIn": "확대",
+  "viewer.zoomOut": "축소",
+  "viewer.rotateLeft": "왼쪽으로 회전",
+  "viewer.rotateRight": "오른쪽으로 회전",
+  "viewer.fit": "화면에 맞추기",
+  "viewer.actualSize": "실제 크기",
+  "viewer.download": "다운로드",
+  "viewer.close": "닫기",
+  "viewer.error": "이미지를 불러올 수 없습니다",
+
   "docs.source": "원사료",
   "docs.external": "외부 출처",
   "docs.archive": "서고 참조",

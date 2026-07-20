@@ -74,6 +74,16 @@ export const es: Record<MsgKey, Message> = {
   "audio.pause": "Pausar",
   "audio.download": "Descargar",
 
+  "viewer.zoomIn": "Acercar",
+  "viewer.zoomOut": "Alejar",
+  "viewer.rotateLeft": "Girar a la izquierda",
+  "viewer.rotateRight": "Girar a la derecha",
+  "viewer.fit": "Ajustar a la pantalla",
+  "viewer.actualSize": "Tamaño real",
+  "viewer.download": "Descargar",
+  "viewer.close": "Cerrar",
+  "viewer.error": "No se pudo cargar la imagen",
+
   "docs.source": "Fuente primaria",
   "docs.external": "fuente externa",
   "docs.archive": "referencia de archivo",

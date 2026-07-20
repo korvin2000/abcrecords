@@ -6,6 +6,7 @@ import { remarkHighlight } from "./remarkHighlight";
 import { parseBioMd, type BioNode, type ImageNode } from "./parse";
 import { isExternalUrl, resolveResourcePath } from "../paths";
 import { audioKind } from "../playback";
+import { isImageUrl, useImageViewer } from "../imageViewer";
 import { useI18n } from "../i18n";
 import { InlineAudioPlayer } from "@/components/AudioPlayer";
 
@@ -28,6 +29,7 @@ const REMARK_PLUGINS = [remarkGfm, remarkHighlight];
 
 function Md({ text, onNavigateEntry }: { text: string; onNavigateEntry?: (p: string) => void }) {
   const { t } = useI18n();
+  const openImage = useImageViewer();
   return (
     <ReactMarkdown
       remarkPlugins={REMARK_PLUGINS}
@@ -51,6 +53,21 @@ function Md({ text, onNavigateEntry }: { text: string; onNavigateEntry?: (p: str
           if (kind) {
             const src = isExternalUrl(url) ? url : resolveResourcePath(url);
             return <InlineAudioPlayer src={src} label={linkText(children) || filename(url)} kind={kind} />;
+          }
+          if (isImageUrl(url)) {
+            const src = isExternalUrl(url) ? url : resolveResourcePath(url);
+            const label = linkText(children) || filename(url);
+            return (
+              <a
+                href={src}
+                onClick={(e) => {
+                  e.preventDefault();
+                  openImage({ src, alt: label, caption: label, download: filename(url) });
+                }}
+              >
+                {children}
+              </a>
+            );
           }
           if (isExternalUrl(url)) {
             return (
@@ -76,16 +93,17 @@ function Md({ text, onNavigateEntry }: { text: string; onNavigateEntry?: (p: str
             <table>{props.children}</table>
           </div>
         ),
-        img: ({ src, alt }) => (
-          <span className="bio-figure my-3 block">
-            <img
-              src={typeof src === "string" ? resolveResourcePath(src) : undefined}
-              alt={alt ?? ""}
-              loading="lazy"
-              decoding="async"
-            />
-          </span>
-        ),
+        img: ({ src, alt }) => {
+          const url = typeof src === "string" ? resolveResourcePath(src) : undefined;
+          return (
+            <span
+              className="bio-figure my-3 block cursor-zoom-in"
+              onClick={() => url && openImage({ src: url, alt: alt ?? "", caption: alt, download: filename(url) })}
+            >
+              <img src={url} alt={alt ?? ""} loading="lazy" decoding="async" />
+            </span>
+          );
+        },
       }}
     >
       {text}
@@ -112,6 +130,8 @@ const SIZE_CLASS: Record<ImageNode["size"], string> = {
 };
 
 function Figure({ node }: { node: ImageNode }) {
+  const openImage = useImageViewer();
+  const src = resolveResourcePath(node.src);
   const float =
     node.position === "left"
       ? "sm:float-left sm:mr-6 sm:mb-2"
@@ -119,9 +139,12 @@ function Figure({ node }: { node: ImageNode }) {
         ? "sm:float-right sm:ml-6 sm:mb-2"
         : "mx-auto";
   return (
-    <figure className={clsx("bio-figure my-4 w-full", SIZE_CLASS[node.size], float)}>
+    <figure
+      className={clsx("bio-figure my-4 w-full cursor-zoom-in", SIZE_CLASS[node.size], float)}
+      onClick={() => openImage({ src, alt: node.caption ?? "", caption: node.caption, download: filename(node.src) })}
+    >
       <img
-        src={resolveResourcePath(node.src)}
+        src={src}
         alt={node.caption ?? ""}
         loading="lazy"
         decoding="async"
@@ -198,22 +221,41 @@ function renderNode(
 
 function DocumentCard({ src, title }: { src: string; title?: string }) {
   const { t } = useI18n();
-  return (
-    <a
-      className="my-4 flex items-center gap-3 border border-gold-600/50 bg-paper-100/70 px-4 py-3 no-underline transition-shadow hover:shadow-[0_2px_14px_rgba(138,106,31,0.25)]"
-      href={resolveResourcePath(src)}
-      target="_blank"
-      rel="noopener noreferrer"
-    >
+  const openImage = useImageViewer();
+  const href = resolveResourcePath(src);
+  const label = title ?? src.split("/").pop() ?? src;
+  const content = (
+    <>
       <span aria-hidden className="text-2xl text-gold-700">
         ❧
       </span>
       <span>
-        <span className="block font-heading text-sm tracking-wide text-burgundy-700">
-          {title ?? src.split("/").pop()}
-        </span>
+        <span className="block font-heading text-sm tracking-wide text-burgundy-700">{label}</span>
         <span className="block text-xs italic text-sepia-600">{t("bio.attachedDocument")}</span>
       </span>
+    </>
+  );
+
+  if (isImageUrl(src)) {
+    return (
+      <button
+        type="button"
+        className="my-4 flex w-full items-center gap-3 border border-gold-600/50 bg-paper-100/70 px-4 py-3 text-left transition-shadow hover:shadow-[0_2px_14px_rgba(138,106,31,0.25)]"
+        onClick={() => openImage({ src: href, alt: label, caption: label })}
+      >
+        {content}
+      </button>
+    );
+  }
+
+  return (
+    <a
+      className="my-4 flex items-center gap-3 border border-gold-600/50 bg-paper-100/70 px-4 py-3 no-underline transition-shadow hover:shadow-[0_2px_14px_rgba(138,106,31,0.25)]"
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      {content}
     </a>
   );
 }

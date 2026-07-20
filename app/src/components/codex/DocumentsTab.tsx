@@ -1,6 +1,7 @@
 import type { DocumentItem, EntryBundle } from "@/lib/types";
 import { isExternalUrl, resolveResourcePath } from "@/lib/paths";
 import { useI18n } from "@/lib/i18n";
+import { isImageUrl, useImageViewer } from "@/lib/imageViewer";
 
 /**
  * Documents tab — the documents[] array of MetaData.json.
@@ -64,9 +65,11 @@ function TypeGlyph({ type }: { type?: string }) {
 
 function DocumentRow({ doc }: { doc: DocumentItem }) {
   const { t } = useI18n();
+  const openImage = useImageViewer();
   const embedded = doc.target === "embedded";
   const external = isExternalUrl(doc.target);
   const badge = embedded ? t("docs.embedded") : external ? t("docs.external") : t("docs.archive");
+  const href = resolveResourcePath(doc.target);
 
   const body = (
     <>
@@ -85,9 +88,22 @@ function DocumentRow({ doc }: { doc: DocumentItem }) {
     return <div className="flex items-center gap-4 border border-gold-600/50 bg-paper-100/70 px-4 py-3">{body}</div>;
   }
 
+  if (isImageUrl(doc.target)) {
+    return (
+      <button
+        type="button"
+        onClick={() => openImage({ src: href, alt: doc.label, caption: doc.label })}
+        className="flex w-full items-center gap-4 border border-gold-600/50 bg-paper-100/70 px-4 py-3 text-left transition-shadow hover:shadow-[0_2px_14px_rgba(138,106,31,0.3)]"
+      >
+        {body}
+        <span className="btn-rpg !px-3 !py-1 !text-[0.65rem]">{t("docs.open")}</span>
+      </button>
+    );
+  }
+
   return (
     <a
-      href={resolveResourcePath(doc.target)}
+      href={href}
       target="_blank"
       rel="noopener noreferrer"
       className="flex items-center gap-4 border border-gold-600/50 bg-paper-100/70 px-4 py-3 no-underline transition-shadow hover:shadow-[0_2px_14px_rgba(138,106,31,0.3)]"

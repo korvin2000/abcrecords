@@ -27,7 +27,15 @@ export default defineConfig({
   resolve: {
     alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
   },
-  server: { port: 5173 },
+  server: {
+    port: 5173,
+    proxy: {
+      "/pages": {
+        target: "https://www.abc-guitars.com",
+        changeOrigin: true,
+      },
+    },
+  },
   build: {
     target: "baseline-widely-available",
     rollupOptions: {

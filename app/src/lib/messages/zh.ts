@@ -72,6 +72,16 @@ export const zh: Record<MsgKey, Message> = {
   "audio.pause": "暂停",
   "audio.download": "下载",
 
+  "viewer.zoomIn": "放大",
+  "viewer.zoomOut": "缩小",
+  "viewer.rotateLeft": "向左旋转",
+  "viewer.rotateRight": "向右旋转",
+  "viewer.fit": "适应屏幕",
+  "viewer.actualSize": "实际大小",
+  "viewer.download": "下载",
+  "viewer.close": "关闭",
+  "viewer.error": "无法加载图像",
+
   "docs.source": "原始文献",
   "docs.external": "外部来源",
   "docs.archive": "档案引据",

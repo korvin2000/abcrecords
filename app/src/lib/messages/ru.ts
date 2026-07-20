@@ -79,6 +79,16 @@ export const ru = {
   "audio.pause": "Пауза",
   "audio.download": "Скачать",
 
+  "viewer.zoomIn": "Приблизить",
+  "viewer.zoomOut": "Отдалить",
+  "viewer.rotateLeft": "Повернуть влево",
+  "viewer.rotateRight": "Повернуть вправо",
+  "viewer.fit": "Вписать в экран",
+  "viewer.actualSize": "Реальный размер",
+  "viewer.download": "Скачать",
+  "viewer.close": "Закрыть",
+  "viewer.error": "Не удалось загрузить изображение",
+
   "docs.source": "Первоисточник",
   "docs.external": "внешний источник",
   "docs.archive": "архивная ссылка",
