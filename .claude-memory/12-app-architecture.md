@@ -7,9 +7,9 @@ See [`app/README.md`](../app/README.md) for the full layer table.
 
 ## Key facts
 
-- **Content stays in `pages/`** — mounted as Vite `publicDir`, fetched at
-  runtime (`src/lib/catalog.ts`, cached + idle-prefetched). Nothing from
-  `pages/` is bundled; the app is a pure renderer.
+- **Content stays in `pages/`** — mounted as Vite `publicDir` and fetched
+  at runtime. `catalog.ts` idle-prefetches only lightweight JSON metadata;
+  biography Markdown remains cached but lazy until its codex opens.
 - **Two deployment bases**: `import.meta.env.BASE_URL` locates `index.json`
   and its json/md/img targets under the app (for example `/fable/`), while
   `VITE_RESOURCE_BASE_PATH` locates resources referenced inside BioMD and
@@ -48,6 +48,10 @@ See [`app/README.md`](../app/README.md) for the full layer table.
   in the current filtered order; body scroll lock is owned by `App` (per-modal
   locking broke during AnimatePresence overlaps — don't move it back).
 - Launch config: `.claude/launch.json` → `npm run dev` in `app/`, port 5173.
+- Production splitting: `LazyCodexModal.ts` defers the modal and Markdown
+  parser, while Vite manual chunks keep React, Motion, and Markdown cacheable.
+  Card pointer/focus intent preloads the modal and an actual click starts its
+  content request in parallel. First-row portraits are eager; all others lazy.
 
 ## Gotchas discovered while building
 

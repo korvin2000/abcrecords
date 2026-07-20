@@ -31,7 +31,7 @@ The paths declared by `index.json` continue to use the application base.
 
 | Layer | Where | Notes |
 |---|---|---|
-| Content root | `vite.config.ts` `publicDir: ../pages` | `index.json` drives the grid; per-entry `.bio.json` + `.bio.md` are fetched on demand and cached (`src/lib/catalog.ts`), prefetched during idle time. |
+| Content root | `vite.config.ts` `publicDir: ../pages` | `index.json` drives the grid; lightweight `.bio.json` metadata is cached/prefetched while biography Markdown stays lazy until a codex opens. |
 | BioMD Lite | `src/lib/biomd/` | Recursive `::: block` parser (`lead/image/images/document/columns/column`, unknown blocks render their content per spec) + react-markdown (GFM) + `==highlight==` remark plugin. |
 | Metadata | `src/lib/metadata.ts` | `DD.MM.YYYY` parsed explicitly (never `new Date(string)`), comma-lists split on demand, ISO countries localized via `Intl.DisplayNames`, `ranking` → 1–5 renown stars. |
 | Search | `src/lib/search.ts` | Case/diacritic folding + bounded Cyrillic↔Latin transliteration variants («сеговия» → Segovia; "jovan" → Јован via the Latin slug). |
@@ -43,8 +43,11 @@ The paths declared by `index.json` continue to use the application base.
 ## Performance choices
 
 - No canvas/particle engines; static gradient + SVG-grain background.
-- `LazyMotion` (framer-motion slim runtime); tilt/glare disabled under
-  `prefers-reduced-motion`; lazy images with procedural SVG fallbacks.
-- Fonts self-hosted (@fontsource Cormorant) with `unicode-range` subsets —
-  Cyrillic loads only when shown.
-- Production build ≈ 158 KB gzip JS + 11 KB CSS.
+- `LazyMotion` plus an on-demand Codex/Markdown chunk; pointer/focus intent
+  starts loading it just before selection.
+- Only the first four portraits are eager/high-priority; the rest use native
+  lazy loading and procedural SVG fallbacks.
+- Fonts are self-hosted with `unicode-range`; Garamond uses one variable
+  weight file per script instead of several static weights.
+- `/fable/` production build: ≈ 121 KB initial gzip JS + 12.6 KB CSS;
+  Codex/Markdown adds ≈ 55 KB gzip only when first opened.

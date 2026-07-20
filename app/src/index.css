@@ -4,10 +4,8 @@
 @import "@fontsource/cormorant-sc/400.css";
 @import "@fontsource/cormorant-sc/600.css";
 @import "@fontsource/cormorant-sc/700.css";
-@import "@fontsource/cormorant-garamond/400.css";
-@import "@fontsource/cormorant-garamond/400-italic.css";
-@import "@fontsource/cormorant-garamond/600.css";
-@import "@fontsource/cormorant-garamond/700.css";
+@import "@fontsource-variable/cormorant-garamond/wght.css";
+@import "@fontsource-variable/cormorant-garamond/wght-italic.css";
 
 @import "tailwindcss";
 
@@ -19,7 +17,7 @@
 @theme {
   --font-display: "Cormorant SC", Georgia, serif;
   --font-heading: "Cormorant SC", Georgia, serif;
-  --font-body: "Cormorant Garamond", Georgia, serif;
+  --font-body: "Cormorant Garamond Variable", "Cormorant Garamond", Georgia, serif;
 
   /* Yellowed-paper scale (light → aged) */
   --color-paper-50: #faf5e6;

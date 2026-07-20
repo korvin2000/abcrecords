@@ -34,7 +34,7 @@ export default defineConfig({
       output: {
         // Stable framework chunks cache independently from application code.
         manualChunks: {
-          react: ["react", "react-dom"],
+          react: ["react", "react-dom", "react-dom/client"],
           motion: ["framer-motion"],
           markdown: ["react-markdown", "remark-gfm", "unist-util-visit"],
         },

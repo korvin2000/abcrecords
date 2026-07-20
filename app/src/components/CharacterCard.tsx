@@ -7,7 +7,8 @@ import {
   useTransform,
 } from "framer-motion";
 import type { IndexEntry } from "@/lib/types";
-import { langInfo, type Lang } from "@/lib/languages";
+import { entryLangs, langInfo, pickContentLang, type Lang } from "@/lib/languages";
+import { loadEntry } from "@/lib/catalog";
 import { resolveContentPath } from "@/lib/paths";
 import { accentFor, countryDisplay, rankStars } from "@/lib/metadata";
 import { initialsOf, placeholderPortrait } from "@/lib/placeholder";
@@ -39,7 +40,7 @@ interface Props {
  * engages on fine pointers; touch devices get the cheap path.
  */
 export function CharacterCard({ entry, slug, ranking, foreign = false, langs = [], eager = false, onSelect }: Props) {
-  const { t, locale } = useI18n();
+  const { t, locale, lang } = useI18n();
   const accent = foreign ? "#8b2635" : accentFor(slug);
   const stars = rankStars(ranking);
   const [imgFailed, setImgFailed] = useState(false);
@@ -86,6 +87,8 @@ export function CharacterCard({ entry, slug, ranking, foreign = false, langs = [
       onMouseEnter={() => audio.hover()}
       onClick={() => {
         audio.unlock();
+        preloadCodexModal();
+        void loadEntry(entry, pickContentLang(entryLangs(entry), lang));
         window.setTimeout(() => onSelect(slug), 70);
       }}
       style={{ rotateX, rotateY, transformPerspective: 720 }}
