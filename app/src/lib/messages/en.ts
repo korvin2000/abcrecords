@@ -35,7 +35,7 @@ export const en: Record<MsgKey, Message> = {
   "search.countFiltered": "{n} of {total} revealed",
   "search.empty.title": "No name answers the call.",
   "search.empty.hint": "The codex holds no record matching your seek. Try another name, or release the filters.",
-  "search.otherLangs": "Found in other tongues",
+  "search.otherLangs": "Found in other languages",
 
   "facet.type": "Craft",
   "facet.country": "Country",
@@ -116,6 +116,6 @@ export const en: Record<MsgKey, Message> = {
   "ambient.off": "Ambience: off",
 
   "lang.menu": "Language",
-  "lang.title": "Tongues of the Codex",
+  "lang.title": "Languages of the Codex",
   "lang.entry": "Entry language",
 };
