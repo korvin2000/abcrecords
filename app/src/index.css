@@ -593,21 +593,8 @@ body {
   color: var(--color-ink-800);
 }
 
-/* Images inside the article get thin gold borders */
-.bio-figure img {
-  border: 1px solid rgba(184, 144, 42, 0.8);
-  outline: 1px solid rgba(84, 56, 30, 0.35);
-  outline-offset: 2px;
-  background: #ecdfc0;
-  filter: sepia(0.22);
-  transition: filter 0.35s;
-  width: 100%;
-  height: auto;
-  display: block;
-}
-.bio-figure:hover img {
-  filter: sepia(0);
-}
+/* Article & gallery images are framed by the Lifted-Curl effect (`.fx-curl`,
+   defined below); the figure itself now only carries caption styling. */
 .bio-figure figcaption {
   font-style: italic;
   font-size: 0.9rem;
@@ -615,6 +602,88 @@ body {
   text-align: center;
   margin-top: 0.45rem;
   line-height: 1.4;
+}
+
+/* ============================================================
+   Lifted Curl — photo-print frame for article & gallery images
+   Adapted from prototypes/snippets/image_effects ("Lifted Curl"),
+   re-toned from the snippet's black/white to the warm manuscript
+   palette: a soft ink drop shadow, an ivory print border, and two
+   curled-corner shadows that lift the print off the page. A gentle
+   ~6% zoom on hover makes the picture easier to see. Applied
+   everywhere EXCEPT the main-menu CharacterCard (its own effect).
+   ============================================================ */
+.fx-curl {
+  position: relative;
+  display: block;
+  border-radius: 3px;
+  overflow: visible;
+  box-shadow: 0 2px 8px rgba(51, 34, 15, 0.5);
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.4s ease;
+  will-change: transform;
+}
+.fx-curl .inner {
+  position: relative;
+  display: block;
+  z-index: 1;
+  overflow: hidden;
+  border-radius: 3px;
+}
+.fx-curl .inner img {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: #ecdfc0;
+  filter: sepia(0.2);
+  transition: filter 0.4s ease;
+}
+/* Warm ivory "print" border. Painted by a pseudo-element ABOVE the image —
+   an inset box-shadow on the wrapper itself would render behind the <img>. */
+.fx-curl .inner::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow: inset 0 0 0 6px rgba(250, 245, 230, 0.94);
+}
+/* Two curled-corner shadows lifting off the page. */
+.fx-curl::before,
+.fx-curl::after {
+  content: "";
+  position: absolute;
+  inset: auto;
+  bottom: 14px;
+  width: 46%;
+  height: 22%;
+  z-index: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow: 0 16px 12px rgba(51, 34, 15, 0.55);
+}
+.fx-curl::before {
+  left: 8px;
+  transform: rotate(-5deg) skew(-6deg);
+}
+.fx-curl::after {
+  right: 8px;
+  transform: rotate(5deg) skew(6deg);
+}
+/* Hover: gentle lift (~6%) — within the requested 5–10% "increase in volume". */
+.fx-curl:hover {
+  transform: scale(1.06);
+  z-index: 20;
+  box-shadow: 0 8px 20px rgba(51, 34, 15, 0.55);
+}
+.fx-curl:hover .inner img {
+  filter: sepia(0);
+}
+@media (prefers-reduced-motion: reduce) {
+  .fx-curl,
+  .fx-curl:hover {
+    transform: none;
+  }
 }
 
 /* ASCII tablature fallback: source columns are musical data. */

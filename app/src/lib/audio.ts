@@ -56,6 +56,27 @@ const SFX_LEVEL = 0.46;
 const SILENCE = 0.0001;
 const HOVER_PHRASE = [329.63, 392, 493.88, 392] as const; // E4–G4–B4–G4
 
+// ---- Ambient background music -------------------------------------------
+// A gentle I–V–vi–IV progression in C major, ported from
+// prototypes/snippets/music/music.ts. Unlike the standalone snippet (which
+// spins up its own AudioContext), this plays through the engine's shared
+// master bus, so the sound toggle mutes it and it shares the warm room tail.
+// It replaces the previous sustained four-note drone.
+const AMB_STEP_DUR = 0.28; // seconds per eighth note (~107 BPM)
+const AMB_STEPS_PER_BAR = 8;
+const AMB_NOTE = {
+  C3: 130.81, E3: 164.81, F3: 174.61, G3: 196.0, A3: 220.0, B3: 246.94,
+  C4: 261.63, D4: 293.66, E4: 329.63, F4: 349.23, G4: 392.0, A4: 440.0,
+} as const;
+const AMB_CHORDS: { bass: number; tones: number[] }[] = [
+  { bass: AMB_NOTE.C3, tones: [AMB_NOTE.C4, AMB_NOTE.E4, AMB_NOTE.G4, AMB_NOTE.E4] },
+  { bass: AMB_NOTE.G3, tones: [AMB_NOTE.B3, AMB_NOTE.D4, AMB_NOTE.G4, AMB_NOTE.D4] },
+  { bass: AMB_NOTE.A3, tones: [AMB_NOTE.A3, AMB_NOTE.C4, AMB_NOTE.E4, AMB_NOTE.C4] },
+  { bass: AMB_NOTE.F3, tones: [AMB_NOTE.F3, AMB_NOTE.A3, AMB_NOTE.C4, AMB_NOTE.A3] },
+];
+const AMB_TOTAL_STEPS = AMB_CHORDS.length * AMB_STEPS_PER_BAR;
+const AMBIENT_LEVEL = 0.34; // fade target for the ambient sub-bus (kept gentle)
+
 export function themeFromSeed(seed: string): ThemeSpec {
   const rng = mulberry32(fnv1a(seed) || 1);
   return {
@@ -85,7 +106,9 @@ class AudioEngine {
   private limiter: DynamicsCompressorNode | null = null;
   private room: ConvolverNode | null = null;
   private ambientGain: GainNode | null = null;
-  private ambientNodes: AudioNode[] = [];
+  private ambientTimer: ReturnType<typeof setInterval> | null = null;
+  private ambientStep = 0;
+  private ambientNextTime = 0;
 
   private themeTimer: ReturnType<typeof setInterval> | null = null;
   private themeGain: GainNode | null = null;
@@ -467,66 +490,82 @@ class AudioEngine {
   private startAmbient() {
     const ctx = this.ctx;
     if (!ctx || !this.master || this.ambientGain) return;
+
+    // Ambient sub-bus → master (so the sound toggle mutes it too).
     const g = ctx.createGain();
     g.gain.value = 0;
-    g.gain.linearRampToValueAtTime(0.02, ctx.currentTime + 3.2);
+    g.gain.linearRampToValueAtTime(AMBIENT_LEVEL, ctx.currentTime + 2.4); // slow fade-in
     g.connect(this.master);
+    // A touch of the shared room tail for a little space.
+    if (this.room) {
+      const send = ctx.createGain();
+      send.gain.value = 0.05;
+      g.connect(send);
+      send.connect(this.room);
+    }
     this.ambientGain = g;
 
-    const tone = ctx.createBiquadFilter();
-    tone.type = "lowpass";
-    tone.frequency.value = 620;
-    tone.Q.value = 0.4;
-    tone.connect(g);
+    // Look-ahead scheduler (same technique as the per-entry theme).
+    this.ambientStep = 0;
+    this.ambientNextTime = ctx.currentTime + 0.12;
+    this.ambientTimer = setInterval(() => this.scheduleAmbient(), 25);
+  }
 
-    // E2–B2–E3–G3: a stable, open classical-guitar sonority.
-    const freqs = [82.41, 123.47, 164.81, 196];
-    const levels = [0.42, 0.22, 0.14, 0.09];
-    const nodes: AudioNode[] = [];
-    freqs.forEach((f, i) => {
-      const osc = ctx.createOscillator();
-      osc.type = i === 0 ? "triangle" : "sine";
-      osc.frequency.value = f;
-      osc.detune.value = (i - 1.5) * 1.2;
-      const lfo = ctx.createOscillator();
-      lfo.frequency.value = 0.025 + i * 0.012;
-      const lfoGain = ctx.createGain();
-      lfoGain.gain.value = 0.7 + i * 0.25;
-      lfo.connect(lfoGain);
-      lfoGain.connect(osc.detune);
-      const og = ctx.createGain();
-      og.gain.value = levels[i];
-      osc.connect(og);
-      og.connect(tone);
-      osc.start();
-      lfo.start();
-      nodes.push(osc, lfo);
+  private scheduleAmbient() {
+    const ctx = this.ctx;
+    const bus = this.ambientGain;
+    if (!ctx || !bus) return;
+    while (this.ambientNextTime < ctx.currentTime + 0.15) {
+      this.ambientStep = this.ambientStepVoices(this.ambientStep, this.ambientNextTime, bus);
+      this.ambientNextTime += AMB_STEP_DUR;
+    }
+  }
+
+  /** One eighth-note step of the progression (bass, arpeggio, sparkle). */
+  private ambientStepVoices(step: number, time: number, dest: AudioNode): number {
+    const s = step % AMB_TOTAL_STEPS;
+    const bar = Math.floor(s / AMB_STEPS_PER_BAR);
+    const within = s % AMB_STEPS_PER_BAR;
+    const chord = AMB_CHORDS[bar];
+
+    // Bass note on beats 1 and 3.
+    if (within === 0 || within === 4) {
+      this.voice(chord.bass, time, 1.3, {
+        type: "triangle", gain: 0.08, dest, attack: 0.014, release: 0.3, filter: 900,
+      });
+    }
+    // Arpeggiated chord tone every eighth note.
+    const tone = chord.tones[within % chord.tones.length];
+    this.voice(tone, time, 0.55, {
+      type: "triangle", gain: 0.055, dest, attack: 0.012, release: 0.18, filter: 2600,
     });
-    this.ambientNodes = nodes;
+    // Soft sparkle an octave up on the off-beats.
+    if (within === 2 || within === 6) {
+      this.voice(tone * 2, time, 0.4, {
+        type: "sine", gain: 0.022, dest, attack: 0.012, release: 0.14, filter: 3200,
+      });
+    }
+    return step + 1;
   }
 
   private stopAmbient() {
     const ctx = this.ctx;
+    if (this.ambientTimer) {
+      clearInterval(this.ambientTimer);
+      this.ambientTimer = null;
+    }
     if (!ctx || !this.ambientGain) return;
     const g = this.ambientGain;
     g.gain.cancelScheduledValues(ctx.currentTime);
-    g.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.6);
-    const nodes = this.ambientNodes;
+    g.gain.setValueAtTime(g.gain.value, ctx.currentTime);
+    g.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.8); // let the last notes ring out
     setTimeout(() => {
-      for (const n of nodes) {
-        try {
-          (n as OscillatorNode).stop?.();
-        } catch { /* already stopped */ }
-        try {
-          n.disconnect();
-        } catch { /* already disconnected */ }
-      }
       try {
         g.disconnect();
       } catch { /* already disconnected */ }
-    }, 800);
+    }, 1100);
     this.ambientGain = null;
-    this.ambientNodes = [];
+    this.ambientStep = 0;
   }
 
   // ---- per-entry theme (look-ahead scheduler) ---------------------------

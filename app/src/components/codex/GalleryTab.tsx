@@ -9,6 +9,7 @@ import { isAsciiTabUrl } from "@/lib/asciiTab";
 import { useAsciiTabViewer } from "@/lib/asciiTabViewer";
 import { AudioPlayer } from "../AudioPlayer";
 import { Divider } from "../OrnateFrame";
+import { CurlFrame } from "../CurlFrame";
 
 interface Props {
   entry: IndexEntry;
@@ -45,16 +46,18 @@ export function GalleryTab({ entry, slug, bundle }: Props) {
             className="bio-figure m-0 cursor-zoom-in"
             onClick={() => openImage({ src: p.target, alt: p.label, caption: p.label })}
           >
-            <img
-              src={p.target}
-              alt={p.label}
-              loading="lazy"
-              decoding="async"
-              className="aspect-[4/5] w-full object-cover"
-              onError={(e) => {
-                e.currentTarget.closest("figure")!.style.display = "none";
-              }}
-            />
+            <CurlFrame>
+              <img
+                src={p.target}
+                alt={p.label}
+                loading="lazy"
+                decoding="async"
+                className="aspect-[4/5] w-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.closest("figure")!.style.display = "none";
+                }}
+              />
+            </CurlFrame>
             <figcaption>{p.label}</figcaption>
           </figure>
         ))}

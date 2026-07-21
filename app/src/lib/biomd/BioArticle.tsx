@@ -11,6 +11,7 @@ import { isAsciiTabUrl } from "../asciiTab";
 import { useAsciiTabViewer } from "../asciiTabViewer";
 import { useI18n } from "../i18n";
 import { InlineAudioPlayer } from "@/components/AudioPlayer";
+import { CurlFrame } from "@/components/CurlFrame";
 
 /**
  * BioMD Lite → React renderer.
@@ -119,7 +120,9 @@ function Md({ text, onNavigateEntry }: { text: string; onNavigateEntry?: (p: str
               className="bio-figure my-3 block cursor-zoom-in"
               onClick={() => url && openImage({ src: url, alt: alt ?? "", caption: alt, download: filename(url) })}
             >
-              <img src={url} alt={alt ?? ""} loading="lazy" decoding="async" />
+              <CurlFrame>
+                <img src={url} alt={alt ?? ""} loading="lazy" decoding="async" />
+              </CurlFrame>
             </span>
           );
         },
@@ -162,15 +165,17 @@ function Figure({ node }: { node: ImageNode }) {
       className={clsx("bio-figure my-4 w-full cursor-zoom-in", SIZE_CLASS[node.size], float)}
       onClick={() => openImage({ src, alt: node.caption ?? "", caption: node.caption, download: filename(node.src) })}
     >
-      <img
-        src={src}
-        alt={node.caption ?? ""}
-        loading="lazy"
-        decoding="async"
-        onError={(e) => {
-          e.currentTarget.closest("figure")?.classList.add("bio-figure-broken");
-        }}
-      />
+      <CurlFrame>
+        <img
+          src={src}
+          alt={node.caption ?? ""}
+          loading="lazy"
+          decoding="async"
+          onError={(e) => {
+            e.currentTarget.closest("figure")?.classList.add("bio-figure-broken");
+          }}
+        />
+      </CurlFrame>
       {node.caption && <figcaption>{node.caption}</figcaption>}
     </figure>
   );

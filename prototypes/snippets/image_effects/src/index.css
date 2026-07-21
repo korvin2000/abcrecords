@@ -1,0 +1,408 @@
+@import "tailwindcss";
+
+:root {
+  --ease-pop: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+body {
+  background: radial-gradient(1200px 800px at 20% -10%, #1b2130 0%, #0d0f14 55%) fixed,
+    #0d0f14;
+}
+
+/* ---------- generic effect frame ---------- */
+.fx {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  transition:
+    scale 0.4s var(--ease-pop),
+    transform 0.45s var(--ease-pop),
+    box-shadow 0.4s ease,
+    filter 0.4s ease;
+  will-change: transform, scale;
+}
+.fx img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: filter 0.4s ease;
+}
+.fx::before,
+.fx::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* hover: gentle 7% volume boost */
+.fx-card:hover .fx {
+  scale: 1.07;
+  z-index: 20;
+}
+
+/* =========================================================
+   1. CUSHION 3D — dark edges (the signature effect)
+   photo looks stretched over a soft cube: rounded corners,
+   darkened rim, top light, floating shadow
+   ========================================================= */
+.fx-cushion-dark {
+  border-radius: 16px;
+  box-shadow:
+    0 22px 40px -16px rgba(0, 0, 0, 0.75),
+    0 6px 14px -6px rgba(0, 0, 0, 0.5);
+}
+.fx-cushion-dark::after {
+  background: radial-gradient(
+    130% 130% at 50% 38%,
+    transparent 52%,
+    rgba(0, 0, 0, 0.28) 76%,
+    rgba(0, 0, 0, 0.62) 100%
+  );
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.55),
+    inset 0 2px 6px rgba(255, 255, 255, 0.18),
+    inset 0 -3px 8px rgba(0, 0, 0, 0.55),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+}
+.fx-card:hover .fx-cushion-dark {
+  box-shadow:
+    0 34px 60px -18px rgba(0, 0, 0, 0.8),
+    0 10px 22px -8px rgba(0, 0, 0, 0.55);
+}
+
+/* =========================================================
+   2. PILLOW 3D — light edges (inverse variant)
+   ========================================================= */
+.fx-pillow-light {
+  border-radius: 18px;
+  box-shadow:
+    0 20px 38px -16px rgba(0, 0, 0, 0.7),
+    0 4px 10px -4px rgba(0, 0, 0, 0.45);
+}
+.fx-pillow-light::after {
+  background: radial-gradient(
+    125% 125% at 50% 55%,
+    transparent 50%,
+    rgba(255, 255, 255, 0.16) 78%,
+    rgba(255, 255, 255, 0.5) 100%
+  );
+  box-shadow:
+    inset 0 2px 3px rgba(255, 255, 255, 0.75),
+    inset 0 -2px 4px rgba(255, 255, 255, 0.35),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.3);
+}
+
+/* =========================================================
+   3. DEEP VIGNETTE — heavy cinematic dark falloff
+   ========================================================= */
+.fx-deep-vignette {
+  border-radius: 10px;
+  box-shadow: 0 18px 34px -14px rgba(0, 0, 0, 0.8);
+}
+.fx-deep-vignette::after {
+  background: radial-gradient(
+    95% 95% at 50% 45%,
+    transparent 38%,
+    rgba(0, 0, 0, 0.45) 72%,
+    rgba(0, 0, 0, 0.88) 100%
+  );
+}
+.fx-deep-vignette img {
+  filter: saturate(1.15) contrast(1.05);
+}
+
+/* =========================================================
+   4. GLASS GLOSS — glossy sheen like glass-coated tile
+   ========================================================= */
+.fx-glass {
+  border-radius: 20px;
+  box-shadow:
+    0 20px 40px -14px rgba(0, 0, 0, 0.65),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+.fx-glass::before {
+  z-index: 2;
+  background: linear-gradient(
+    118deg,
+    rgba(255, 255, 255, 0.5) 0%,
+    rgba(255, 255, 255, 0.16) 26%,
+    rgba(255, 255, 255, 0) 45%,
+    rgba(255, 255, 255, 0) 78%,
+    rgba(255, 255, 255, 0.14) 100%
+  );
+  transition: transform 0.6s var(--ease-pop);
+}
+.fx-glass::after {
+  box-shadow:
+    inset 0 1.5px 1px rgba(255, 255, 255, 0.8),
+    inset 0 -8px 18px rgba(0, 0, 0, 0.35);
+}
+.fx-card:hover .fx-glass::before {
+  transform: translateX(12%);
+}
+
+/* =========================================================
+   5. BEVEL CUBE — chiseled edges, photo printed on a block
+   ========================================================= */
+.fx-bevel {
+  border-radius: 8px;
+  box-shadow:
+    0 16px 30px -12px rgba(0, 0, 0, 0.75),
+    0 3px 8px rgba(0, 0, 0, 0.4);
+}
+.fx-bevel::after {
+  box-shadow:
+    inset 5px 5px 8px -3px rgba(255, 255, 255, 0.55),
+    inset -5px -5px 8px -3px rgba(0, 0, 0, 0.65),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.3);
+}
+.fx-bevel::before {
+  background: radial-gradient(
+    140% 140% at 30% 20%,
+    transparent 60%,
+    rgba(0, 0, 0, 0.3) 100%
+  );
+}
+
+/* =========================================================
+   6. POLAROID — instant print with a slight tilt
+   ========================================================= */
+.fx-polaroid-wrap {
+  background: linear-gradient(180deg, #fdfdfb 0%, #f1efe8 100%);
+  padding: 10px 10px 40px;
+  border-radius: 4px;
+  transform: rotate(-2.5deg);
+  box-shadow:
+    0 18px 32px -12px rgba(0, 0, 0, 0.7),
+    0 2px 6px rgba(0, 0, 0, 0.35);
+}
+.fx-polaroid-wrap::after {
+  content: none;
+}
+.fx-polaroid-wrap::before {
+  content: none;
+}
+.fx-polaroid-wrap .inner {
+  overflow: hidden;
+  border-radius: 2px;
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.35);
+}
+.fx-polaroid-wrap .inner img {
+  filter: saturate(1.1) contrast(0.98) brightness(1.02);
+}
+.fx-polaroid-caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 10px;
+  text-align: center;
+  font-family: "Segoe Script", "Comic Sans MS", cursive;
+  font-size: 13px;
+  color: #4b4b45;
+}
+.fx-card:hover .fx-polaroid-wrap {
+  transform: rotate(0.5deg);
+}
+
+/* =========================================================
+   7. NEON AURA — glowing gradient halo
+   ========================================================= */
+.fx-neon {
+  border-radius: 18px;
+  box-shadow:
+    0 0 0 1px rgba(125, 211, 252, 0.55),
+    0 0 22px rgba(56, 189, 248, 0.45),
+    0 0 55px rgba(168, 85, 247, 0.3),
+    0 18px 34px -14px rgba(0, 0, 0, 0.7);
+}
+.fx-neon::after {
+  background: radial-gradient(
+    120% 120% at 50% 45%,
+    transparent 55%,
+    rgba(88, 28, 135, 0.35) 100%
+  );
+  box-shadow: inset 0 0 0 1px rgba(216, 180, 254, 0.35);
+}
+.fx-card:hover .fx-neon {
+  box-shadow:
+    0 0 0 1px rgba(165, 243, 252, 0.8),
+    0 0 32px rgba(56, 189, 248, 0.7),
+    0 0 80px rgba(168, 85, 247, 0.5),
+    0 26px 48px -16px rgba(0, 0, 0, 0.75);
+}
+
+/* =========================================================
+   8. SUNKEN WINDOW — photo recessed into the page
+   ========================================================= */
+.fx-sunken {
+  border-radius: 14px;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.09),
+    0 -1px 0 rgba(0, 0, 0, 0.6);
+}
+.fx-sunken::after {
+  background: radial-gradient(
+    120% 120% at 50% 50%,
+    transparent 62%,
+    rgba(0, 0, 0, 0.3) 100%
+  );
+  box-shadow:
+    inset 0 12px 22px -8px rgba(0, 0, 0, 0.85),
+    inset 0 -8px 18px -8px rgba(0, 0, 0, 0.7),
+    inset 3px 0 10px -6px rgba(0, 0, 0, 0.7),
+    inset -3px 0 10px -6px rgba(0, 0, 0, 0.7),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.55);
+}
+.fx-card:hover .fx-sunken {
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.14),
+    0 16px 30px -14px rgba(0, 0, 0, 0.7);
+}
+
+/* =========================================================
+   9. FLOATING TILT — 3D perspective card that levels on hover
+   ========================================================= */
+.fx-tilt {
+  border-radius: 14px;
+  transform: perspective(900px) rotateX(10deg) rotateY(-9deg);
+  box-shadow:
+    22px 30px 40px -18px rgba(0, 0, 0, 0.85),
+    0 4px 10px rgba(0, 0, 0, 0.4);
+}
+.fx-tilt::after {
+  background: linear-gradient(
+    125deg,
+    rgba(255, 255, 255, 0.28) 0%,
+    transparent 35%,
+    transparent 70%,
+    rgba(0, 0, 0, 0.4) 100%
+  );
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+.fx-card:hover .fx-tilt {
+  transform: perspective(900px) rotateX(0deg) rotateY(0deg);
+  box-shadow:
+    0 30px 55px -20px rgba(0, 0, 0, 0.85),
+    0 8px 18px rgba(0, 0, 0, 0.45);
+}
+
+/* =========================================================
+   10. METALLIC RIM — brushed gold ring frame
+   ========================================================= */
+.fx-metal-wrap {
+  border-radius: 18px;
+  padding: 6px;
+  background: conic-gradient(
+    from 210deg,
+    #8a6d2f,
+    #f7e8b0 12%,
+    #b08d3c 28%,
+    #6e5522 42%,
+    #e9d492 58%,
+    #9a7b32 72%,
+    #fdf3c8 88%,
+    #8a6d2f
+  );
+  box-shadow:
+    0 20px 36px -14px rgba(0, 0, 0, 0.8),
+    inset 0 1px 2px rgba(255, 255, 255, 0.6);
+}
+.fx-metal-wrap::before,
+.fx-metal-wrap::after {
+  content: none;
+}
+.fx-metal-wrap .inner {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.6),
+    inset 0 6px 14px -4px rgba(0, 0, 0, 0.55);
+}
+.fx-metal-wrap .inner::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(
+    120% 120% at 50% 40%,
+    transparent 58%,
+    rgba(0, 0, 0, 0.4) 100%
+  );
+}
+
+/* =========================================================
+   11. LIFTED CURL — paper with curled-corner shadows
+   ========================================================= */
+.fx-curl {
+  border-radius: 3px;
+  overflow: visible;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+.fx-curl .inner {
+  overflow: hidden;
+  border-radius: 3px;
+  position: relative;
+  z-index: 1;
+  box-shadow: inset 0 0 0 6px rgba(255, 255, 255, 0.92);
+}
+.fx-curl::before,
+.fx-curl::after {
+  inset: auto;
+  bottom: 14px;
+  width: 46%;
+  height: 22%;
+  z-index: 0;
+  box-shadow: 0 16px 12px rgba(0, 0, 0, 0.75);
+}
+.fx-curl::before {
+  left: 8px;
+  transform: rotate(-5deg) skew(-6deg);
+}
+.fx-curl::after {
+  right: 8px;
+  transform: rotate(5deg) skew(6deg);
+}
+
+/* =========================================================
+   12. VINTAGE MATTE — gallery mat + warm tone
+   ========================================================= */
+.fx-matte-wrap {
+  background: linear-gradient(180deg, #efe9da, #e2dac6);
+  padding: 14px;
+  border-radius: 6px;
+  box-shadow:
+    0 20px 36px -14px rgba(0, 0, 0, 0.75),
+    inset 0 0 0 1px rgba(120, 100, 60, 0.35),
+    inset 0 2px 3px rgba(255, 255, 255, 0.8);
+}
+.fx-matte-wrap::before,
+.fx-matte-wrap::after {
+  content: none;
+}
+.fx-matte-wrap .inner {
+  position: relative;
+  overflow: hidden;
+  border-radius: 3px;
+  box-shadow:
+    inset 0 0 0 1px rgba(90, 70, 40, 0.55),
+    inset 0 4px 10px rgba(0, 0, 0, 0.5);
+}
+.fx-matte-wrap .inner img {
+  filter: sepia(0.28) saturate(1.05) contrast(0.98);
+}
+.fx-matte-wrap .inner::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    115% 115% at 50% 45%,
+    transparent 55%,
+    rgba(60, 40, 10, 0.35) 100%
+  );
+}

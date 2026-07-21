@@ -1,8 +1,9 @@
 import type { ReactNode } from "react";
 import type { EntryBundle, IndexEntry } from "@/lib/types";
-import { ageOf, formatDmy, rankStars, resolveCountry, splitList } from "@/lib/metadata";
+import { ageOf, formatDmy, rankStars, resolveCountry, resolveCountryCode, splitList } from "@/lib/metadata";
 import { typeLabel, useI18n, type TFunc } from "@/lib/i18n";
 import { RankStars } from "../OrnateFrame";
+import { CountryFlag, hasCountryFlag } from "../CountryFlag";
 
 /**
  * Lore / Attributes — a scholarly dossier generated *dynamically* from
@@ -22,6 +23,7 @@ export function LoreTab({ entry, bundle }: { entry: IndexEntry; bundle: EntryBun
   const age = ageOf(dates.born, dates.died);
   const stars = rankStars(meta.ranking);
   const country = resolveCountry(meta.country, entry.country, locale);
+  const countryCode = resolveCountryCode(meta.country, entry.country);
   const genderKey = meta.gender === "m" || meta.gender === "f" ? (`lore.gender.${meta.gender}` as const) : null;
   const active =
     dates.activeFrom || dates.activeTo
@@ -32,9 +34,9 @@ export function LoreTab({ entry, bundle }: { entry: IndexEntry; bundle: EntryBun
     <div className="mx-auto grid max-w-3xl gap-6 sm:grid-cols-2">
       <Section title={t("lore.identity")}>
         <Row label={t("lore.birthname")}>{meta.birthname}</Row>
-        <Row label={t("lore.gender")}>{genderKey ? t(genderKey) : meta.gender}</Row>
+        <Row label={t("lore.gender")}>{genderValue(meta.gender, genderKey ? t(genderKey) : undefined)}</Row>
         <Row label={t("lore.type")}>{typeLabel(t, meta.type ?? entry.type)}</Row>
-        <Row label={t("lore.country")}>{country}</Row>
+        <Row label={t("lore.country")}>{countryValue(countryCode, country)}</Row>
         <Row label={t("lore.born")}>
           {joinParts(formatDmy(dates.born, locale), meta.birthplace)}
         </Row>
@@ -106,6 +108,39 @@ function Row({ label, children }: { label: string; children: ReactNode }) {
 function joinParts(...parts: Array<string | null | undefined>): string | null {
   const joined = parts.filter(Boolean).join(" · ");
   return joined || null;
+}
+
+/** Gender → ♂ / ♀ glyph for male/female (accessible name kept as a tooltip);
+ *  any other value stays as text. Absent → null so the row is dropped. */
+function genderValue(gender: string | undefined, label?: string): ReactNode {
+  if (gender === "m" || gender === "f") {
+    const symbol = gender === "m" ? "♂" : "♀"; // ♂ / ♀
+    const color = gender === "m" ? "#41506b" : "#7a1f2b"; // muted steel-blue / burgundy
+    return (
+      <span className="inline-flex items-center" title={label} aria-label={label}>
+        <span aria-hidden className="text-xl leading-none" style={{ color }}>
+          {symbol}
+        </span>
+      </span>
+    );
+  }
+  return gender ?? null;
+}
+
+/** Country → flag when one is drawn for the code (name kept as its tooltip),
+ *  otherwise the plain localized name. Absent → null so the row is dropped. */
+function countryValue(code: string | null, name: string): ReactNode {
+  if (!name) return null;
+  if (code && hasCountryFlag(code)) {
+    return (
+      <CountryFlag
+        code={code}
+        title={name}
+        className="h-[1.15rem] w-[1.72rem] rounded-[3px] align-middle shadow-[0_1px_3px_rgba(51,34,15,0.3)]"
+      />
+    );
+  }
+  return name;
 }
 
 function chips(items: string[]): ReactNode {

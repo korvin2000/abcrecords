@@ -116,6 +116,20 @@ export function resolveCountry(
   return (metaCountry ? regionName(metaCountry, locale) : null) ?? countryDisplay(indexCountry, locale);
 }
 
+/** ISO 3166-1 alpha-2 code for an entry (uppercased) so a flag can be shown,
+ *  or null when it can't be determined. Prefers the per-entry metadata code
+ *  (already ISO), else maps the free-text index.json country. */
+export function resolveCountryCode(
+  metaCountry: string | undefined,
+  indexCountry: string | undefined,
+): string | null {
+  if (metaCountry && /^[A-Za-z]{2}$/.test(metaCountry.trim())) {
+    return metaCountry.trim().toUpperCase();
+  }
+  const iso = indexCountry ? COUNTRY_TEXT_TO_ISO[indexCountry.trim().toLowerCase()] : undefined;
+  return iso ?? null;
+}
+
 /** metadata.ranking (~0–100) → 1..5 star tier (the light-theme replacement
  *  for the prototypes' fantasy "rarity"). */
 export function rankStars(ranking: number | undefined): number | null {
