@@ -5,6 +5,8 @@ import { audio, themeFromSeed } from "@/lib/audio";
 import { audioKind, stopAllPlayback } from "@/lib/playback";
 import { useI18n } from "@/lib/i18n";
 import { useImageViewer } from "@/lib/imageViewer";
+import { isAsciiTabUrl } from "@/lib/asciiTab";
+import { useAsciiTabViewer } from "@/lib/asciiTabViewer";
 import { AudioPlayer } from "../AudioPlayer";
 import { Divider } from "../OrnateFrame";
 
@@ -19,6 +21,7 @@ interface Props {
 export function GalleryTab({ entry, slug, bundle }: Props) {
   const { t } = useI18n();
   const openImage = useImageViewer();
+  const openTab = useAsciiTabViewer();
 
   const photos: MediaItem[] = [
     // the index portrait always leads the gallery
@@ -63,14 +66,24 @@ export function GalleryTab({ entry, slug, bundle }: Props) {
         {t("gallery.music")}
       </h3>
       <div className="mx-auto max-w-xl space-y-2">
-        {music.map((track, i) => (
-          <AudioPlayer
-            key={i}
-            src={resolveResourcePath(track.target)}
-            label={track.label}
-            kind={audioKind(track.target) ?? "native"}
-          />
-        ))}
+        {music.map((track) => {
+          const src = resolveResourcePath(track.target);
+          return isAsciiTabUrl(track.target) ? (
+            <button
+              type="button"
+              key={track.target}
+              onClick={() => openTab({ src, label: track.label, download: track.target.split(/[?#]/, 1)[0].split("/").pop() })}
+              className="flex w-full items-center gap-3 border border-gold-600/40 bg-paper-100/70 px-4 py-2.5 text-left transition-shadow hover:shadow-[0_2px_14px_rgba(138,106,31,0.25)]"
+            >
+              <span aria-hidden className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-gold-600/60 text-lg text-gold-800">𝄞</span>
+              <span className="min-w-0 flex-1 truncate font-heading text-sm text-ink-800">{track.label}</span>
+              <span className="rounded-sm border border-gold-600/50 bg-paper-200/70 px-1.5 py-0.5 font-heading text-[0.6rem] font-bold tracking-wider text-gold-800">TAB</span>
+              <span className="btn-rpg !px-3 !py-1 !text-[0.65rem]">{t("docs.open")}</span>
+            </button>
+          ) : (
+            <AudioPlayer key={track.target} src={src} label={track.label} kind={audioKind(track.target) ?? "native"} />
+          );
+        })}
         <ThemeRow slug={slug} name={entry.title} />
       </div>
 

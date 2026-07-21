@@ -1,5 +1,13 @@
 # ASCII Guitar Tablature: Corpus Analysis, Parsing, and Browser Rendering
 
+# Describes *.txt format Tablatures text format also named 'ASCII tab' format.
+
+
+ASCII tab is a text file format used for writing guitar, bass guitar and drum tabulatures (a form of musical notation) that uses plain ASCII numbers, letters and symbols. It is the only widespread file format for representing tabulature, and is extensively used for disseminating tabulature via the Internet.
+
+ASCII tab is intended to be a human-readable format rather than machine-readable, and hence is not strictly defined. Though some standards are used by all ASCII tab files, such as hyphens to represent string lines and digits to represent frets, other things such as barlines, rhythms, bends, chord symbols etc. may be present, absent or represented in a variety of ways. Additionally, ASCII tab files frequently contain lyrics and freeform text in unpredictable places.
+
+
 Status: implementation guide based on the seven files in `pages/tabs/` and on
 the external specifications listed in [Sources](#sources). Research and corpus
 analysis performed 2026-07-20.
@@ -973,6 +981,101 @@ enrich meaning without forcing a large architecture up front.
 - Parsing is linear for the current corpus and introduces no runtime library
   dependency.
 
+
+## Guitar and bass tablature
+Guitar tablature is used for acoustic and electric guitar (typically with 6 strings). A modified guitar tablature with four strings is used for bass guitar. Guitar and bass tab is used in pop, rock, folk, and country music lead sheets, fake books, and songbooks, and it also appears in instructional books and websites. Tab may be given as the only notation (as with chord tab in songbooks that only include lyrics and chords), or, as with guitar solo transcriptions, tab and standard notation may be provided. Sheet music consisting of tablature is sometimes referred to as "tabs." The same style of tablature is also used for other fretted instruments such as the banjo, mandolin, and ukulele.
+
+The following examples are labelled with letters on the left denoting the string names, with a lowercase e for the high E string. Tab lines may be numbered 1 through 6 instead, representing standard string numbering, where "1" is the high E string, "2" is the B string, etc. Also, the order of lines is not standardized. Some tablature is written in pitch order, with the high "e" string on top, and descending in pitch order to the low "E" string on the bottom. Other tablature is written the other way, with the string closest to the ceiling (the low "E") on top and the one closest to the floor (the high "e") on the bottom. To avoid confusion, tablature writers will often write the pitches to the left of the tablature so the reader knows the convention being used.
+
+The numbers that are written on the lines represent the fret used to obtain the desired pitch. For example, the number 3 written on the top line of the staff indicates that the player should press down at the third fret on the high E (first string). Number 0 denotes the nut — that is, an open string. If music is to be played using a capo, the numbers always indicate the number of frets from the capo, and not from the nut (thus, it is transposed into the capoed key). For chords, a letter above or below the tablature staff denotes the root note of the chord, chord notation is also usually relative to a capo, so chords played with a capo are transposed. Chords may also be notated with chord diagrams.
+
+#Examples of guitar tablature notation:
+The chords E, F, and G as an ASCII tab:
+```text 
+e|---0---1---3---
+B|---0---1---0---
+G|---1---2---0---
+D|---2---3---0---
+A|---2---3---2---
+E|---0---1---3---
+     E   F   G
+```
+
+Other examples:
+The string tunings at the left-hand side are often omitted. When notating entire songs, usually a note near the beginning of the tabulature tells the reader what tuning the instrument should be in. The number on each line refers to the fret as in guitar tab. Sometimes an 'x' means that the string should be played, but muted with either the left-hand fingers or the right-hand palm. The chord symbol C is written above - again this may or may not be included.
+
+Other techniques, such as hammer-ons, string pulls (or pull-offs), slides, and bends may also be shown. Hammer-ons are usually shown with an "h" in between the fret to strike and the fret to hammer on. String pulls are shown with a "p". "Tribute" by Tenacious D is one example of a song that uses both of these:
+
+```text 
+    Am (A minor)
+e |-------------0-0-0-0-0-0-----0-------0-0-0-0-0-|
+B |-------------1-1-1-1-1-1-1h3p1p0h1---1-1-1-1-1-|
+G |-----0h2-----2-2-2-2-2-2-----2-------2-2-2-2-2-|
+D |-0h2-------2-2-2-2-2-2-2-----2-----2-2-2-2-2-2-|
+A |---------0---0-0-0-0-0-----------0---0-0-0-0-0-|
+E |-----------------------------------------------|
+```
+
+A trill is a combination of hammer-ons and pull-offs being performed in succession.
+
+Slides are shown in the same format, but with a slash (/) or the letter S in between the fret to slide from and the fret to slide to. "ATWA" by System of a Down is a song that uses these (in Drop D tuning):
+```text 
+e |----------------------------------------------------|
+B |----------------------------------------------------|
+G |----3-----2-----5-----7------8------7-----5-----3---|
+D |----------------------------------------------------|
+A |----------------------------------------------------|
+D |--5---5/3---3/7---7/8---8/10---10/8---8/7---7/5---5-|
+```
+Bending is often shown by a letter b, but may also be indicated by an ^. A bend can show how far the string is to be bent, when the string is to be released (denoted by an r), or that it is a bend to an unspecific note. Examples:
+```text 
+e |---------------------------------------|
+B |---------------------------------------|
+G |--5b7--------5b7r5--------5b--------5br|
+D |---------------------------------------|
+A |---------------------------------------|
+E |---------------------------------------|
+```
+In the first example, a note played at the fifth fret on the G string (the note C) is bent up one full step so that it sounds like a note played at the seventh fret on the G string (the note D); secondly, the same note is played, but the bend is released so that the string again sounds a C note; thirdly, the string is bent to an undetermined note; fourthly, the string is bent to an undetermined note, and released back to the C note.
+
+ASCII tab can also indicate rhythms above the staff; however this is rarely done. Barlines can be indicated using '|' characters (pipes). Lyrics may be added above or below the staff, either aligned with the music or as a continuous text block. Freeform text (describing the song, composer, transcriber, notational conventions used, etc.) is also often included at the start or end of the file, or used for relevant comments about a certain part of the song.
+
+ASCII tab can also use various lines, arrows, and other symbols to denote bends, hammer-ons, trills, pull-offs, slides, and so on. These are the symbols that represent various techniques, though these may vary:
+Symbol	Technique
+h	hammer on
+p	pull off
+b	bend string up
+r	release bend
+/	slide up
+\	slide down
+v	vibrato (sometimes written as ~)
+t	right hand tap
+s	legato slide
+S	shift slide
+*	natural harmonic
+[n]	artificial harmonic
+n(n)	tapped harmonic
+tr	trill
+T	tap
+TP	tremolo picking
+PM	palm muting (also written as _)
+\n/	tremolo arm dip; n = amount to dip
+\n	tremolo arm down
+n/	tremolo arm up
+/n\	tremolo arm inverted dip
+=	hold bend; also acts as connecting device for hammers/pulls
+<>	volume swell (louder/softer)
+x	on rhythm slash represents muted slash
+o	on rhythm slash represents single note slash
+·/.	pick slide
+
+
+
+## Computer programs for writing tablatures
+Various computer programs are available for writing tablature; some also write lyrics, guitar chord diagrams, chord symbols, and/or staff notation. ASCII tab files can be written (somewhat laboriously) with any ordinary word processor or text editor, using a monospaced font such as 'Courier New' so that characters maintain vertical alignment across all strings.
+
+
+
 ## Sources
 
 Primary and authoritative references used for this guide:
@@ -991,4 +1094,4 @@ Primary and authoritative references used for this guide:
 - [SVG 2 — Coordinate Systems](https://www.w3.org/TR/SVG/coords.html), [SVG 2 — Text](https://www.w3.org/TR/SVG2/text.html), and [SVG 2 — Accessibility Support](https://www.w3.org/TR/SVG/access): responsive vector geometry, positioned text, and accessible SVG.
 - [WHATWG HTML — Canvas](https://html.spec.whatwg.org/multipage/canvas.html): canvas bitmap and fallback-content requirements.
 - [WCAG 2.2](https://www.w3.org/TR/WCAG22/): reflow, contrast, keyboard, and non-text accessibility requirements.
-
+- [ASCII tab](https://en.wikipedia.org/wiki/ASCII_tab): ASCII tab Tabulatures for 6 Strings guitar

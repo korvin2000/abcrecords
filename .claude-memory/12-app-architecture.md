@@ -41,6 +41,10 @@ See [`app/README.md`](../app/README.md) for the full layer table.
 - **Audio** (`src/lib/audio.ts`): ported CodexLegends procedural engine; the
   per-entry theme is seeded deterministically from the slug
   (`themeFromSeed`, FNV-1a → mulberry32 → guitar-ish scales/roots).
+- **ASCII tablature** (`src/lib/asciiTab.ts` + lazy `AsciiTabViewer`): `.txt`
+  links are decoded losslessly, parsed into six-string systems, and rendered
+  as SVG with an aligned raw fallback. Playback is intentionally approximate
+  because source columns do not define authoritative rhythm.
 - **Rarity decision resolved**: `metadata.ranking` (0–100) → 1–5 "renown"
   stars (`rankStars` in `src/lib/metadata.ts`) on cards + Lore tab. Sound
   effects were kept (user's prompt asked for them explicitly).

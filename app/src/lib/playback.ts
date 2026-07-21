@@ -36,12 +36,13 @@ export interface Playback {
 // ---- single-active coordinator --------------------------------------------
 let stopActive: (() => void) | null = null;
 
-function goSolo(stop: () => void): void {
+/** Register any built-in player as the sole active source. */
+export function claimPlayback(stop: () => void): void {
   if (stopActive && stopActive !== stop) stopActive();
   stopActive = stop;
-  audio.stopTheme(); // the procedural hero theme yields to a real recording
+  audio.stopTheme(); // the procedural hero theme yields to content playback
 }
-function releaseSolo(stop: () => void): void {
+export function releasePlayback(stop: () => void): void {
   if (stopActive === stop) stopActive = null;
 }
 /** Pause whatever is currently playing (used when the hero theme starts). */
@@ -158,7 +159,7 @@ export function useAudioPlayback(src: string, kind: AudioKind): Playback {
 
   const finish = useCallback(() => {
     stopRaf();
-    releaseSolo(pauseSelf);
+    releasePlayback(pauseSelf);
     setStatus("ended");
     setCurrentTime(backendRef.current?.duration ?? 0);
   }, [stopRaf, pauseSelf]);
@@ -198,7 +199,7 @@ export function useAudioPlayback(src: string, kind: AudioKind): Playback {
       pauseSelf();
       return;
     }
-    goSolo(pauseSelf);
+    claimPlayback(pauseSelf);
     if (status === "idle" || status === "ended") b.start(0);
     else b.resume();
     setStatus("playing");
@@ -224,7 +225,7 @@ export function useAudioPlayback(src: string, kind: AudioKind): Playback {
     setDuration(0);
     return () => {
       stopRaf();
-      releaseSolo(pauseSelf);
+      releasePlayback(pauseSelf);
       backendRef.current?.dispose();
       backendRef.current = null;
     };

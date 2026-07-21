@@ -617,6 +617,16 @@ body {
   line-height: 1.4;
 }
 
+/* ASCII tablature fallback: source columns are musical data. */
+.tab-raw {
+  white-space: pre;
+  tab-size: 8;
+  font-family: "Cascadia Mono", "Courier New", ui-monospace, monospace;
+  font-variant-ligatures: none;
+  font-kerning: none;
+  letter-spacing: 0;
+}
+
 /* ============================================================
    Keyframes shared by components
    ============================================================ */

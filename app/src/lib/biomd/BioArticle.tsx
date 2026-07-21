@@ -7,6 +7,8 @@ import { parseBioMd, type BioNode, type ImageNode } from "./parse";
 import { isExternalUrl, resolveResourcePath } from "../paths";
 import { audioKind } from "../playback";
 import { isImageUrl, useImageViewer } from "../imageViewer";
+import { isAsciiTabUrl } from "../asciiTab";
+import { useAsciiTabViewer } from "../asciiTabViewer";
 import { useI18n } from "../i18n";
 import { InlineAudioPlayer } from "@/components/AudioPlayer";
 
@@ -30,6 +32,7 @@ const REMARK_PLUGINS = [remarkGfm, remarkHighlight];
 function Md({ text, onNavigateEntry }: { text: string; onNavigateEntry?: (p: string) => void }) {
   const { t } = useI18n();
   const openImage = useImageViewer();
+  const openTab = useAsciiTabViewer();
   return (
     <ReactMarkdown
       remarkPlugins={REMARK_PLUGINS}
@@ -53,6 +56,22 @@ function Md({ text, onNavigateEntry }: { text: string; onNavigateEntry?: (p: str
           if (kind) {
             const src = isExternalUrl(url) ? url : resolveResourcePath(url);
             return <InlineAudioPlayer src={src} label={linkText(children) || filename(url)} kind={kind} />;
+          }
+          if (isAsciiTabUrl(url)) {
+            const src = isExternalUrl(url) ? url : resolveResourcePath(url);
+            const text = linkText(children).trim();
+            const label = !text || /^(?:ascii\s*)?tab(?:lature)?$/i.test(text) ? filename(url) : text;
+            return (
+              <a
+                href={src}
+                onClick={(e) => {
+                  e.preventDefault();
+                  openTab({ src, label, download: filename(url) });
+                }}
+              >
+                {children}
+              </a>
+            );
           }
           if (isImageUrl(url)) {
             const src = isExternalUrl(url) ? url : resolveResourcePath(url);
@@ -222,6 +241,7 @@ function renderNode(
 function DocumentCard({ src, title }: { src: string; title?: string }) {
   const { t } = useI18n();
   const openImage = useImageViewer();
+  const openTab = useAsciiTabViewer();
   const href = resolveResourcePath(src);
   const label = title ?? src.split("/").pop() ?? src;
   const content = (
@@ -242,6 +262,18 @@ function DocumentCard({ src, title }: { src: string; title?: string }) {
         type="button"
         className="my-4 flex w-full items-center gap-3 border border-gold-600/50 bg-paper-100/70 px-4 py-3 text-left transition-shadow hover:shadow-[0_2px_14px_rgba(138,106,31,0.25)]"
         onClick={() => openImage({ src: href, alt: label, caption: label })}
+      >
+        {content}
+      </button>
+    );
+  }
+
+  if (isAsciiTabUrl(src)) {
+    return (
+      <button
+        type="button"
+        className="my-4 flex w-full items-center gap-3 border border-gold-600/50 bg-paper-100/70 px-4 py-3 text-left transition-shadow hover:shadow-[0_2px_14px_rgba(138,106,31,0.25)]"
+        onClick={() => openTab({ src: href, label, download: filename(src) })}
       >
         {content}
       </button>
