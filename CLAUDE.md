@@ -23,7 +23,7 @@ Each entry combines:
 
 | Path            | Purpose                                                              |
 |-----------------|---------------------------------------------------------------------|
-| `app/`          | **The production catalogue app** (Vite + React + TS). Renders `pages/` content at runtime; see `app/README.md` and [`.claude-memory/12-app-architecture.md`](.claude-memory/12-app-architecture.md). |
+| `app/`          | **The production catalogue app** (Vite + React + TS). Renders `pages/` content at runtime; see `app/README.md` and [`.claude-memory/12-app-architecture.md`](.claude-memory/12-app-architecture.md) (overview). For real work in `app/` read the deep-dive triad: [`13`](.claude-memory/13-app-code-map.md) code map · [`14`](.claude-memory/14-app-patterns-and-gotchas.md) patterns/gotchas/recipes · [`15`](.claude-memory/15-app-critique.md) critique/backlog. |
 | `docs/`         | Source specifications & guides (the source of truth — see below).   |
 | `pages/`        | Content pages / migrated entries. Per-language layout: each entry's `*.bio.md` + `*.bio.json` pair lives in `pages/<iso-lang>/` (`ru/`, `en/`, `de/`, …) per the `lang` field in `index.json`; `pages/photos/` (shared image assets) stays at the root and is never localized. |
 | `prototypes/`   | Two throwaway React reference apps (`CodexLegends`, `Copendum`) exploring the codex UI. Not production code — see below. |

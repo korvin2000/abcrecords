@@ -27,6 +27,9 @@ Claude Code sessions can work efficiently without re-reading every source file.
 | [`10-ui-component-decision.md`](10-ui-component-decision.md) | **Building the real catalogue UI** — read this first: which prototype components were chosen and the dark→light re-theme plan. |
 | [`11-index-json.md`](11-index-json.md) | Work with `pages/index.json` — the main-menu/search index, or wire the search page to per-entry `json`/`md`/`img` files. |
 | [`12-app-architecture.md`](12-app-architecture.md) | Work on the **production app in `app/`** — data flow, BioMD parser, search/i18n/audio modules, and gotchas (scroll-lock ownership, Cyrillic fonts, country mapping). |
+| [`13-app-code-map.md`](13-app-code-map.md) | Need to **navigate `app/` fast** — file-by-file map by layer, control/data-flow walkthroughs, and a component-relationship diagram. |
+| [`14-app-patterns-and-gotchas.md`](14-app-patterns-and-gotchas.md) | **About to change `app/` code** — the recurring patterns, the landmines to avoid (CSS layering, dates, two bases, audio, search, BioMD), and step-by-step task recipes. |
+| [`15-app-critique.md`](15-app-critique.md) | Want the **honest state of `app/`** — strengths, a severity-tagged weakness/risk register, and a prioritized improvement backlog. |
 
 ## 30-second orientation
 
@@ -49,6 +52,11 @@ Claude Code sessions can work efficiently without re-reading every source file.
   `CodexLegends`'s `CharacterCard.tsx`/`SearchBar.tsx`/search screen, but
   **re-themed from dark to light**. Full rationale in
   [`10-ui-component-decision.md`](10-ui-component-decision.md).
+- **Working on the `app/` code?** Read the deep-dive triad:
+  [`13`](13-app-code-map.md) (where everything lives + flow) →
+  [`14`](14-app-patterns-and-gotchas.md) (patterns, landmines, task recipes) →
+  [`15`](15-app-critique.md) (strengths, risks, backlog).
+  [`12`](12-app-architecture.md) remains the high-level overview.
 
 ## Maintenance
 

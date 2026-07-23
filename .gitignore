@@ -65,3 +65,4 @@ typings/
 # Comment next line if keeping position of elements in Navigation Editor is relevant for you
 .idea/navEditor.xml
 app/.idea/
+.orca/

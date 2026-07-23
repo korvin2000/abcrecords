@@ -53,3 +53,20 @@ The paths declared by `index.json` continue to use the application base.
   weight file per script instead of several static weights.
 - `/fable/` production build: ≈ 121 KB initial gzip JS + 12.6 KB CSS;
   Codex/Markdown adds ≈ 55 KB gzip only when first opened.
+
+## Architecture docs
+
+The layer table above is the quick tour. For depth, the repo keeps a distilled
+knowledge base in [`../.claude-memory/`](../.claude-memory/INDEX.md):
+
+- [`13-app-code-map.md`](../.claude-memory/13-app-code-map.md) — file-by-file map, control/data-flow walkthroughs, component-relationship diagram.
+- [`14-app-patterns-and-gotchas.md`](../.claude-memory/14-app-patterns-and-gotchas.md) — recurring patterns, landmines (CSS layering, dates, the two deploy bases, audio, search, BioMD), and task recipes (add a language / message key / entry / flag / BioMD block).
+- [`15-app-critique.md`](../.claude-memory/15-app-critique.md) — strengths, a severity-tagged risk register, and a prioritized improvement backlog.
+
+## Tooling status
+
+Strict TypeScript (`tsc -b`) is the only automated gate today — **there is no
+test runner, ESLint, or Prettier yet**. Highest-value first steps (see the
+backlog in `15-app-critique.md`): add Vitest unit tests for the pure logic
+(`biomd/parse.ts`, `lib/search.ts`, `lib/metadata.ts`, `lib/paths.ts`), then
+ESLint + Prettier + a CI check.

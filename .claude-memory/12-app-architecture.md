@@ -5,6 +5,13 @@ catalogue (Vite + React 19 + TS + Tailwind 4 + framer-motion), built per the
 component decision in [`10-ui-component-decision.md`](10-ui-component-decision.md).
 See [`app/README.md`](../app/README.md) for the full layer table.
 
+> **This note is the high-level overview.** For depth added 2026-07-21, use the
+> triad: [`13-app-code-map.md`](13-app-code-map.md) (file-by-file map + flows +
+> diagram), [`14-app-patterns-and-gotchas.md`](14-app-patterns-and-gotchas.md)
+> (patterns, landmines, task recipes), and
+> [`15-app-critique.md`](15-app-critique.md) (strengths, risk register,
+> improvement backlog).
+
 ## Key facts
 
 - **Content stays in `pages/`** — mounted as Vite `publicDir` and fetched
@@ -56,6 +63,21 @@ See [`app/README.md`](../app/README.md) for the full layer table.
   parser, while Vite manual chunks keep React, Motion, and Markdown cacheable.
   Card pointer/focus intent preloads the modal and an actual click starts its
   content request in parallel. First-row portraits are eager; all others lazy.
+
+## Recent additions (2026-07-21)
+
+- **Lifted-Curl image frame** (`src/components/CurlFrame.tsx` + `.fx-curl` in
+  `index.css`): replaced the old flat double border on all article & gallery
+  images (the main-menu `CharacterCard` keeps its own 3D-tilt effect). Borderless
+  photo + drop shadow + curled-corner shadows + a hover zoom kept working under
+  `prefers-reduced-motion` on purpose.
+- **Ambient music** (`audio.ts`): the old sustained drone was replaced by a
+  gentle I–V–vi–IV loop ported from `prototypes/snippets/music`, routed through
+  the engine's master bus (still governed by the mute toggle).
+- **Lore tab** (`LoreTab.tsx`): country shown as a **flag** via the new
+  `src/components/CountryFlag.tsx` (ISO-keyed; name fallback) + gender as **♂/♀**.
+  NB: `CountryFlag` duplicates some art with the language-keyed `Flag.tsx` — see
+  [`15-app-critique.md`](15-app-critique.md) (consolidation backlog item).
 
 ## Gotchas discovered while building
 
