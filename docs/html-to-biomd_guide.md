@@ -1,4 +1,4 @@
-# HTML → BioMD Lite 1.2 Conversion Guide
+# HTML → BioMD Lite 1.3 Conversion Guide
 
 **Purpose:** convert legacy encyclopedia HTML to UTF-8 `.bio.md`.  
 **Authority:** `Biography-Markup.md` defines valid BioMD syntax; source HTML defines facts, wording, content, and target identity. If they conflict, follow the specification for structure and the source for content.  
@@ -181,9 +181,10 @@ properties.
 | Directive | Required | Optional / values | Body and use |
 |---|---|---|---|
 | `lead` | — | — | Markdown; genuine introductory summary only |
-| standalone `image` | `src`, `position`, `size` | `position`: `left\|right\|center\|full`; `size`: `small\|medium\|large\|full`; `alt`, `caption`, `link` | none |
-| `images` | `columns: 2\|3\|4`; at least 2 child `image`s | — | child `image`s only |
-| child `image` | `src` | `alt`, `caption`, `link`; omit `position`/`size` | none; only inside `images` |
+| `align` | `position` | `position`: `left\|center\|right` | Markdown plus leaf media; only when alignment carries meaning |
+| standalone `image` | `src`, `position`, `size` | `position`: `left\|right\|center\|full`; `size`: `small\|medium\|large\|full`; `alt`, `caption`, `link`, `frame` | none |
+| `images` | `columns: 2\|3\|4`; at least 2 child `image`s | `frame` (default for children) | child `image`s only |
+| child `image` | `src` | `alt`, `caption`, `link`, `frame`; omit `position`/`size` | none; only inside `images` |
 | `document` | `src`, `title`, `mode` | `mode`: `link\|embed` | none |
 | `columns` | exactly 2 or 3 `column` children | `divider: true\|false` | `column`s only; meaningful parallel groups |
 | `column` | — | — | Markdown plus leaf `image`/`document`; no nested `columns` |
@@ -192,7 +193,8 @@ properties.
 | `signature` | — | — | short closing text, links, and meaningful hard breaks |
 
 Only the listed nesting is valid. `images` contains only child images;
-`columns` only columns; a `frame` cannot contain `frame` or `nav`. A standalone
+`columns` only columns; a `frame` cannot contain `frame` or `nav`; an `align`
+block cannot contain `columns` and must not wrap a `nav`. A standalone
 image inside `column` or `frame` still requires `position` and `size`.
 `nav.active` must exactly match one unique rendered link label; every body item
 remains a source-backed link. Use `divider: true` only when separation is
@@ -210,6 +212,8 @@ Directive choice:
 | article-specific note, memorial, or highlighted announcement | `frame` |
 | short closing author/place/credit identity | `signature` |
 | PDF, scan set, or document intended as a card/embed | `document` |
+| meaningful `<center>`, `align=`, or `text-align` on a bounded group | `align` with `position` |
+| meaningful bordered/colored frame around an article image | `image` with a named `frame` token |
 
 Ordinary audio, MIDI, TAB/TEF, score-page, archive, and similar file references
 usually remain Markdown links. Do not invent a player or embed for a legacy
@@ -264,6 +268,7 @@ preserving any meaningful target.
 | image plus attached caption wrapper | one `image` with `caption` |
 | `<a><img></a>` | one `image` preserving both `src` and `link` |
 | meaningful rail badge | usually `small`, moved near related prose |
+| `<img border="…">` or a colored/bordered cell around an article image | one `image` with a named `frame` token (1.3), never a copied color |
 
 Choose size by role and relative footprint: `small` for badges/small covers,
 `medium` for ordinary portraits/covers, `large` for prominent figures, `full`

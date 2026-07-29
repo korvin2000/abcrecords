@@ -506,6 +506,22 @@ body {
 .bio-article h2 { font-size: 1.35rem; }
 .bio-article h3 { font-size: 1.15rem; }
 
+/* Spec 6.2: a following heading or separator ends an earlier left/right image
+   wrap. Without this a heading keeps its full-width box but its LINE boxes are
+   squeezed into the gap beside the float, so the title renders as a narrow
+   column next to the picture instead of starting below it. The other block
+   constructs named by 6.2 (centered/full figure, image group, columns, nav,
+   align) clear in their own rules / component classes. */
+.bio-article h1,
+.bio-article h2,
+.bio-article h3,
+.bio-article h4,
+.bio-article h5,
+.bio-article h6,
+.bio-article hr {
+  clear: both;
+}
+
 .bio-article a {
   color: var(--color-burgundy-600);
   text-decoration: underline;
@@ -565,7 +581,7 @@ body {
 .bio-article ol,
 .bio-article ul {
   padding-left: 1.4em;
-  margin: 0 0 0.9em;
+  margin: 0 0 0em;
 }
 .bio-article li {
   margin-bottom: 0.15em;
@@ -672,6 +688,133 @@ body {
 }
 .fx-curl:hover .inner img {
   filter: sepia(0);
+}
+
+/* ============================================================
+   Optional picture frames (::: image → frame:, spec 6.5).
+   A framed print reads as a hung picture rather than a loose photo, so the
+   curled corners go and the drop shadow softens; the hover zoom stays (it is
+   the image-viewer click affordance, not decoration). Every selector needs a
+   `fx-curl--*` class, so a default image cannot be affected.
+   ============================================================ */
+.fx-curl--framed::before,
+.fx-curl--framed::after {
+  display: none;
+}
+.fx-curl--framed {
+  box-shadow: 0 1px 5px rgba(51, 34, 15, 0.28);
+}
+/* Colour frames: a deliberately visible mount, ~4x the old hairline, so the
+   frame reads as part of the picture rather than as a stray outline. */
+.fx-curl--black > .inner {
+  border: 6px solid var(--color-ink-900);
+}
+.fx-curl--white > .inner {
+  border: 6px solid var(--color-paper-50);
+}
+.fx-curl--red > .inner {
+  border: 6px solid var(--color-burgundy-600);
+}
+.fx-curl--gold > .inner {
+  border: 6px solid var(--color-gold-600);
+}
+/* Passe-partout: an ivory mount between the hairline and the picture. */
+.fx-curl--mat > .inner {
+  border: 1px solid rgba(184, 144, 42, 0.55);
+  padding: 10px;
+  background: var(--color-paper-100);
+}
+.fx-curl--none {
+  box-shadow: none;
+}
+
+/* ============================================================
+   Alignment block (::: align, spec 13) — a bounded aligned group. It starts a
+   new block, so it ends an earlier left/right image wrap (same rule as 6.2);
+   intrinsic-width block children follow the alignment as well.
+   ============================================================ */
+.bio-article .bio-align {
+  clear: both;
+}
+.bio-article .bio-align-left { text-align: left; }
+.bio-article .bio-align-center { text-align: center; }
+.bio-article .bio-align-right { text-align: right; }
+.bio-article .bio-align-left > figure { margin-inline: 0 auto; }
+.bio-article .bio-align-center > figure { margin-inline: auto; }
+.bio-article .bio-align-right > figure { margin-inline: auto 0; }
+
+/* ============================================================
+   In-article navigation bar (::: nav, spec 10) — the codex tab strip's visual
+   language: a centered paper pill row with a gold hairline and a burgundy
+   current item. Wraps on narrow screens; no measurement, no scripting.
+   Selectors are scoped `.bio-article .bio-nav …` so they outrank the generic
+   `.bio-article ul`/`a` article rules regardless of source order.
+   ============================================================ */
+.bio-article .bio-nav {
+  clear: both;
+  margin: 1.4em 0;
+}
+.bio-article .bio-nav-title {
+  font-family: var(--font-heading);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 0.72rem;
+  color: var(--color-sepia-600);
+  text-align: center;
+  margin-bottom: 0.45rem;
+}
+.bio-article .bio-nav ul {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.25rem;
+  width: max-content;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0.25rem;
+  border: 1px solid rgba(184, 144, 42, 0.4);
+  border-radius: 6px;
+  background: rgba(244, 236, 214, 0.6);
+}
+.bio-article .bio-nav li {
+  margin: 0;
+}
+.bio-article .bio-nav a,
+.bio-article .bio-nav .bio-nav-current {
+  display: block;
+  padding: 0.35rem 0.9rem;
+  border-radius: 4px;
+  font-family: var(--font-heading);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  text-decoration: none;
+  white-space: nowrap;
+  color: var(--color-sepia-600);
+  transition: background-color 0.2s, color 0.2s;
+}
+.bio-article .bio-nav a:hover {
+  background: rgba(236, 223, 192, 0.8);
+  color: var(--color-ink-800);
+}
+.bio-article .bio-nav a:focus-visible {
+  outline: 2px solid var(--color-gold-600);
+  outline-offset: 2px;
+}
+.bio-article .bio-nav .bio-nav-current {
+  background: var(--color-burgundy-600);
+  color: var(--color-paper-50);
+  box-shadow: 0 2px 10px rgba(122, 31, 43, 0.35);
+  cursor: default;
+}
+
+/* A linked figure (::: image with `link:`) is an anchor around the picture;
+   it must not inherit the article link's dotted underline. */
+.bio-article .bio-figure-link {
+  display: block;
+  text-decoration: none;
 }
 
 /* ASCII tablature fallback: source columns are musical data. */

@@ -1,8 +1,8 @@
 /**
- * BioMD Lite parser (docs/Biography-Markup.md).
+ * BioMD Lite parser (docs/Biography-Markup.md, v1.3).
  *
  * BioMD = plain Markdown + `::: name … :::` layout/media blocks:
- *   lead · image · images · document · columns · column
+ *   lead · align · image · images · document · columns · column · nav
  *
  * Engine rules honoured here:
  *  - source order is logical reading order — the tree preserves it;
@@ -14,6 +14,10 @@
 
 export type ImagePosition = "left" | "right" | "center" | "full";
 export type ImageSize = "small" | "medium" | "large" | "full";
+/** `::: align` — how a bounded group of content is aligned (spec 13). */
+export type ContentAlignment = "left" | "center" | "right";
+/** `frame:` — theme-named picture frame around an image (spec 6.5). */
+export type ImageFrame = "curl" | "none" | "mat" | "black" | "white" | "red" | "gold";
 
 export interface ImageNode {
   kind: "image";
@@ -21,6 +25,12 @@ export interface ImageNode {
   position: ImagePosition;
   size: ImageSize;
   caption?: string;
+  /** Accessibility text; the renderer falls back to `caption` when absent. */
+  alt?: string;
+  /** Click target of a thumbnail/cover/scan; executable schemes are dropped. */
+  link?: string;
+  /** Frame treatment; undefined = the theme default (Lifted Curl). */
+  frame?: ImageFrame;
 }
 
 export interface MarkdownNode {
@@ -31,6 +41,22 @@ export interface MarkdownNode {
 export interface LeadNode {
   kind: "lead";
   children: BioNode[];
+}
+
+export interface AlignNode {
+  kind: "align";
+  /** null when `position` was missing or unknown — render at default alignment. */
+  position: ContentAlignment | null;
+  children: BioNode[];
+}
+
+export interface NavNode {
+  kind: "nav";
+  title?: string;
+  /** Plain-text label of the current item; rendered as current, not clickable. */
+  active?: string;
+  /** The link list, kept as Markdown — the renderer reuses the Markdown pipeline. */
+  markdown: string;
 }
 
 export interface ImagesNode {
@@ -60,10 +86,12 @@ export interface UnknownNode {
 export type BioNode =
   | MarkdownNode
   | LeadNode
+  | AlignNode
   | ImageNode
   | ImagesNode
   | DocumentNode
   | ColumnsNode
+  | NavNode
   | UnknownNode;
 
 export interface BioDoc {
@@ -136,11 +164,63 @@ function parseProps(lines: string[], warnings: string[], blockName: string) {
   return props;
 }
 
+/**
+ * Split a block that owns BOTH properties and content (`align`, `nav`) into its
+ * leading `key: value` header and the remaining body lines — spec 4: "a blank
+ * line separates properties from body content". Tolerant: the header also ends
+ * at the first line that is not a property, so a body may follow immediately.
+ */
+function splitPropsAndBody(lines: string[]): { props: Record<string, string>; body: string[] } {
+  const props: Record<string, string> = {};
+  let i = 0;
+  while (i < lines.length) {
+    if (!lines[i].trim()) {
+      i++;
+      if (Object.keys(props).length) break; // blank line closes the header
+      continue; // blank lines before the header are insignificant
+    }
+    const m = PROP_LINE.exec(lines[i].trim());
+    if (!m) break;
+    props[m[1].toLowerCase()] = m[2].trim();
+    i++;
+  }
+  return { props, body: lines.slice(i) };
+}
+
 const POSITIONS: ImagePosition[] = ["left", "right", "center", "full"];
 const SIZES: ImageSize[] = ["small", "medium", "large", "full"];
+const ALIGNMENTS: ContentAlignment[] = ["left", "center", "right"];
+const FRAMES: ImageFrame[] = ["curl", "none", "mat", "black", "white", "red", "gold"];
 
+/** Allowlisted property value; undefined when absent or unrecognised. */
+function enumProp<T extends string>(v: string | undefined, allowed: T[]): T | undefined {
+  const value = v?.trim().toLowerCase();
+  return value && allowed.includes(value as T) ? (value as T) : undefined;
+}
+
+/** Same, for a required property that has a documented default. */
 function oneOf<T extends string>(v: string | undefined, allowed: T[], fallback: T): T {
-  return allowed.includes((v ?? "") as T) ? (v as T) : fallback;
+  return enumProp(v, allowed) ?? fallback;
+}
+
+/** `frame:` — an unknown token keeps the default frame instead of dropping it. */
+function parseFrame(raw: string | undefined, warnings: string[]): ImageFrame | undefined {
+  const frame = enumProp(raw, FRAMES);
+  if (raw && !frame) warnings.push(`Unknown frame "${raw.trim()}" — using the default frame.`);
+  return frame;
+}
+
+/**
+ * Block properties bypass react-markdown's URL handling, so a click target is
+ * validated here: relative paths, fragments, http(s) and mailto only.
+ */
+function parseLink(raw: string | undefined, warnings: string[]): string | undefined {
+  const link = raw?.trim();
+  if (!link) return undefined;
+  const scheme = /^([a-z][a-z\d+.-]*):/i.exec(link);
+  if (!scheme || /^(?:https?|mailto)$/i.test(scheme[1])) return link;
+  warnings.push(`Unsafe link target — ignored: "${link}"`);
+  return undefined;
 }
 
 function parseImage(block: RawBlock, warnings: string[]): ImageNode | null {
@@ -155,6 +235,9 @@ function parseImage(block: RawBlock, warnings: string[]): ImageNode | null {
     position: oneOf(props.position, POSITIONS, "center"),
     size: oneOf(props.size, SIZES, "medium"),
     caption: props.caption || undefined,
+    alt: props.alt || undefined,
+    link: parseLink(props.link, warnings),
+    frame: parseFrame(props.frame, warnings),
   };
 }
 
@@ -163,6 +246,19 @@ function parseBlock(block: RawBlock, warnings: string[]): BioNode | null {
     case "lead":
       return { kind: "lead", children: parseNodes(block.lines, warnings) };
 
+    case "align": {
+      const { props, body } = splitPropsAndBody(block.lines);
+      const position = enumProp(props.position, ALIGNMENTS) ?? null;
+      if (!position) {
+        warnings.push(
+          props.position
+            ? `::: align has unknown position "${props.position}" — rendered at default alignment.`
+            : "::: align without required position — rendered at default alignment.",
+        );
+      }
+      return { kind: "align", position, children: parseNodes(body, warnings) };
+    }
+
     case "image":
       return parseImage(block, warnings);
 
@@ -170,10 +266,12 @@ function parseBlock(block: RawBlock, warnings: string[]): BioNode | null {
       const inner = segment(block.lines, warnings);
       const images: ImageNode[] = [];
       let columns = 0;
+      let groupFrame: ImageFrame | undefined;
       for (const seg of inner) {
         if ("md" in seg) {
           const props = parseProps(seg.md, warnings, "images");
           if (props.columns) columns = Number(props.columns);
+          if (props.frame) groupFrame = parseFrame(props.frame, warnings);
         } else if (seg.name === "image") {
           const img = parseImage(seg, warnings);
           if (img) images.push(img);
@@ -184,7 +282,12 @@ function parseBlock(block: RawBlock, warnings: string[]): BioNode | null {
       const cols = ([2, 3, 4] as const).includes(columns as 2 | 3 | 4)
         ? (columns as 2 | 3 | 4)
         : (Math.min(Math.max(images.length, 2), 4) as 2 | 3 | 4);
-      return { kind: "images", columns: cols, images };
+      // A group frame is the default for children that don't set their own.
+      return {
+        kind: "images",
+        columns: cols,
+        images: groupFrame ? images.map((img) => (img.frame ? img : { ...img, frame: groupFrame })) : images,
+      };
     }
 
     case "document": {
@@ -223,6 +326,21 @@ function parseBlock(block: RawBlock, warnings: string[]): BioNode | null {
     case "column":
       // A column outside ::: columns — tolerate, render as plain content.
       return { kind: "unknown", name: "column", children: parseNodes(block.lines, warnings) };
+
+    case "nav": {
+      const { props, body } = splitPropsAndBody(block.lines);
+      const markdown = body.join("\n").trim();
+      if (!markdown) {
+        warnings.push("::: nav without a link list — skipped.");
+        return null;
+      }
+      return {
+        kind: "nav",
+        title: props.title || undefined,
+        active: props.active || undefined,
+        markdown,
+      };
+    }
 
     default:
       warnings.push(`Unknown block ::: ${block.name} — rendering its inner content.`);

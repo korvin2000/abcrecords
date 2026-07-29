@@ -32,7 +32,7 @@ The paths declared by `index.json` continue to use the application base.
 | Layer | Where | Notes |
 |---|---|---|
 | Content root | `vite.config.ts` `publicDir: ../pages` | `index.json` drives the grid; lightweight `.bio.json` metadata is cached/prefetched while biography Markdown stays lazy until a codex opens. |
-| BioMD Lite | `src/lib/biomd/` | Recursive `::: block` parser (`lead/image/images/document/columns/column`, unknown blocks render their content per spec) + react-markdown (GFM) + `==highlight==` remark plugin. |
+| BioMD Lite | `src/lib/biomd/` | Recursive `::: block` parser (`lead/align/image/images/document/columns/column/nav`, unknown blocks render their content per spec) + react-markdown (GFM) + `==highlight==` remark plugin. Image properties: `src/position/size/alt/caption/link/frame`. |
 | Metadata | `src/lib/metadata.ts` | `DD.MM.YYYY` parsed explicitly (never `new Date(string)`), comma-lists split on demand, ISO countries localized via `Intl.DisplayNames`, `ranking` → 1–5 renown stars. |
 | Search | `src/lib/search.ts` | Case/diacritic folding + bounded Cyrillic↔Latin transliteration variants («сеговия» → Segovia; "jovan" → Јован via the Latin slug). |
 | i18n | `src/lib/i18n.tsx` | ru (primary) / en, `Intl.PluralRules`, persisted in localStorage. |

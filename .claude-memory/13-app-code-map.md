@@ -46,9 +46,9 @@ App.tsx   ─ single orchestrator: catalog load, search/filter state, hash route
 ### BioMD parser / renderer
 | File | Role |
 |---|---|
-| `src/lib/biomd/parse.ts` | Recursive-descent `::: block` fence parser over line-segmented text → `BioDoc {title,nodes,warnings}`. Tolerant: unknown/stray/unclosed → preserved + warned. |
+| `src/lib/biomd/parse.ts` | Recursive-descent `::: block` fence parser over line-segmented text → `BioDoc {title,nodes,warnings}`. Tolerant: unknown/stray/unclosed → preserved + warned. Node kinds: `markdown·lead·align·image·images·document·columns·nav·unknown`; `splitPropsAndBody` serves the blocks that own both properties and a body (`align`,`nav`); image `alt`/`link`(safe-scheme-checked)/`frame` per spec 1.3. |
 | `src/lib/biomd/remarkHighlight.ts` | remark plugin: `==text==` → `<mark>` via mdast `data.hName`. Can't span lines / contain `=`. |
-| `src/lib/biomd/BioArticle.tsx` | react-markdown (GFM + highlight) renderer + **link-rewiring hub** (bio.md→in-app nav, audio→player, .txt→tab viewer, image→zoom viewer, external→new tab, else archival). Renders `Figure`/`images`/`DocumentCard`. Wraps images in `CurlFrame`. |
+| `src/lib/biomd/BioArticle.tsx` | react-markdown (GFM + highlight) renderer + **link-rewiring hub** (bio.md→in-app nav, audio→player, .txt→tab viewer, image→zoom viewer, external→new tab, else archival). Renders `Figure`/`images`/`DocumentCard`/`BioNav`. Wraps images in `CurlFrame` (optional `frame` variant). `Md`'s optional `nav` prop = nav mode: suppresses media widgets and renders the `active` label as `aria-current`. |
 
 ### Search & i18n
 | File | Role |

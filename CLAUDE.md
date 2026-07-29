@@ -35,7 +35,10 @@ Each entry combines:
 
 ## Source documents (`docs/`)
 
-- `Biography-Markup.md` — the **BioMD Lite** format spec + HTML migration rules.
+- `Biography-Markup.md` — the **BioMD Lite** format spec (v1.3) + HTML migration rules.
+- `Biography-Markup-Appendix-1.3.md` — authoring guide for the 1.3 additions
+  (`::: align`, image `frame:`, `::: nav`, `alt:`/`link:`): usage, examples,
+  anti-patterns, diagnostics.
 - `MetaData.md` + `MetaData.json` — per-entry metadata schema, example & template.
 - `Biography_card_Design.md` — visual/UX design of the codex modal and its tabs.
 - `HTML-to-BioMD-Lite-Conversion-Guide.md` — practical legacy-HTML → BioMD rules.
@@ -74,9 +77,10 @@ Each entry combines:
 
 - Biography **text + layout** → `*.bio.md` (BioMD Lite). **Metadata never goes
   in the article**; it lives in `MetaData.json`.
-- BioMD blocks use `::: name … :::` fences: `lead`, `image`, `images`,
-  `document`, `columns`, `column`. Prefer plain Markdown; use blocks only for
-  layout/media.
+- BioMD blocks use `::: name … :::` fences: `lead`, `align`, `image`, `images`,
+  `document`, `columns`, `column`, `nav`. Prefer plain Markdown; use blocks only
+  for layout/media. Image properties: `src`, `position`, `size`, `alt`,
+  `caption`, `link`, `frame` (theme tokens only — never a literal colour).
 - **No raw HTML / CSS / JS** in BioMD Lite. No layout-by-whitespace.
 - Metadata dates are **`DD.MM.YYYY`** — do **not** feed them straight to JS
   `Date`. Countries are ISO 3166-1 alpha-2 (`RU`, `DE`, `ES`, `BR`).

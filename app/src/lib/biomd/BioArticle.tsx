@@ -3,7 +3,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import clsx from "clsx";
 import { remarkHighlight } from "./remarkHighlight";
-import { parseBioMd, type BioNode, type ImageNode } from "./parse";
+import { parseBioMd, type BioNode, type ContentAlignment, type ImageNode, type NavNode } from "./parse";
 import { isExternalUrl, resolveResourcePath } from "../paths";
 import { audioKind } from "../playback";
 import { isImageUrl, useImageViewer } from "../imageViewer";
@@ -30,7 +30,25 @@ interface ArticleProps {
 
 const REMARK_PLUGINS = [remarkGfm, remarkHighlight];
 
-function Md({ text, onNavigateEntry }: { text: string; onNavigateEntry?: (p: string) => void }) {
+/**
+ * Present when this Markdown island is the body of a `::: nav` menu. It keeps
+ * page links working exactly as in prose while suppressing the media widgets
+ * (players, viewers) that make no sense inside a link bar, and marks the
+ * `active` item as current instead of clickable (spec 10).
+ */
+interface NavContext {
+  active?: string;
+}
+
+function Md({
+  text,
+  onNavigateEntry,
+  nav,
+}: {
+  text: string;
+  onNavigateEntry?: (p: string) => void;
+  nav?: NavContext;
+}) {
   const { t } = useI18n();
   const openImage = useImageViewer();
   const openTab = useAsciiTabViewer();
@@ -40,6 +58,13 @@ function Md({ text, onNavigateEntry }: { text: string; onNavigateEntry?: (p: str
       components={{
         a: ({ href, children }) => {
           const url = href ?? "";
+          if (nav?.active && linkText(children).trim() === nav.active.trim()) {
+            return (
+              <span className="bio-nav-current" aria-current="page">
+                {children}
+              </span>
+            );
+          }
           if (/\.bio\.md$/i.test(url) && !isExternalUrl(url) && onNavigateEntry) {
             return (
               <a
@@ -54,11 +79,11 @@ function Md({ text, onNavigateEntry }: { text: string; onNavigateEntry?: (p: str
             );
           }
           const kind = audioKind(url);
-          if (kind) {
+          if (kind && !nav) {
             const src = isExternalUrl(url) ? url : resolveResourcePath(url);
             return <InlineAudioPlayer src={src} label={linkText(children) || filename(url)} kind={kind} />;
           }
-          if (isAsciiTabUrl(url)) {
+          if (isAsciiTabUrl(url) && !nav) {
             const src = isExternalUrl(url) ? url : resolveResourcePath(url);
             const text = linkText(children).trim();
             const label = !text || /^(?:ascii\s*)?tab(?:lature)?$/i.test(text) ? filename(url) : text;
@@ -74,7 +99,7 @@ function Md({ text, onNavigateEntry }: { text: string; onNavigateEntry?: (p: str
               </a>
             );
           }
-          if (isImageUrl(url)) {
+          if (isImageUrl(url) && !nav) {
             const src = isExternalUrl(url) ? url : resolveResourcePath(url);
             const label = linkText(children) || filename(url);
             return (
@@ -151,33 +176,102 @@ const SIZE_CLASS: Record<ImageNode["size"], string> = {
   full: "",
 };
 
-function Figure({ node }: { node: ImageNode }) {
+// A centered/full figure is a standalone block: per spec 6.2 it ends an earlier
+// left/right image wrap instead of sliding into the gap beside it. (`clear` has
+// no effect on the grid items of an ::: images group — harmless there.)
+const FLOAT_CLASS: Record<ImageNode["position"], string> = {
+  left: "sm:float-left sm:mr-6 sm:mb-2",
+  right: "sm:float-right sm:ml-6 sm:mb-2",
+  center: "mx-auto clear-both",
+  full: "mx-auto clear-both",
+};
+
+/**
+ * Where a figure click leads (spec 6.4). Without `link` — and for a `link` that
+ * points at an image — the image viewer opens; a *.bio.md link turns the page
+ * inside the codex; any other target is an ordinary anchor around the picture.
+ */
+type FigureTarget =
+  | { as: "viewer"; src: string }
+  | { as: "entry"; md: string }
+  | { as: "href"; href: string };
+
+function figureTarget(node: ImageNode, canNavigate: boolean): FigureTarget {
+  const link = node.link;
+  const resolve = (p: string) => (isExternalUrl(p) ? p : resolveResourcePath(p));
+  if (!link || isImageUrl(link)) return { as: "viewer", src: resolve(link ?? node.src) };
+  if (/\.bio\.md$/i.test(link) && !isExternalUrl(link) && canNavigate) return { as: "entry", md: link };
+  return { as: "href", href: resolve(link) };
+}
+
+function Figure({ node, onNavigateEntry }: { node: ImageNode; onNavigateEntry?: (p: string) => void }) {
   const openImage = useImageViewer();
   const src = resolveResourcePath(node.src);
-  const float =
-    node.position === "left"
-      ? "sm:float-left sm:mr-6 sm:mb-2"
-      : node.position === "right"
-        ? "sm:float-right sm:ml-6 sm:mb-2"
-        : "mx-auto";
+  const alt = node.alt ?? node.caption ?? "";
+  const target = figureTarget(node, Boolean(onNavigateEntry));
+
+  const onClick =
+    target.as === "viewer"
+      ? () => openImage({ src: target.src, alt, caption: node.caption, download: filename(target.src) })
+      : target.as === "entry"
+        ? () => onNavigateEntry?.(target.md)
+        : undefined;
+
+  const picture = (
+    <CurlFrame variant={node.frame}>
+      <img
+        src={src}
+        alt={alt}
+        loading="lazy"
+        decoding="async"
+        onError={(e) => {
+          e.currentTarget.closest("figure")?.classList.add("bio-figure-broken");
+        }}
+      />
+    </CurlFrame>
+  );
+
   return (
     <figure
-      className={clsx("bio-figure my-4 w-full cursor-zoom-in", SIZE_CLASS[node.size], float)}
-      onClick={() => openImage({ src, alt: node.caption ?? "", caption: node.caption, download: filename(node.src) })}
+      className={clsx(
+        "bio-figure my-4 w-full",
+        SIZE_CLASS[node.size],
+        FLOAT_CLASS[node.position],
+        target.as === "viewer" ? "cursor-zoom-in" : target.as === "entry" && "cursor-pointer",
+      )}
+      onClick={onClick}
     >
-      <CurlFrame>
-        <img
-          src={src}
-          alt={node.caption ?? ""}
-          loading="lazy"
-          decoding="async"
-          onError={(e) => {
-            e.currentTarget.closest("figure")?.classList.add("bio-figure-broken");
-          }}
-        />
-      </CurlFrame>
+      {target.as === "href" ? (
+        <a className="bio-figure-link" href={target.href} target="_blank" rel="noopener noreferrer">
+          {picture}
+        </a>
+      ) : (
+        picture
+      )}
       {node.caption && <figcaption>{node.caption}</figcaption>}
     </figure>
+  );
+}
+
+const ALIGN_CLASS: Record<ContentAlignment, string> = {
+  left: "bio-align-left",
+  center: "bio-align-center",
+  right: "bio-align-right",
+};
+
+/**
+ * In-article horizontal menu (`::: nav`). The link list is rendered by the
+ * ordinary Markdown pipeline, so every item keeps the article's link rewiring
+ * (bio.md → in-app navigation, external → new tab); `.bio-nav` CSS turns the
+ * <ul> into the same pill bar as the codex tab strip. These are real links, so
+ * no tab/tablist roles — they navigate rather than switch a panel in place.
+ */
+function BioNav({ node, onNavigateEntry }: { node: NavNode; onNavigateEntry?: (p: string) => void }) {
+  return (
+    <nav className="bio-nav">
+      {node.title && <div className="bio-nav-title">{node.title}</div>}
+      <Md text={node.markdown} onNavigateEntry={onNavigateEntry} nav={{ active: node.active }} />
+    </nav>
   );
 }
 
@@ -197,8 +291,15 @@ function renderNode(
         </div>
       );
 
+    case "align":
+      return (
+        <div key={key} className={clsx("bio-align", node.position && ALIGN_CLASS[node.position])}>
+          {node.children.map((c, i) => renderNode(c, i, onNavigateEntry))}
+        </div>
+      );
+
     case "image":
-      return <Figure key={key} node={node} />;
+      return <Figure key={key} node={node} onNavigateEntry={onNavigateEntry} />;
 
     case "images": {
       const colClass =
@@ -208,9 +309,13 @@ function renderNode(
             ? "sm:grid-cols-3"
             : "sm:grid-cols-2";
       return (
-        <div key={key} className={clsx("my-5 grid grid-cols-1 gap-4", colClass)}>
+        <div key={key} className={clsx("my-5 grid grid-cols-1 gap-4 clear-both", colClass)}>
           {node.images.map((img, i) => (
-            <Figure key={i} node={{ ...img, position: "center", size: "full" }} />
+            <Figure
+              key={i}
+              node={{ ...img, position: "center", size: "full" }}
+              onNavigateEntry={onNavigateEntry}
+            />
           ))}
         </div>
       );
@@ -219,11 +324,14 @@ function renderNode(
     case "document":
       return <DocumentCard key={key} src={node.src} title={node.title} />;
 
+    case "nav":
+      return <BioNav key={key} node={node} onNavigateEntry={onNavigateEntry} />;
+
     case "columns": {
       const grid =
         node.columns.length >= 3 ? "md:grid-cols-3" : node.columns.length === 2 ? "md:grid-cols-2" : "";
       return (
-        <div key={key} className={clsx("my-4 grid grid-cols-1 items-start gap-x-8 gap-y-2", grid)}>
+        <div key={key} className={clsx("my-4 grid grid-cols-1 items-start gap-x-8 gap-y-2 clear-both", grid)}>
           {node.columns.map((col, i) => (
             <div key={i} className="min-w-0">
               {col.map((c, j) => renderNode(c, j, onNavigateEntry))}

@@ -1,6 +1,6 @@
 # 02 · BioMD Lite Format
 
-**Source of truth:** [`docs/Biography-Markup.md`](../docs/Biography-Markup.md).
+**Source of truth:** [`docs/Biography-Markup.md`](../docs/Biography-Markup.md) (v1.3).
 Working name `BioMD Lite`, file extension **`.bio.md`**. Stores **article content
 and layout only** — metadata belongs in `MetaData.json`.
 
@@ -27,17 +27,42 @@ Intro sentence, may render larger / with a drop capital.
 :::
 ```
 
+### `align` — aligned group (1.3)
+```md
+::: align
+position: center     # left | center | right  (required)
+
+**Программа концерта** · Bach · Sor · Tárrega
+
+:::
+```
+Visual alignment of a **bounded** group only; never reorders content. Starts a new
+block (ends an earlier image wrap). Missing/unknown `position` → warning + default
+alignment, content kept. Not for columns, indentation, or spacing.
+
 ### `image` — single image
 ```md
 ::: image
 src: images/person.jpg
 position: right      # left | right | center | full
 size: medium         # small | medium | large | full
+alt: Accessibility text
 caption: Optional caption
+link: bigger.jpg     # optional click target
+frame: gold          # optional (1.3), see below
 :::
 ```
-`src`, `position`, `size` are **required**; `caption` optional.
+`src`, `position`, `size` are **required**; `alt`, `caption`, `link`, `frame` optional.
 `left`/`right` wrap text (wide screens); on narrow screens floats become centered blocks.
+`alt` is the accessible name (renderer falls back to `caption`); `link` retargets the
+click (image → viewer, `*.bio.md` → in-codex navigation, else a normal anchor).
+
+**`frame:` (1.3)** — theme-named picture frame, **never a literal colour**:
+`curl` (default) · `none` · `mat` · `black` · `white` · `red` · `gold`
+(the four colour borders are broad, not hairlines).
+Also valid on `::: images`, where it is the default for children that omit it
+(a child value wins). Unknown value → warning + default frame. Note: the image
+property `frame:` and the callout block `::: frame` are unrelated.
 
 ### `images` — a row of images
 ```md
@@ -66,6 +91,22 @@ title: Display Title
 mode: link           # link | embed  (embed MUST fall back to link)
 :::
 ```
+
+### `nav` — horizontal menu bar
+```md
+::: nav
+title: Дискография       # optional visible label
+active: 1995–2002        # optional: exact label of the current item
+
+- [1995–2002](williams_cd1.bio.md)
+- [Официальный сайт](https://example.org)
+:::
+```
+Body is a bullet list with **one link per item**. Rendered as one centered pill bar
+(codex tab-strip look) of real links — the `active` item becomes a non-clickable
+`aria-current="page"` item. Items should be page links: audio/image/tab targets stay
+plain links (no player/viewer widgets inside a menu). A `*.bio.md` target must exist
+in `index.json`, otherwise the click silently does nothing (`App.navigateByMdPath`).
 
 ### `columns` / `column` — up to 3 columns
 ```md

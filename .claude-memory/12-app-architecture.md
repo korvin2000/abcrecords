@@ -21,7 +21,8 @@ See [`app/README.md`](../app/README.md) for the full layer table.
   and its json/md/img targets under the app (for example `/fable/`), while
   `VITE_RESOURCE_BASE_PATH` locates resources referenced inside BioMD and
   per-entry JSON independently (default `/pages`).
-- **BioMD Lite parser**: `src/lib/biomd/parse.ts` (recursive fence parser,
+- **BioMD Lite parser**: `src/lib/biomd/parse.ts` (recursive fence parser; v1.3
+  adds `align`/`nav` nodes and image `alt`/`link`/`frame`,
   tolerant per spec: unknown blocks render inner content, unclosed fences
   warn), rendering via react-markdown + remark-gfm + a custom
   `==highlight==` remark plugin → `<mark>`.

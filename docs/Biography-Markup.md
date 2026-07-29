@@ -2,7 +2,7 @@
 
 **Working name:** `BioMD Lite`  
 **File extension:** `.bio.md`  
-**Version:** 1.2  
+**Version:** 1.3  
 **Status:** normative format specification
 
 BioMD Lite is a deliberately small Markdown extension for biographies and closely related encyclopedia pages. It stores article content, semantic grouping, and a limited amount of responsive layout intent. Metadata belongs in a separate file.
@@ -16,6 +16,8 @@ The format is intended to be:
 - constrained enough to render consistently on desktop and mobile.
 
 The key words **MUST**, **SHOULD**, and **MAY** describe required, recommended, and optional behavior.
+
+> **Authoring guide for the 1.3 additions** (`::: align`, the image `frame` property, `::: nav`, and the now-honoured `alt`/`link` properties): see [`Biography-Markup-Appendix-1.3.md`](Biography-Markup-Appendix-1.3.md). This specification stays normative; the appendix explains correct usage, examples, and diagnostics.
 
 ---
 
@@ -288,9 +290,10 @@ Rules:
 | Directive | Required | Optional | Body |
 |---|---|---|---|
 | `lead` | — | — | ordinary Markdown |
-| `image` (standalone) | `src`, `position`, `size` | `alt`, `caption`, `link` | none |
-| `image` inside `images` | `src` | `alt`, `caption`, `link` | none |
-| `images` | `columns` | — | two or more `image` children |
+| `align` | `position` | — | Markdown and leaf media directives |
+| `image` (standalone) | `src`, `position`, `size` | `alt`, `caption`, `link`, `frame` | none |
+| `image` inside `images` | `src` | `alt`, `caption`, `link`, `frame` | none |
+| `images` | `columns` | `frame` | two or more `image` children |
 | `document` | `src`, `title`, `mode` | — | none |
 | `columns` | two or three `column` children | `divider` | `column` children only |
 | `column` | — | — | Markdown and leaf media directives |
@@ -305,6 +308,7 @@ Nesting constraints:
 - a `column` MUST NOT contain another `columns` block;
 - a `frame` MUST NOT contain another `frame` or a `nav`;
 - a `signature` SHOULD contain only text, links, and hard line breaks;
+- an `align` block MUST NOT contain a `columns` block and MUST NOT wrap a `nav`;
 - nesting deeper than the relationships above is invalid.
 
 ---
@@ -344,7 +348,8 @@ caption: Агустин Барриос
 - `size` — required on a standalone image: `small`, `medium`, `large`, or `full`;
 - `alt` — optional accessibility text; strongly recommended for meaningful images;
 - `caption` — optional visible caption;
-- `link` — optional click target for a thumbnail, cover, or scan.
+- `link` — optional click target for a thumbnail, cover, or scan;
+- `frame` — optional theme frame treatment (see 6.5).
 
 `alt` and `caption` are different. `alt` describes the image for a non-visual reader; `caption` is visible editorial context. If `alt` is absent, the renderer MAY fall back to the caption. It MUST NOT use a filename as visible alternative text.
 
@@ -384,6 +389,43 @@ caption: Один из первых печатных отзывов о прое�
 ```
 
 Do not add a duplicate “open image” link unless a separate visible fallback is required by the product.
+
+### 6.5 Picture frame
+
+`frame` is an optional property of `::: image`. On `::: images` it sets the default for children that do not carry their own `frame`; a child value always wins. It names a **theme-defined** treatment around the picture:
+
+| Value | Meaning |
+|---|---|
+| *(absent)* | identical to `curl` — the theme's default photographic frame |
+| `curl` | the default treatment, stated explicitly (useful to override an inherited group frame) |
+| `none` | no decorative frame and no frame shadow — a plain image |
+| `mat` | ivory mount (passe-partout) with a hairline |
+| `black` | broad dark-ink border |
+| `white` | broad ivory-white border |
+| `red` | broad deep-red border |
+| `gold` | broad muted-gold border |
+
+The four colour borders are deliberately substantial rather than hairlines, so the frame reads as part of the picture.
+
+```md
+::: image
+src: photo/b/barrios.jpg
+position: center
+size: large
+alt: Агустин Барриос с гитарой
+caption: Агустин Барриос
+frame: black
+:::
+```
+
+Rules:
+
+- exact thickness, shade, radius, mat width, and hover treatment remain renderer/theme decisions; `frame` only names the intent;
+- literal colours (hex, `rgb()`, CSS variables, class names, gradients, URLs) are **not** accepted; an unrecognized value MUST produce a warning and fall back to the default frame;
+- `frame` changes presentation only — never aspect ratio, size, position, caption, `alt`, click target, loading behaviour, or source order;
+- it frames the image, not the caption or the surrounding article;
+- an ordinary Markdown image (`![alt](src)`) has no frame property: convert it to `::: image` when a frame is needed. No inline-attribute syntax is added;
+- **`frame` (an image property) and `::: frame` (the bordered notice/callout of section 11) are unrelated**: the first draws a picture frame, the second encloses article prose.
 
 ---
 
@@ -528,9 +570,12 @@ Rules:
 - a prominent side menu that applies to the whole page normally moves directly below the title or lead;
 - navigation belonging to one later section goes immediately before that section;
 - a single continuation link MAY remain an ordinary Markdown link;
-- do not use `nav` for unrelated inline links.
+- do not use `nav` for unrelated inline links;
+- `nav` items SHOULD target another catalogue entry (`*.bio.md`), a fragment, or an absolute URL. Media targets (audio, images, tablature) are not navigation and are rendered as plain links, without media widgets.
 
-The renderer presents a nav as tabs, pills, or a compact link bar. On narrow screens it wraps or scrolls within its own container and MUST NOT create page-level overflow.
+The renderer presents a nav as a single **centered horizontal bar** of links. On narrow screens it wraps or scrolls within its own container and MUST NOT create page-level overflow.
+
+Nav items are links, not controls: a conforming renderer emits real anchors, marks the `active` item with `aria-current`, and MUST NOT present the bar as tabs that switch a panel in place.
 
 ---
 
@@ -584,7 +629,37 @@ A source citation that is not a signature normally remains a short italic paragr
 
 ---
 
-## 13. Responsive rendering contract
+## 13. Alignment (`::: align`)
+
+Use `align` when horizontal alignment carries meaning — a centered dedication or concert programme, a right-aligned archival dateline. Alignment is a coarse presentation hint (section 1, priority 4), not structure.
+
+```md
+::: align
+position: center
+
+*Посвящается памяти Андреса Сеговии*
+
+:::
+```
+
+Properties:
+
+- `position` — **required**: `left`, `center`, or `right`.
+
+Rules:
+
+- the block changes visual alignment only; it never changes source, reading, copy, or keyboard-focus order;
+- use it for a bounded group — a short paragraph, dedication, small heading group, or credit line. Do not wrap a whole article, and prefer default alignment for long prose (centered or right-aligned body text is harder to read);
+- a child directive's own layout rule wins: `image.position` remains the authoritative placement rule for a standalone image;
+- the renderer treats the block as a new block that ends an earlier left/right image wrap (the same rule as 6.2);
+- a missing or unrecognized `position` MUST produce a warning and render the body at the document's default alignment — never delete content;
+- `left` and `right` are physical values, consistent with `image.position`. Logical `start`/`end` values MAY be considered in a later revision if right-to-left content is introduced;
+- for a genuine closing author/place/credit block use `::: signature`, not `align`;
+- do not use `align` to recreate margins, columns, indentation, or spacing.
+
+---
+
+## 14. Responsive rendering contract
 
 A conforming renderer MUST:
 
@@ -604,7 +679,7 @@ BioMD does not encode breakpoints, pixel widths, text-column widths, source line
 
 ---
 
-## 14. Resource and link resolution
+## 15. Resource and link resolution
 
 Targets may be:
 
@@ -630,9 +705,9 @@ Missing local assets MUST remain recorded under their intended target and in the
 
 ---
 
-## 15. HTML migration rules
+## 16. HTML migration rules
 
-### 15.1 Element mapping
+### 16.1 Element mapping
 
 | HTML source pattern | BioMD |
 |---|---|
@@ -652,14 +727,17 @@ Missing local assets MUST remain recorded under their intended target and in the
 | real data/resource table | Markdown table |
 | layout table | normal flow, `image`, `images`, or `columns` |
 | vertical side menu / pagination | `nav` |
+| horizontal row of page links (table- or `<br>`-based menu) | `nav` |
 | bordered notice / obituary | `frame` |
 | right-aligned closing signature | `signature` |
+| `<center>`, `align="center"`, meaningful `text-align` on a block | `align` with `position` |
+| `<img border="…">`, colored/bordered `<td>` around an article image | `image` with `frame` |
 | `<sup>` plus anchor note | Markdown footnote |
 | decorative drop-cap image plus word remainder | reconstructed plain text |
 | colored font / small caps / letter spacing | plain text or semantic emphasis, never copied styling |
 | PDF or embeddable document | `document` |
 
-### 15.2 Table classification
+### 16.2 Table classification
 
 Classify every source table before converting it:
 
@@ -670,7 +748,7 @@ Classify every source table before converting it:
 
 Border presence alone does not make a table data. Lack of borders does not make it layout.
 
-### 15.3 Text cleanup boundary
+### 16.3 Text cleanup boundary
 
 Safe cleanup:
 
@@ -691,13 +769,13 @@ Editorial change:
 
 Editorial changes require an explicit policy and audit trail. The default conversion is conservative transcription.
 
-### 15.4 Layout-specific images
+### 16.4 Layout-specific images
 
 Do not discard an image merely because it is outside the central content cell. Preserve a side badge, stamp, award, cover, or contextual illustration and move it near the paragraph or section it belongs to. Discard only repeated chrome, counters, spacers, and ornaments with no article-specific meaning.
 
 ---
 
-## 16. Engine interpretation
+## 17. Engine interpretation
 
 Recommended parsing order:
 
@@ -719,7 +797,7 @@ Required recovery behavior:
 
 ---
 
-## 17. Authoring and validation checklist
+## 18. Authoring and validation checklist
 
 Before accepting a document, verify:
 
@@ -742,6 +820,14 @@ The source remains authoritative for factual text. BioMD controls structure and 
 ---
 
 # Changelog
+
+## v1.3
+
+- Added the `::: align` directive with a required `position: left|center|right` for meaningful horizontal alignment (section 13).
+- Added the optional `frame` property to `::: image` and `::: images` (theme-named picture frames: `curl`, `none`, `mat`, `black`, `white`, `red`, `gold`; section 6.5). Literal colours are not accepted.
+- Clarified that `frame` (an image property) and `::: frame` (a callout block) are unrelated.
+- Clarified `nav` rendering: one centered horizontal bar of real links that wraps inside its own container; media targets stay plain links.
+- No change to existing documents: every addition is a new directive or an optional property.
 
 ## v1.2
 

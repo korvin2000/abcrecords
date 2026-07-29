@@ -1,5 +1,16 @@
 [
   {
+    "title": "BioMD 1.3 Conformance",
+    "lang": "ru",
+    "type": "musician",
+    "forename": "BioMD 1.3",
+    "surname": "Демонстрация",
+    "country": "Ukraine",
+    "json": "/biomd-demo.bio.json",
+    "md": "/biomd-demo.bio.md",
+    "img": "photos/authors.jpg"
+  },
+  {
     "title": "Agustín Barrios Mangoré ChatGPT",
     "lang": "ru",
     "type": "guitarist",
@@ -96,6 +107,17 @@
     "country": "Spain",
     "json": "/paco-de-lucia.bio.json",
     "md": "/paco-de-lucia.bio.md",
+    "img": "photos/paco-de-lucia.jpg"
+  },
+  {
+    "title": "Франсис гоя",
+    "lang": "ru",	
+    "type": "guitarist",
+    "forename": "Франсис",
+    "surname": "Гоя",
+    "country": "Spain",
+    "json": "/paco-de-lucia.bio.json",
+    "md": "/goya2.right.bio.md",
     "img": "photos/paco-de-lucia.jpg"
   }
 ]
