@@ -1,6 +1,6 @@
 [
   {
-    "title": "Agustín Barrios Mangoré",
+    "title": "Agustín Barrios Mangoré ChatGPT",
     "lang": "ru",
     "type": "guitarist",
     "forename": "Agustín",
@@ -8,6 +8,17 @@
     "country": "Paraguay",
     "json": "/agustin-barrios.bio.json",
     "md": "/agustin-barrios.bio.md",
+    "img": "photos/agustin-barrios.jpg"
+  },
+  {
+    "title": "Agustín Barrios Mangoré Codex",
+    "lang": "ru",
+    "type": "guitarist",
+    "forename": "Agustín",
+    "surname": "Barrios Mangoré",
+    "country": "Paraguay",
+    "json": "/agustin-barrios.bio.json",
+    "md": "/barrios.bio.md",
     "img": "photos/agustin-barrios.jpg"
   },
   {
@@ -55,7 +66,7 @@
     "img": "photos/jimi-hendrix.jpg"
   },
   {
-    "title": "Јован Јовичић",
+    "title": "Јован Јовичич GPT",
     "lang": "ru,en",	
     "type": "guitarist",
     "forename": "Јован",
@@ -63,6 +74,17 @@
     "country": "Serbia",
     "json": "/jovan-jovicic.bio.json",
     "md": "/jovan-jovicic.bio.md",
+    "img": "photos/jovan-jovicic.jpg"
+  },
+  {
+    "title": "Јован Јовичич Codex",
+    "lang": "ru,en",	
+    "type": "guitarist",
+    "forename": "Јован",
+    "surname": "Јовичић",
+    "country": "Serbia",
+    "json": "/jovan-jovicic.bio.json",
+    "md": "/jovicic.bio.md",
     "img": "photos/jovan-jovicic.jpg"
   },
   {

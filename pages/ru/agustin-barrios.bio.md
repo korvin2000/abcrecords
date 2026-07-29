@@ -1,7 +1,7 @@
 # Агустин Барриос
 
 ::: image
-src: https://placehold.co/324x438?text=Agustin+Barrios
+src: photo/b/barrios.jpg
 position: right
 size: small
 caption: Агустин Барриос
@@ -18,7 +18,7 @@ caption: Агустин Барриос
 Он побывал также в Чили, Мексике, Гватемале, Гондурасе, Панаме, Колумбии, Кубе и на Гавайях. Между 1934 и 1936 годами состоялась его поездка в Европу — он играл в Испании, Германии и Бельгии.
 
 ::: image
-src: https://placehold.co/794x1142?text=Agustin+Barrios+Portrait
+src: photo/b/barrios_am.jpg
 position: center
 size: large
 caption: Агустин Барриос
@@ -53,7 +53,7 @@ caption: Агустин Барриос
 ::: column
 
 ::: image
-src: https://placehold.co/500x500?text=Complete+Historical+Recordings
+src: photo/b/barrios1.jpg
 position: center
 size: medium
 caption: Complete Historical Recordings (1913–1942)
@@ -76,7 +76,7 @@ caption: Complete Historical Recordings (1913–1942)
 ::: column
 
 ::: image
-src: https://placehold.co/500x500?text=20+Famous+Guitar+Recordings
+src: photo/b/barrios2.jpg
 position: center
 size: medium
 caption: 20 Famous Guitar Recordings (1913–1929)

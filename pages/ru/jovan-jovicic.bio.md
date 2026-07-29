@@ -18,12 +18,12 @@
 columns: 2
 
 ::: image
-src: https://placehold.co/500x595?text=Jovan+Jovicic+1
+src: photo/j/jovicic1.jpg
 caption: Йован Йовичич
 :::
 
 ::: image
-src: https://placehold.co/500x595?text=Jovan+Jovicic+2
+src: photo/j/jovicic.jpg
 caption: Йован Йовичич
 :::
 
@@ -44,7 +44,7 @@ caption: Йован Йовичич
 В последующие годы он неоднократно становился лауреатом различных международных конкурсов в Риме, Белграде и других городах. В 1958 году его музыка к радиоспектаклю «Птица» была удостоена приза на международном конкурсе в Риме. В 1962 году Йовану Йовичичу был вручен приз города Белграда «за высокий уровень исполнения серьезной музыки и утверждение классической гитары в концертной жизни».
 
 ::: image
-src: https://placehold.co/738x946?text=Jovan+Jovicic+Performing
+src: photo/j/jovicic2.jpg
 position: center
 size: large
 caption: Играет Йован Йовичич
@@ -96,7 +96,7 @@ caption: Играет Йован Йовичич
 ::: column
 
 ::: image
-src: https://placehold.co/600x600?text=Jovan+Jovicic+CD
+src: photo/j/jovicic_cd.jpg
 position: center
 size: medium
 caption: Jovan Jovicic — Classical Guitar, RTS Records, CD 430916

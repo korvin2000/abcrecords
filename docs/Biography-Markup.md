@@ -1,244 +1,71 @@
-# Simple Music Biography Markup
+# BioMD Lite Biography and Encyclopedia Markup
 
 **Working name:** `BioMD Lite`  
 **File extension:** `.bio.md`  
-**Version:** 1.1 (see the changelog at the end of this document)
+**Version:** 1.2  
+**Status:** normative format specification
 
-BioMD Lite is a small Markdown extension for biographies of guitarists, composers, performers, and other musicians. It stores only article content and layout. Metadata belongs in a separate file.
-
-Although biography is the primary use case, the same format also serves the adjacent encyclopedia pages that surround the biographies — project/about pages, news feeds, and audio/score catalog indexes. Sections 1–14 define the core; the *Format Extensions* part (Sections 15–27) adds the small number of blocks and rules those adjacent pages need (navigation bars, frames, clickable images, and more).
+BioMD Lite is a deliberately small Markdown extension for biographies and closely related encyclopedia pages. It stores article content, semantic grouping, and a limited amount of responsive layout intent. Metadata belongs in a separate file.
 
 The format is intended to be:
 
-- easy to edit manually;
-- easy for an LLM to read and generate;
-- independent of fonts, colors, and themes;
-- sufficient for typical encyclopedia articles;
-- deliberately limited rather than universally configurable.
+- readable and useful as plain Markdown;
+- easy for people and agentic LLMs to author;
+- independent of a particular font, color palette, or framework;
+- expressive enough for biographies, rosters, project/about pages, news feeds, discographies, and media catalogs;
+- constrained enough to render consistently on desktop and mobile.
+
+The key words **MUST**, **SHOULD**, and **MAY** describe required, recommended, and optional behavior.
 
 ---
 
-## 1. Basic Text
+## 1. Preservation model
 
-Use ordinary Markdown.
+BioMD preserves the *meaningful design relationships* of a source, not its legacy rendering mechanism.
 
-```md
-# Laurindo Almeida
+When requirements compete, use this priority order:
 
-## Biography
+1. preserve the complete article text and meaningful link/media targets;
+2. preserve semantic grouping, sequence, and hierarchy;
+3. preserve relative relationships such as portrait beside biography, cover beside track list, grouped images, framed notice, or parallel columns;
+4. preserve coarse emphasis and alignment when they carry meaning;
+5. discard exact widths, line wrapping, manual hyphenation, fonts, colors, backgrounds, and pixel spacing.
 
-Laurindo Almeida was a Brazilian guitarist and composer.
+The document's source order is its canonical reading order. Wide-screen placement is a hint layered over that order; it MUST NOT make the mobile or non-visual reading sequence incoherent.
 
-A blank line starts a new paragraph.
+### 1.1 Content that normally belongs in BioMD
 
-**Bold text**
+- one article title and meaningful section headings;
+- paragraphs in their logical order;
+- meaningful bold, italic, highlighted, quoted, and list content;
+- portraits, illustrations, covers, scans, captions, and image click targets;
+- related-page and external links;
+- downloadable or embeddable documents and media;
+- real tables, including recording/resource matrices;
+- content-specific navigation, notices, credits, footnotes, and signatures.
 
-*Italic text*
+### 1.2 Content that normally does not belong in BioMD
 
-==Highlighted text==
+- global site headers, footers, and repeated menus;
+- counters, advertisements, tracking, PHP fragments, and copy-protection handlers;
+- JavaScript, inline event handlers, CSS, and raw HTML;
+- ornamental page-shell cells, backgrounds, spacer images, and empty elements;
+- exact coordinates, widths, margins, colors, fonts, and forced line breaks used only for wrapping.
 
-[External link](https://example.org)
-
-[Related biography](../people/other-musician.bio.md)
-```
-
-### Rules
-
-- `#` is the article title.
-- `##` and `###` are section headings.
-- A blank line separates paragraphs.
-- `**text**` means strong emphasis.
-- `*text*` means italic text, such as a composition or book title.
-- `==text==` means semantic highlighting. The theme chooses its color.
-- `---` creates a visual separator.
-- Do not use spaces or repeated line breaks to position content.
-
----
-
-## 2. Lead Paragraph
-
-Use a lead block for an introductory paragraph that should be visually emphasized.
-
-```md
-::: lead
-
-Laurindo Almeida connected classical guitar, Brazilian music,
-and jazz throughout a long international career.
-
-:::
-```
-
-The engine may render it with larger text or a drop capital. The exact style belongs to the theme.
+A side rail is not automatically chrome. A content-specific badge, image, caption, or navigation menu in a side cell MUST be preserved and moved into the logical article flow.
 
 ---
 
-## 3. Quotations
+## 2. Document structure
 
-Use standard Markdown quotation syntax.
-
-```md
-> Music preserves not only sound, but also the time in which it was created.
->
-> — Boris Belsky
-```
-
-The engine renders it as a visually separated quotation block.
-
----
-
-## 4. Single Image
-
-```md
-::: image
-src: images/laurindo-almeida.jpg
-position: right
-size: medium
-caption: Laurindo Almeida with a classical guitar
-:::
-```
-
-### Supported positions
-
-- `left` — image on the left; text wraps around it;
-- `right` — image on the right; text wraps around it;
-- `center` — centered image without text wrapping;
-- `full` — image uses the available article width.
-
-### Supported sizes
-
-- `small`
-- `medium`
-- `large`
-- `full`
-
-`caption` is optional. `src`, `position`, and `size` are required.
-
-### Optional properties (added in v1.1)
-
-- `alt` — accessibility text for screen readers, kept separate from the visible `caption`. If omitted, the engine falls back to the `caption`.
-- `link` — makes the image a clickable link to a larger image, a document, or another page. See *Clickable Images*, Section 17.
-
-```md
-::: image
-src: images/notice-thumb.jpg
-position: center
-size: large
-link: articles/about_us/notice-full.jpg
-alt: Newspaper notice about the project
-caption: One of the first reviews of the project
-:::
-```
-
----
-
-## 5. Several Images in One Row
-
-```md
-::: images
-columns: 3
-
-::: image
-src: images/library-1.jpg
-caption: Main library
-:::
-
-::: image
-src: images/library-2.jpg
-caption: Reading room
-:::
-
-::: image
-src: images/library-3.jpg
-caption: Archive
-:::
-
-:::
-```
-
-`columns` may be `2`, `3`, or `4`.
-
-On narrow screens, the engine places the images below one another.
-
----
-
-## 6. Links and Documents
-
-Use normal Markdown links for websites and related articles.
-
-```md
-[Official website](https://example.org)
-
-[Biography of another guitarist](../people/other-guitarist.bio.md)
-```
-
-Use a document block for a PDF, audio file, scanned article, or another BioMD document.
-
-```md
-::: document
-src: documents/autobiography.pdf
-title: Autobiographical Essay
-mode: link
-:::
-```
-
-Supported modes:
-
-- `link` — show a normal document link or card;
-- `embed` — display the document inside the article when supported.
-
-If embedding is unavailable, the engine must fall back to a link.
-
----
-
-## 7. Simple Columns
-
-Use columns only when ordinary paragraphs and image positioning are insufficient.
-
-```md
-::: columns
-
-::: column
-
-Text for the left column.
-
-:::
-
-::: column
-
-Text or an image for the right column.
-
-:::
-
-:::
-```
-
-Use no more than three columns. On narrow screens, columns are displayed in source order from top to bottom.
-
----
-
-## 8. Tables
-
-Use ordinary Markdown tables only for real tabular data such as works, recordings, dates, or awards.
-
-```md
-| Year | Work | Type |
-|---|---|---|
-| 1954 | Guitar Concerto | Composition |
-| 1958 | Selected Recordings | Album |
-```
-
-Do not use tables to create margins, image placement, or general page layout.
-
----
-
-## 9. Complete Example
+Every document MUST have exactly one level-one heading.
 
 ```md
 # Laurindo Almeida
 
 ::: lead
 
-Laurindo Almeida was a Brazilian guitarist, composer, and arranger.
+Laurindo Almeida connected classical guitar, Brazilian music, and jazz.
 
 :::
 
@@ -246,170 +73,426 @@ Laurindo Almeida was a Brazilian guitarist, composer, and arranger.
 src: images/laurindo-almeida.jpg
 position: right
 size: medium
+alt: Laurindo Almeida holding a classical guitar
 caption: Laurindo Almeida
 :::
 
 ## Biography
 
-Laurindo Almeida was born in Santos, Brazil, in 1917. He grew up
-in a large musical family and began studying music at an early age.
+Article text begins here.
+```
 
-At the age of fifteen, he became active in local musical life.
-His later career combined classical guitar, Brazilian traditions,
-film music, and jazz.
+Recommended high-level order:
 
-> The guitar was not a boundary between musical traditions,
-> but a bridge between them.
+1. `#` title;
+2. optional subtitle;
+3. page-level `nav`, lead, or opening image;
+4. article sections in reading order;
+5. recordings, works, documents, and related links;
+6. footnote definitions, sources, credits, or signature.
 
-## Selected Albums
+Do not create an empty `## Biography` merely for uniformity. Add a heading only when it improves a real section hierarchy.
 
+### 2.1 Subtitle
+
+Keep a secondary title line as an italic paragraph directly below the title. Use a `lead` instead only when it is a genuine introductory statement.
+
+```md
+# Аудио-карта
+
+*Сводный каталог аудио, нот и табулатур*
+```
+
+There is still only one `#` title.
+
+### 2.2 Roster and multi-entry pages
+
+A roster such as an authors page uses one article title and one `##` heading per person or entry. A thematic separator MAY be placed between entries.
+
+```md
+# Авторы проекта
+
+## Тавровский Сергей Викторович
+
+::: image
+src: photo/t/tavrovsky_sv.jpg
+position: right
+size: medium
+alt: Тавровский Сергей
+:::
+
+Biography text.
+
+---
+
+## Тавровский Виктор Владимирович
+```
+
+A roster is a valid BioMD document even when it does not map one-to-one to a single-person metadata record.
+
+### 2.3 Adjacent encyclopedia page patterns
+
+- **News feed:** keep entries in source order, begin with a bold date only when
+  the source supplies one, separate ordinary entries with `---`, and use
+  `frame` for semantic notices.
+- **Media catalog:** use a subtitle when present, `nav` for page ranges,
+  headings for performer/composer groups, and real resource tables.
+- **Multi-page article or series:** keep one BioMD file per source page and use
+  `nav` or a normal continuation link. Retarget only destinations confirmed by
+  the conversion manifest.
+- **Project/about page:** preserve its internal headings, links, credits, and
+  closing signature; decorative page-shell art remains outside BioMD.
+
+---
+
+## 3. Plain Markdown
+
+Prefer ordinary Markdown whenever it can express the content without losing a meaningful relationship.
+
+### 3.1 Paragraphs and line breaks
+
+A blank line separates paragraphs.
+
+```md
+First paragraph.
+
+Second paragraph.
+```
+
+A Markdown hard break (two trailing spaces) MAY preserve lineation in a postal address, short signature, verse, or similar content. Do not use hard breaks to imitate legacy line wrapping.
+
+### 3.2 Headings
+
+- `#` — the single article title;
+- `##` — a major article section or roster entry;
+- `###` — a subdivision such as one album within a recordings section.
+
+Heading levels MUST NOT skip solely to reproduce visual size.
+
+### 3.3 Emphasis
+
+```md
+**Strong text**
+
+*Composition, publication, or ordinary emphasis*
+
+==Semantically highlighted text==
+```
+
+`==...==` is a BioMD inline extension. Use it only when the source intentionally stresses meaning, not merely because a span had a different color or small-caps style.
+
+`---` creates a thematic separator. It MUST NOT be repeated to simulate borders or spacing.
+
+### 3.4 Lists
+
+Use normal Markdown bullet and numbered lists.
+
+```md
+- First award
+- Second award
+
+1. First track
+2. Second track
+```
+
+Convert both real HTML lists and fake lists made from bullets plus `<br>`. Use numbering only when the source supplies numbers or sequence is meaningful, such as a track order.
+
+### 3.5 Quotations
+
+Use a Markdown block quote for a genuine quotation. Keep attribution in the final quoted paragraph.
+
+```md
+> Я с большим удовольствием констатирую, что музыкант добился огромных успехов.
+>
+> — Андрес Сеговия, 4 августа 1961 года
+```
+
+Do not turn titles, scare quotes, ordinary dialogue fragments, or every pair of quotation marks into a block quote.
+
+### 3.6 Links
+
+Use ordinary Markdown links for websites, email addresses, related articles, and files that do not need a document block.
+
+```md
+[Official website](https://example.org)
+
+[Related biography](other-musician.bio.md)
+
+[guitar@example.org](mailto:guitar@example.org)
+```
+
+Link text MUST remain meaningful without surrounding layout or a decorative arrow icon.
+
+### 3.7 Footnotes
+
+New documents MUST use Markdown footnotes.
+
+```md
+**Барриос[^barrios-name] (Мангори) Агустин** ...
+
+[^barrios-name]: Другая транскрипция фамилии — Баррьос.
+```
+
+Footnote identifiers are internal and SHOULD be short, stable, and descriptive. Definitions normally appear after the section or at the end of the article. They MAY contain multiple paragraphs, links, or a block quote when the source note is complex.
+
+Legacy BioMD 1.0/1.1 files may contain manually written Unicode markers such as `¹`; renderers SHOULD continue to display them, but converters MUST prefer `[^id]` syntax for new work.
+
+### 3.8 Tables
+
+Use a Markdown table only when row/column relationships are part of the information.
+
+```md
+| Work | Tablature | Audio / MIDI | Scores / archives |
+|---|---|---|---|
+| La Catedral | [TAB](music/tab/example.txt) | [MIDI](music/midi/example.mid) | [1](music/scores/page1.jpg), [ZIP](music/scores/archive.zip) |
+```
+
+Rules:
+
+- provide a meaningful header for every column;
+- combine legacy continuation rows into the logical parent row when this loses no information;
+- use `—` for an intentionally empty value;
+- keep all meaningful resource links;
+- do not reproduce `rowspan`, `colspan`, spacer cells, or percentage widths;
+- do not use a table for page layout, paired images, or text beside a cover.
+
+The renderer MUST keep a wide table usable on a narrow screen, for example through contained horizontal scrolling or a labeled stacked-row view. It MUST NOT force the entire page to scroll horizontally.
+
+---
+
+## 4. Directive syntax
+
+A directive is a fenced block beginning with `::: name` and ending with `:::`.
+
+```md
+::: name
+property: value
+
+Optional body content.
+:::
+```
+
+Rules:
+
+- directive and property names are lowercase ASCII;
+- one property appears per line;
+- a property value is the remainder of its line and is not YAML;
+- a blank line separates properties from body content;
+- a closing fence closes the most recently opened directive;
+- indentation is not layout and SHOULD be omitted;
+- undocumented properties MUST produce a warning;
+- an unknown directive MUST preserve and render its readable body content rather than deleting it.
+
+### 4.1 Content model
+
+| Directive | Required | Optional | Body |
+|---|---|---|---|
+| `lead` | — | — | ordinary Markdown |
+| `image` (standalone) | `src`, `position`, `size` | `alt`, `caption`, `link` | none |
+| `image` inside `images` | `src` | `alt`, `caption`, `link` | none |
+| `images` | `columns` | — | two or more `image` children |
+| `document` | `src`, `title`, `mode` | — | none |
+| `columns` | two or three `column` children | `divider` | `column` children only |
+| `column` | — | — | Markdown and leaf media directives |
+| `nav` | one or more Markdown links | `title`, `active` | Markdown link list |
+| `frame` | — | `variant`, `title` | Markdown and leaf media directives |
+| `signature` | — | — | short Markdown paragraphs |
+
+Nesting constraints:
+
+- `images` contains only `image` children;
+- `columns` contains only `column` children;
+- a `column` MUST NOT contain another `columns` block;
+- a `frame` MUST NOT contain another `frame` or a `nav`;
+- a `signature` SHOULD contain only text, links, and hard line breaks;
+- nesting deeper than the relationships above is invalid.
+
+---
+
+## 5. Lead paragraph (`::: lead`)
+
+Use a lead for a genuine introductory summary that deserves emphasis.
+
+```md
+::: lead
+
+Laurindo Almeida connected classical guitar, Brazilian music, and jazz throughout a long international career.
+
+:::
+```
+
+The theme MAY render it with larger type or a drop capital. Do not use `lead` merely to obtain a larger font.
+
+---
+
+## 6. Single image (`::: image`)
+
+```md
+::: image
+src: photo/b/barrios.jpg
+position: right
+size: small
+alt: Агустин Барриос
+caption: Агустин Барриос
+:::
+```
+
+### 6.1 Properties
+
+- `src` — required resource target;
+- `position` — required on a standalone image: `left`, `right`, `center`, or `full`;
+- `size` — required on a standalone image: `small`, `medium`, `large`, or `full`;
+- `alt` — optional accessibility text; strongly recommended for meaningful images;
+- `caption` — optional visible caption;
+- `link` — optional click target for a thumbnail, cover, or scan.
+
+`alt` and `caption` are different. `alt` describes the image for a non-visual reader; `caption` is visible editorial context. If `alt` is absent, the renderer MAY fall back to the caption. It MUST NOT use a filename as visible alternative text.
+
+### 6.2 Position semantics
+
+- `left` — image precedes and may be wrapped by the following related prose on wide screens;
+- `right` — image precedes and may be wrapped by the following related prose on wide screens;
+- `center` — standalone centered figure without text wrapping;
+- `full` — standalone figure using the available article width.
+
+Place a left/right image immediately before the paragraph it accompanies. A following heading, separator, centered/full image, image group, columns block, navigation block, or frame automatically clears wrapping.
+
+### 6.3 Size semantics
+
+Sizes are theme-relative, not source pixels:
+
+- `small` — badge, stamp, small portrait, or cover;
+- `medium` — ordinary portrait or cover;
+- `large` — prominent illustration;
+- `full` — use the available article width.
+
+The renderer MUST preserve intrinsic aspect ratio unless a product-specific crop is explicitly requested outside BioMD.
+
+### 6.4 Clickable image
+
+When HTML uses `<a><img></a>`, preserve both targets in one image block.
+
+```md
+::: image
+src: photo/t/tavrovsky_rg2002.jpg
+position: center
+size: large
+link: articles/about_us/rg_2002.jpg
+alt: Заметка о проекте в альманахе «Ренессанс гитары — 2002»
+caption: Один из первых печатных отзывов о проекте
+:::
+```
+
+Do not add a duplicate “open image” link unless a separate visible fallback is required by the product.
+
+---
+
+## 7. Image group (`::: images`)
+
+Use an image group when two or more adjacent source images form one visual row or gallery.
+
+```md
 ::: images
 columns: 2
 
 ::: image
-src: images/album-1.jpg
-caption: Classical Guitar Collection
+src: photo/j/jovicic1.jpg
+alt: Йован Йовичич
+caption: Йован Йовичич
 :::
 
 ::: image
-src: images/album-2.jpg
-caption: The Guitar Artistry of Laurindo Almeida
+src: photo/j/jovicic.jpg
+alt: Йован Йовичич
+caption: Йован Йовичич
 :::
 
 :::
+```
 
-## Documents
+`columns` MUST be `2`, `3`, or `4`. A child image requires only `src`; its placement and responsive size come from the group. Child `position` and `size` properties SHOULD be omitted and are ignored if present.
 
+Keep the source order. Do not group images separated by substantial prose merely because they have similar dimensions.
+
+---
+
+## 8. Document (`::: document`)
+
+Use a document block for a PDF, scan set, audio document, or another BioMD document that should appear as a document card or embed.
+
+```md
 ::: document
 src: documents/almeida-discography.pdf
 title: Selected Discography
 mode: link
 :::
-
-[Related article: Brazilian classical guitar](../articles/brazilian-guitar.bio.md)
 ```
 
----
+`mode` is:
 
-# HTML Migration Rules
+- `link` — show a document link or card;
+- `embed` — embed when supported.
 
-## 10. Content to Preserve
-
-Preserve:
-
-- article title and section headings;
-- paragraphs and their original order;
-- bold and italic text;
-- quotations;
-- meaningful images and captions;
-- links;
-- downloadable and embedded documents;
-- real data tables.
-
-Remove:
-
-- menus, counters, advertisements, headers, and footers;
-- JavaScript and inline event handlers;
-- decorative spacer images;
-- empty elements;
-- font declarations, colors, backgrounds, and exact pixel spacing.
+Every embed MUST retain an accessible link fallback. Ordinary individual MP3, MIDI, WMA, TAB, score-page, and ZIP references MAY remain Markdown links, especially inside a resource table.
 
 ---
 
-## 11. HTML Conversion
+## 9. Columns (`::: columns` and `::: column`)
 
-| HTML content | BioMD Lite |
-|---|---|
-| `<h1>`–`<h3>` | `#`, `##`, `###` |
-| `<p>` | paragraph separated by a blank line |
-| `<strong>`, `<b>` | `**text**` |
-| `<em>`, `<i>` | `*text*` |
-| `<blockquote>` | `>` quotation |
-| `<a>` | Markdown link |
-| single `<img>` | `image` block |
-| adjacent images | `images` block |
-| PDF or file link | `document` block |
-| real data table | Markdown table |
-| layout table | normal flow, image placement, or `columns` |
-| repeated `<br>` | paragraph boundary |
-| inline color | `==highlighted text==` only when semantically important |
+Use columns only when two or three parallel content groups have a meaningful side-by-side relationship.
 
-### Image alignment conversion
+```md
+::: columns
+divider: true
 
-- `align="left"` or CSS `float:left` → `position: left`
-- `align="right"` or CSS `float:right` → `position: right`
-- centered image → `position: center`
-- full-width image → `position: full`
+::: column
 
-Do not preserve exact margins or coordinates.
+Album description and track list.
 
----
+:::
 
-# Engine Interpretation
+::: column
 
-## 12. Parsing Order
+::: image
+src: photo/album-cover.jpg
+position: center
+size: medium
+alt: Album cover
+:::
 
-1. Parse ordinary Markdown.
-2. Parse BioMD blocks: `lead`, `image`, `images`, `document`, `columns`, `column`, and the v1.1 blocks `nav` and `frame`.
-3. Validate required properties.
-4. Resolve relative links and files.
-5. Render semantic HTML.
-6. Apply the selected visual theme.
+:::
 
-Relative image, media, document, and ordinary file-link targets resolve
-against the application's configurable resource base (default: `/pages`),
-not against the deployment path of the application itself. For example, when
-the app is deployed at `/fable/`, `music/mp/track.mp3` still resolves to
-`/pages/music/mp/track.mp3`. Absolute URLs and fragment links remain unchanged.
+:::
+```
 
----
+`divider` is optional and accepts `true` or `false`; the default is `false`.
 
-## 13. Rendering Rules
+Good uses:
 
-- Keep the source order as the logical reading order.
-- Left and right images allow text wrapping on wide screens.
-- On narrow screens, floating images become normal centered blocks.
-- Image rows and columns stack vertically on narrow screens.
-- Captions stay attached to their images.
-- Embedded documents must always have a link fallback.
-- Headings, paragraphs, links, quotations, and tables must remain readable without JavaScript.
-- Unknown blocks must not delete their content; render the inner text and report a warning.
-- Raw HTML, CSS, and JavaScript are not part of BioMD Lite.
+- album description beside its cover;
+- two source columns of grouped works;
+- parallel short biographies or facts;
+- a layout whose visible vertical divider is meaningful.
+
+Bad uses:
+
+- recreating page margins;
+- forcing a narrow text measure;
+- placing unrelated consecutive sections side by side;
+- reproducing an entire desktop page shell.
+
+On narrow screens columns stack in source order. A vertical divider is removed or becomes a horizontal separator.
 
 ---
 
-## 14. Authoring Rules
+## 10. Navigation (`::: nav`)
 
-- Prefer normal Markdown over a custom block.
-- Use custom blocks only for layout or embedded media.
-- Keep one property per line.
-- Use only the documented property values.
-- Write content in its natural reading order.
-- Do not encode layout with spaces, empty lines, or invisible characters.
-- Keep file names and paths short and stable.
-- Validate the document after manual or LLM-based editing.
-
----
-
-# Format Extensions (v1.1)
-
-These blocks and rules were added after converting the legacy encyclopedia pages. They cover layout and design elements the core (Sections 1–14) could not express: horizontal navigation/tab bars, framed callout boxes, clickable images, column dividers, and a set of authoring conventions for elements that recur in the source pages.
-
-The design principle is unchanged: **prefer plain Markdown; reach for a block only when plain Markdown cannot express the layout or media.** These extensions add exactly two new fenced blocks (`nav`, `frame`) and a few optional properties — nothing more.
-
-## 15. Navigation bar (`::: nav`)
-
-Use a `nav` block for a compact, horizontal group of links to related pages, rendered as a row of tabs/pills. It replaces the vertical side menus and pagination strips of the legacy pages.
-
-Typical sources:
-
-- a discography side-menu (e.g. a "Дискография" column linking to per-period sub-pages);
-- an alphabetical pagination strip (e.g. `[ А – Бартоли ] [ Бах – Г ] [ Д – Л ] …`);
-- a short "continuation / next page" link.
+Use `nav` for a compact group of links that functions as page-level or section-level navigation.
 
 ```md
 ::: nav
 title: Дискография
+
 - [1995–2002](williams_cd1.bio.md)
 - [1989–1994](williams_cd2.bio.md)
 - [1979–1988](williams_cd3.bio.md)
@@ -420,13 +503,14 @@ title: Дискография
 
 Properties:
 
-- `title` — optional label shown before the bar (e.g. "Дискография", "Содержание").
-- `active` — optional; the label of the current page. The matching entry renders as a highlighted, non-clickable tab. Use it for pagination strips where the current range is not a link.
+- `title` — optional visible label;
+- `active` — optional plain-text label of the current item.
 
 ```md
 ::: nav
 title: Аудио-карта
 active: А – Бартоли
+
 - [А – Бартоли](karta.bio.md)
 - [Бах – Г](karta2.bio.md)
 - [Д – Л](karta3.bio.md)
@@ -437,222 +521,245 @@ active: А – Бартоли
 
 Rules:
 
-- The body is a plain Markdown list of links, one per line.
-- On narrow screens the bar wraps to multiple rows or scrolls horizontally; it never forces a horizontal page scroll.
-- Do not use `nav` for a single inline link inside running text — keep that as a normal Markdown link.
-- Place a `nav` where it belongs in reading order: a side discography menu usually moves to just below the biography or into its own section; a continuation link stays at the end.
+- the body is a Markdown bullet list containing one link per item;
+- `active` matches the rendered plain-text label exactly and makes that item current/non-clickable;
+- duplicate labels are invalid when `active` is used;
+- merge adjacent source anchors that form one visual label and share one target;
+- a prominent side menu that applies to the whole page normally moves directly below the title or lead;
+- navigation belonging to one later section goes immediately before that section;
+- a single continuation link MAY remain an ordinary Markdown link;
+- do not use `nav` for unrelated inline links.
+
+The renderer presents a nav as tabs, pills, or a compact link bar. On narrow screens it wraps or scrolls within its own container and MUST NOT create page-level overflow.
 
 ---
 
-## 16. Frame / callout (`::: frame`)
+## 11. Frame / callout (`::: frame`)
 
-Use a `frame` block for content the source visually enclosed in a border or box, and for asides that must stand apart from the running text.
-
-Typical sources:
-
-- memorial / obituary notices (a black-bordered box: date, name, portrait);
-- editorial info notes (a bordered, tinted box);
-- highlighted announcements.
+Use a frame when the source intentionally encloses an article-specific notice or aside.
 
 ```md
 ::: frame
 variant: memorial
 
-**14 августа 2020 года** в возрасте 87 лет скончался выдающийся британский гитарист и лютнист
+**14 августа 2020 года** в возрасте 87 лет скончался выдающийся британский гитарист и лютнист.
 
 **Джулиан Брим**
-
-::: image
-src: images/bream.jpg
-position: center
-size: medium
-:::
 
 :::
 ```
 
 Properties:
 
-- `variant` — optional visual role; one of:
-  - `note` (default) — neutral info / aside box;
-  - `memorial` — obituary / in-memoriam notice;
-  - `highlight` — emphasized announcement.
-- `title` — optional heading rendered inside the frame.
+- `variant` — `note` (default), `memorial`, or `highlight`;
+- `title` — optional internal heading.
 
-Rules:
+Typical mappings:
 
-- The body is ordinary BioMD content: paragraphs, emphasis, images, lists, links.
-- A frame is semantic (an enclosed aside), not a tool for drawing arbitrary rectangles. Do not use it to recreate the legacy page border, spacer cells, or column backgrounds.
-- Frames may be nested at most one level deep.
-- The exact border, background, and color belong to the theme.
+- bordered informational note → `note`;
+- obituary or in-memoriam box → `memorial`;
+- congratulation or emphasized announcement → `highlight`.
+
+The body may contain paragraphs, emphasis, lists, links, and leaf media directives. A frame is semantic; it MUST NOT reproduce the article's outer border, background panel, or spacer cells. Border thickness, color, and background remain theme decisions.
 
 ---
 
-## 17. Clickable images (`link`)
+## 12. Signature (`::: signature`)
 
-Legacy pages often wrapped an image in a link — a thumbnail that opens a full-size scan, or a cover that links to a review page. Represent this with the `link` property on an `image` block (Section 4), not with a separate duplicate link.
+Use a signature for a short closing author/place/credit block whose end alignment is part of its identity.
 
 ```md
-::: image
-src: images/review-thumb.jpg
-position: center
-size: medium
-link: articles/review-full.jpg
-caption: Press review, 2002
-:::
-```
-
-- `link` may target a local file, another `.bio.md`, or an external URL.
-- If a visible "read more" affordance is also wanted, a normal Markdown link beneath the image is acceptable; prefer `link` when the image itself was the click target.
-
----
-
-## 18. Column dividers
-
-`::: columns` may carry an optional `divider` property to request a visible vertical rule between columns. The default is no divider.
-
-```md
-::: columns
-divider: true
-
-::: column
-Left column text.
-:::
-
-::: column
-Right column text.
-:::
-
-:::
-```
-
-On narrow screens columns stack vertically and the vertical divider is dropped (or shown as a horizontal rule); this is a theme decision.
-
----
-
-## 19. Subtitles
-
-When the source title has a secondary line (a subtitle or descriptive parenthetical under the main heading), keep the main line as the `#` title and put the subtitle on the next line as an italic paragraph (or as a `::: lead`).
-
-```md
-# Аудио-карта
-
-*Сводный каталог аудио, нот и табулатур*
-```
-
-There is exactly one article title — do not create a second `#`.
-
----
-
-## 20. Lists (bullet, numbered, works lists)
-
-- Real HTML lists (`<ul>`, `<ol>`, `<ul type="square">`) and "fake" lists built from `•` / `&#8226;` + `<br>` both become ordinary Markdown lists.
-- Track listings become numbered lists (`1.`, `2.`, …) when the source numbered them or the order is meaningful; otherwise a bullet list.
-- A short works / compositions enumeration that the source ran as inline text separated by semicolons may stay a single paragraph; convert it to a list only when the source presented it as a list.
-
----
-
-## 21. Drop caps and decorative first letters
-
-Some pages render the first letter of each paragraph as a small decorative image (e.g. `main/c1.gif` followed by the text `ловарь`, meaning "**С**ловарь").
-
-- Reconstruct the whole word and write it as plain text — decode the letter from the image (filename / `alt`) or infer it from the truncated word.
-- Do not keep the image or mark up the drop cap. A theme may add a drop capital through the `::: lead` block; it is never encoded per paragraph.
-
----
-
-## 22. Typographic emphasis (small caps, colors)
-
-- `font-variant: small-caps`, colored `<font>`, and letter-spacing are presentation. Drop the styling and keep the plain text.
-- Use `==highlight==` only when the emphasis is semantically important (e.g. a warning word the author clearly meant to stress) — not for every colored span.
-- Purple / `#800080` names, gray / `#575757` links, and Times-New-Roman work titles are pure styling: keep the text, drop the color.
-
----
-
-## 23. Signature and closing blocks
-
-Right-aligned italic author signatures, place lines, and hosting / credit notes become normal paragraphs — usually italic, placed after a `---` separator at the end of the article.
-
-```md
----
+::: signature
 
 *Авторы проекта «Гитаристы и композиторы»*  
 *Виктор и Сергей Тавровские*  
 *Кишинёв — Киев — Харьков*
+
+:::
 ```
 
----
+The renderer SHOULD present it as a compact closing block aligned toward the reading-end edge on wide screens and as an ordinary readable block on narrow screens. Do not use `signature` for generic right-aligned prose, long footnotes, or arbitrary positioning.
 
-## 24. Footnotes
-
-Bidirectional HTML footnote anchors (`<sup><a name="1" href="#2">1</a></sup>` … `<a name="2" href="#1">`) become:
-
-- a superscript marker at the reference point — a Unicode superscript (`¹`, `²`, …) attached to the word;
-- the note text at the end of the article, below a `---` separator, prefixed with the same marker.
-
-```md
-**Барриос¹ (Мангори) Агустин** …
+A source citation that is not a signature normally remains a short italic paragraph, optionally after `---`.
 
 ---
 
-¹ Другая транскрипция фамилии — Баррьос.
+## 13. Responsive rendering contract
+
+A conforming renderer MUST:
+
+- treat source order as reading, focus, copy, and screen-reader order;
+- keep all content within the article viewport;
+- make left/right images ordinary centered or edge-aligned blocks when wrapping would make text too narrow;
+- preserve image aspect ratio and keep captions attached;
+- reduce or stack image groups when necessary;
+- stack columns in source order;
+- adapt or contain wide tables without page-level horizontal overflow;
+- wrap or locally scroll navigation;
+- keep frames readable at full available width;
+- retain document-link fallbacks;
+- render headings, text, links, quotations, lists, footnotes, and tables usefully without client-side JavaScript.
+
+BioMD does not encode breakpoints, pixel widths, text-column widths, source line wrapping, or hyphenation. Those belong to the renderer and language-aware CSS.
+
+---
+
+## 14. Resource and link resolution
+
+Targets may be:
+
+- fragment links such as `#works`;
+- `mailto:` or another supported URI scheme;
+- absolute `http://` or `https://` URLs;
+- application-root or resource-base paths;
+- relative article, image, media, or document paths.
+
+Relative resource targets resolve against the application's configured resource base, whose default is `/pages`, not against the application's deployment prefix. For example, an application deployed at `/fable/` still resolves:
+
+```text
+music/mp/track.mp3 -> /pages/music/mp/track.mp3
 ```
 
----
+Absolute URLs and fragment links remain unchanged.
 
-## 25. Multi-page articles and series
+Conversion MUST preserve target identity. If source and BioMD documents have different base locations, the converter must resolve the original target first and then rebase it deliberately for the BioMD resource model. It MUST NOT blindly copy or strip a `pages/` prefix.
 
-Legacy articles are frequently split across pages (`williams1` → `williams2`; `barrios` → `barrios1`; a separate `dyens2` discography page) and cross-linked to related articles.
+Retarget an `.htm` link to `.bio.md` only when a conversion manifest confirms the destination exists or will be produced. Otherwise preserve the original target.
 
-- Convert each source page to its own `.bio.md`, keeping the file-name stem.
-- Represent a group of sub-pages or a "continuation / next page" link with a `::: nav` block (Section 15); a lone continuation may be a plain Markdown link.
-- Convert cross-links to other articles (`manhattan.htm`, `ponce_alb.htm`) to Markdown links, pointing at the converted `.bio.md` when it exists, otherwise the original target.
+Missing local assets MUST remain recorded under their intended target and in the conversion audit. A publishable conversion MUST NOT silently substitute unrelated external placeholder media. A temporary preview placeholder is allowed only when explicitly marked as incomplete outside the BioMD document.
 
 ---
 
-## 26. News datelines
+## 15. HTML migration rules
 
-For dated news entries: lead each entry with the bold date, keep newest-first order, and separate entries with `---`. Wrap obituary entries in `::: frame variant: memorial` (Section 16).
+### 15.1 Element mapping
 
-```md
-**23 ноября 2022.** Опубликованы новые номера журнала…
-
----
-```
-
----
-
-## 27. Migration additions (v1.1)
-
-These rows extend the conversion table in Section 11.
-
-| HTML content | BioMD Lite |
+| HTML source pattern | BioMD |
 |---|---|
-| vertical side menu of page links | `::: nav` |
-| alphabetical pagination strip | `::: nav` with `active` |
-| "continuation / next page" link | `::: nav` or plain link |
-| bordered / boxed notice, obituary | `::: frame` (+ `variant`) |
-| `<a><img></a>` (linked image) | `image` block with `link` |
-| decorative first-letter image + text | plain text (reconstruct the word) |
-| `font-variant: small-caps`, colored `<font>` | plain text (drop the styling) |
-| right-aligned italic signature | italic paragraph after `---` |
-| `<sup>` + anchor footnotes | superscript marker + note after `---` |
-| `<ul>`, `<ul type="square">`, `•` + `<br>` | Markdown list |
-| side column repurposed to hold a badge / menu | move it into flow (`image` or `nav`) |
+| visible article title | single `#` |
+| meaningful subsection label | `##` or `###` |
+| `<p>` / repeated content `<br>` | Markdown paragraphs |
+| `<strong>`, `<b>` | `**text**` when semantically strong |
+| `<em>`, `<i>` | `*text*` when semantically emphasized |
+| `<ul>`, `<ol>`, or repeated bullet + `<br>` | Markdown list |
+| genuine quotation | Markdown `>` |
+| `<a>` | Markdown link |
+| linked `<img>` | `image` with `link` |
+| floated portrait | standalone `image` with `left`/`right` |
+| adjacent image row | `images` |
+| text beside cover/image | `columns` |
+| meaningful vertical rule | `columns` with `divider: true` |
+| real data/resource table | Markdown table |
+| layout table | normal flow, `image`, `images`, or `columns` |
+| vertical side menu / pagination | `nav` |
+| bordered notice / obituary | `frame` |
+| right-aligned closing signature | `signature` |
+| `<sup>` plus anchor note | Markdown footnote |
+| decorative drop-cap image plus word remainder | reconstructed plain text |
+| colored font / small caps / letter spacing | plain text or semantic emphasis, never copied styling |
+| PDF or embeddable document | `document` |
+
+### 15.2 Table classification
+
+Classify every source table before converting it:
+
+1. **page shell** — repeated header, footer, side background, or spacer grid: remove;
+2. **layout table** — position is the relationship: rewrite as flow, images, or columns;
+3. **data table** — cells form a record matrix: convert to a Markdown table;
+4. **hybrid table** — data mixed with layout, nested rows, or covers: separate the semantic records from the visual arrangement, then use a table and/or columns.
+
+Border presence alone does not make a table data. Lack of borders does not make it layout.
+
+### 15.3 Text cleanup boundary
+
+Safe cleanup:
+
+- decode HTML entities;
+- convert non-breaking spaces used for indentation to normal spaces;
+- remove soft hyphens and join confidently identified layout-only word breaks;
+- discard source line wrapping;
+- reconstruct a decorative first-letter image when the missing letter is certain;
+- remove empty paragraphs and spacer breaks.
+
+Editorial change:
+
+- correcting a spelling mistake or name;
+- modernizing facts, dates, transliteration, or terminology;
+- paraphrasing;
+- silently changing punctuation that can affect meaning;
+- inventing a caption, heading, alt description, or link target.
+
+Editorial changes require an explicit policy and audit trail. The default conversion is conservative transcription.
+
+### 15.4 Layout-specific images
+
+Do not discard an image merely because it is outside the central content cell. Preserve a side badge, stamp, award, cover, or contextual illustration and move it near the paragraph or section it belongs to. Discard only repeated chrome, counters, spacers, and ornaments with no article-specific meaning.
+
+---
+
+## 16. Engine interpretation
+
+Recommended parsing order:
+
+1. read UTF-8 and normalize line endings;
+2. identify directive fences and build a nested directive tree;
+3. validate each directive's properties and content model;
+4. parse ordinary Markdown, including tables and footnotes, inside permitted bodies;
+5. resolve links and resources;
+6. emit semantic HTML;
+7. apply the selected responsive theme.
+
+Required recovery behavior:
+
+- an unknown directive preserves its readable body and emits a warning;
+- an unknown property is ignored with a warning;
+- a missing required property renders a visible diagnostic or safe fallback rather than deleting neighboring content;
+- an unresolvable embed remains a normal link;
+- malformed nesting must not consume the rest of the document silently.
+
+---
+
+## 17. Authoring and validation checklist
+
+Before accepting a document, verify:
+
+- exactly one `#` title and a non-skipping heading hierarchy;
+- logical source/mobile order;
+- balanced directive fences and valid nesting;
+- required directive properties and allowed values;
+- meaningful `alt` text or a documented reason it is absent;
+- captions remain attached to their images;
+- every meaningful source image, link, and file target is preserved or explicitly audited;
+- linked images retain both `src` and `link`;
+- no raw HTML, CSS, JavaScript, or whitespace-based positioning remains;
+- layout tables are not mistaken for data tables, and real tables have headers;
+- footnote references and definitions match;
+- no silent placeholder substitutions or unverified `.htm` → `.bio.md` retargeting;
+- desktop and narrow-screen rendering remain readable and complete.
+
+The source remains authoritative for factual text. BioMD controls structure and responsive presentation, not editorial rewriting.
 
 ---
 
 # Changelog
 
+## v1.2
+
+- Reorganized the specification around a normative preservation hierarchy and responsive content model.
+- Added `::: signature` for meaningful closing author/credit blocks.
+- Made Markdown footnotes the required syntax for new documents.
+- Defined directive grammar, nesting, child-image requirements, and recovery behavior.
+- Clarified image wrapping boundaries, nav placement, roster pages, hybrid tables, and adaptive table rendering.
+- Added conservative transcription, path-rebasing, target-retargeting, and missing-asset rules.
+- Clarified that semantic content in legacy side rails must be preserved.
+
 ## v1.1
 
-- Added `::: nav` (horizontal navigation / tab bar).
-- Added `::: frame` (framed callout, with `note` / `memorial` / `highlight` variants).
-- Added `link` and `alt` properties to `::: image`.
-- Added `divider` property to `::: columns`.
-- Documented conventions for subtitles, lists, drop caps, typographic emphasis, signatures, footnotes, multi-page series, and news datelines.
-- Clarified that the format also covers adjacent encyclopedia pages (about, news, catalog).
+- Added `::: nav` and `::: frame`.
+- Added `link` and `alt` to `::: image`.
+- Added `divider` to `::: columns`.
+- Documented subtitles, lists, drop caps, emphasis, signatures, multi-page series, and news datelines.
 
 ## v1.0
 
-- Initial BioMD Lite specification (Sections 1–14).
+- Initial BioMD Lite specification.

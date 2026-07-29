@@ -1,5 +1,11 @@
 # HTML-to-BioMD Lite Conversion Guide
 
+> **Historical guide.** For new conversions, use
+> [`html-to-biomd_ext_guide.md`](html-to-biomd_ext_guide.md) together with the
+> BioMD 1.2 specification in [`Biography-Markup.md`](Biography-Markup.md).
+> This file records the first three conversions; its temporary-placeholder
+> guidance is not acceptable for a completed, source-faithful conversion.
+
 This document records the practical rules used to convert the legacy encyclopedia pages:
 
 - `authors.htm`
