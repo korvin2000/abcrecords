@@ -1,13 +1,8 @@
 {
   "metadata": {
-    "id": "0007",
-    "title": "Пако де Лусия",
+    "forename": "Paco",
+    "surname": "de Lucía",
     "birthname": "Francisco Gustavo Sánchez Gómez",
-    "gender": "m",
-    "type": "guitarist",
-    "surname": "Sánchez Gómez",
-    "forename": "Francisco",
-    "country": "ES",
     "birthplace": "Algeciras, Spain",
     "deathplace": "Playa del Carmen, Mexico",
     "dates": {
@@ -24,9 +19,7 @@
     "teachers": "Antonio Sánchez Pecino,Ramón de Algeciras",
     "jobs": "Guitarist,Composer,Producer",
     "ranking": 98,
-    "bio": "paco-de-lucia.bio.md",
-    "url": "https://fundacionpacodelucia.com/legado/",
-    "dataStatus": "test fixture: extracted facts with generated catalogue values"
+    "url": "https://fundacionpacodelucia.com/legado/"
   },
   "media": {
     "photos": [

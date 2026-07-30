@@ -1,111 +1,107 @@
-# 11 · `pages/index.json` — Search / Main-Menu Index
+# 11 · Catalogue Index — `index.json` + `index-<lang>.json`
 
-**Source:** [`pages/index.json`](../pages/index.json) — a flat JSON **array**,
-currently **7 entries**. This is the **live search/browse index**: the main
-page/menu searches it by `title` and shows a preview card (`img`) that links
-out to the full metadata (`json`) and biography (`md`) for that entry. It is
-**not** the same thing as `docs/search-list.json` (that's the legacy
-`guitar-times.ru` index, unrelated schema — see
-[`06-search-index.md`](06-search-index.md)) and **not** the same thing as
-`docs/MetaData.json` (that's the full per-entry metadata schema — see
-[`03-metadata-schema.md`](03-metadata-schema.md)). Think of `index.json` as a
-**lightweight catalogue/summary layer that points at the two per-entry files**.
+**Source of truth:** [`docs/Catalog-Index.md`](../docs/Catalog-Index.md) (v2,
+2026-07-31). This note is the condensed version — when they disagree, the spec
+wins.
 
-## Record shape
+> ⚠ **Migration status (2026-07-31).** Spec **and data** are v2; **`app/` code
+> is still v1** and does not yet read `id`, ISO `country` or
+> `index-<lang>.json`. Steps 4–7 of
+> [`the plan`](../docs/proposals/Plan_Catalog-v2-index-ids-localized-names-codex-split.md)
+> migrate the code. Live corpus: **15 rows (7 listed, 8 hidden)**, 12 dossiers,
+> 5 name indexes (`ru en de zh ja`).
 
-```json
+## The two files
+
+`pages/index.json` — flat array, one row per catalogue entry, in display order.
+
+```jsonc
 {
-  "title":    "Full display name",
-  "lang":     "ru,en",            // comma-separated ISO 639-1 codes; FIRST code = original language
-  "type":     "guitarist | composer | musician | …",
-  "forename": "Forename",
-  "surname":  "Surname",
-  "country":  "Nationality (free-text country name)",
-  "json":     "/slug.bio.json",   // declared root-relative; ACTUAL file lives at /<lang>/slug.bio.json
-  "md":       "/slug.bio.md",     // declared root-relative; ACTUAL file lives at /<lang>/slug.bio.md
-  "img":      "photos/slug.jpg"   // relative path to the preview/avatar image — NOT per-language
+  "id": "3",                              // string, stable, never reused/renumbered
+  "title": "Andres Segovia",              // LATIN fallback name + last-resort search key
+  "lang": "ru,de",                        // content editions; first = original; absent → "ru"
+  "type": "guitarist",                    // craft — or "hidden"
+  "gender": "m",                          // m | f | mixed → also picks the default portrait
+  "country": "es",                        // ISO 3166-1 alpha-2, LOWERCASE (never free text)
+  "md": "/andres-segovia.bio.md",         // REQUIRED; defines the slug + route
+  "json": "/andres-segovia.bio.json",     // OPTIONAL — presence ⟺ biography
+  "img": "photos/andres-segovia.jpg"      // OPTIONAL — else photos/default-<gender>.jpg
 }
 ```
 
-## Multi-language layout (added 2026-07-20)
+`pages/index-<lang>.json` — object keyed by `id`, one small file per UI language.
 
-- Each entry's `json`/`md` pair exists **once per language** in a
-  per-language directory named by ISO code: `pages/ru/…`, `pages/en/…`,
-  `pages/de/…`. The `json`/`md` paths in `index.json` stay written as if the
-  files sat at the root; the app maps them via
-  `localizeContentPath(path, lang)` (`app/src/lib/paths.ts`).
-- `lang` lists the available editions (`"ru"`, `"ru,en"`, `"ru,de"`);
-  missing/empty is treated as `"ru"`. Ten languages are supported by the UI:
-  en, es, ja, de, fr, it, pt, ru, zh, ko (`app/src/lib/languages.ts`).
-- **Media/photos/documents are shared across languages** and resolve against
-  the independent resource base (default `/pages`) — never localize those
-  paths. The paths declared directly by `index.json` still use the app base.
-- As of 2026-07-20 the `en`/`de` files are still **untranslated copies of the
-  Russian originals** (placeholder editions) — the plumbing works; the
-  translated content doesn't exist yet.
+```jsonc
+{ "3": ["Андрес Сеговия", "Сеговия", "Андрэс Сеговия"] }
+//        ↑ [0] = display name          ↑ [1…] = search-only aliases, never rendered
+```
 
-## Role in the UI (maps onto the codex modal's tabs — see [`04-biography-card-design.md`](04-biography-card-design.md))
+Missing file / missing id / empty array → fall back to `index.json.title`.
+**Omit an id when its localized name equals `title` *and* it has no aliases**;
+`[0]` may repeat `title` when the entry exists for the sake of its aliases.
+Aliases are what make CJK search work — 塞戈维亚 has no romanization path any
+generic algorithm will find.
 
-| index.json field | Used for |
+## The five rules worth memorizing
+
+1. **`id` is stable, string, never a position.** Assigned once, never
+   renumbered, never reused. Join key to `index-<lang>.json` — *not* the route.
+2. **Route = `#/{slug}`**, slug = `md` basename minus `.bio.md`/`.md`. Unique
+   across the index, Latin/ASCII. `md`/`json` are written root-relative and
+   mapped to `pages/<lang>/…` at load; `img` and all media are **never**
+   localized.
+3. **`json` present ⟺ biography** (4-tab codex). Absent ⟺ page (article only).
+   *Declared*, never inferred from a failed fetch — the chrome must not reshape
+   mid-load.
+4. **`type: "hidden"`** → out of grid, search, facets, counts and ←/→ order;
+   still routable and linkable. For `about`/`sources`/`links`/`news`,
+   continuation sub-pages, and fixtures.
+5. **One fact, one file — and dates are dossier facts.** `index.json` holds
+   only what is needed to list, route and classify an entry before anything
+   else is fetched. `born`/`died` are **not** mirrored here (owner's call,
+   2026-07-31); a future birth-date filter must revisit spec §13.
+
+## Field ownership (the model in one table)
+
+| Fact | Lives in |
 |---|---|
-| `title` | **Search key** on the main menu/search page. |
-| `img` | **Preview/avatar** shown on the search result card (≈ `CharacterCard` primary portrait). |
-| `json` | Path to the entry's full structured metadata (feeds Lore/Attributes, Gallery, Documents tabs). |
-| `md` | Path to the entry's `BioMD Lite` biography (feeds the Biography tab). |
-| `type`, `forename`, `surname`, `country` | Extra facets/labels available without loading `json` — cheap enough to show directly on the card or use as search/filter facets. |
+| identity, classification, paths | `index.json` |
+| display name + search aliases, per language | `index-<lang>.json` |
+| language-scoped dossier prose (`forename`, `surname`, `birthplace`, `jobs`, …) | `pages/<lang>/*.bio.json` |
+| language-invariant dossier facts (`dates`, `ranking`, `url`) | `pages/<lang>/*.bio.json`, identical in every edition |
 
-## Observed real content (updated 2026-07-20)
+**Case:** `type`/`gender`/`country`/`lang` are authored **lowercase** and read
+case-insensitively. The loader normalizes once at the boundary — `country` to
+UPPERCASE (what `Intl.DisplayNames` and `CountryFlag` expect), the rest to
+lowercase — so no downstream code compares case-insensitively.
 
-7 entries; **all 7 now have `.bio.md` + `.bio.json` files** under
-`pages/ru/` (the earlier flat root files were moved there). Additionally
-`django-reinhardt`, `jovan-jovicic`, `paco-de-lucia` have `pages/en/`
-editions and `andres-segovia` a `pages/de/` edition (currently untranslated
-copies — see the multi-language section above).
+## Two axes that are NOT the same thing
 
-The `authors` entry (the multi-person roster page) is squeezed into the
-single-person index shape with an **invented pseudo-identity**:
-`forename: "Коллектив"` ("Collective"), `surname: "Тавровские"`
-("the Tavrovskys"), `type: "musician"` (generic, not `guitarist`). This is
-the concrete, present-day answer to the open question raised in
-[`08-pages-examples.md`](08-pages-examples.md) about how roster-style pages
-fit the one-entry-per-file model: **they get one synthetic index row**.
+- `lang` = which **content editions** exist (`pages/ru/…`, `pages/de/…`).
+- `index-<lang>.json` membership = in which languages the entry can be **named
+  and found**.
 
-## ⚠ Deviations from the `docs/` conventions — do not silently "fix" these without asking
+They are independent by design: a `lang: "ru"` entry with a Chinese name in
+`index-zh.json` lets a Chinese reader find it and open the Russian edition.
+**The catalogue is searchable in more languages than it is written in.**
 
-- **`country` is a free-text nationality string** (`"Paraguay"`, `"Spain"`,
-  `"United States"`, `"Serbia"`, `"Ukraine"`), **not an ISO 3166-1 alpha-2
-  code** as `docs/MetaData.md` specifies for `metadata.country`
-  (`RU`/`DE`/`ES`/`BR`). `index.json` and the eventual per-entry
-  `MetaData.json`/`.bio.json` may end up with two different representations
-  of country — reconcile deliberately, don't assume one is simply wrong.
-- **No `id` field.** `docs/MetaData.md` treats `metadata.id` (with
-  significant leading zeroes) as the stable unique key. `index.json` instead
-  keys records by `title` (for search) and by the `json`/`md` file paths (for
-  identity/linking). If code needs a stable id, it isn't here yet.
-- **Per-entry metadata file is named `<slug>.bio.json`, flat in `pages/`** —
-  not literally `MetaData.json` in a per-entry folder as the example in
-  `docs/MetaData.json` suggests. The real layout convention appears to be:
-  `pages/<slug>.bio.md` + `pages/<slug>.bio.json` as sibling flat files (none
-  of the `.bio.json` files exist yet to confirm their internal shape — assume
-  the field semantics from `docs/MetaData.md` still apply until one is seen).
-- **Inconsistent leading slash.** `json` and `md` paths are root-relative
-  (leading `/`), but `img` is bucket-relative (`photos/slug.jpg`, no leading
-  slash). Resolve each according to its own convention — don't apply one
-  path-joining rule to all three fields.
-- Slugs (`jovan-jovicic`, etc.) are **Latin-transliterated filenames** even
-  when `title`/`forename`/`surname` are Cyrillic — consistent with the
-  existing `pages/*.bio.md` filenames, so this part is *not* a deviation, just
-  confirmation of the existing pattern.
+Codes are ISO 639-1 from `app/src/lib/languages.ts`. **Chinese is `zh`, not
+`ch`** — for `index-zh.json` and for `pages/zh/` alike.
 
-## Open items (flag to the user, don't assume)
+## Portraits
 
-- Whether `country` will be normalized to ISO alpha-2 to match
-  `docs/MetaData.md`, or whether `MetaData.md` should instead be updated to
-  allow free-text nationality (the working agreement in `CLAUDE.md` says
-  `docs/` is source of truth for specs — but this is real, current data
-  contradicting that spec, worth raising rather than silently picking a side).
-- Whether the four not-yet-created entries (`andres-segovia`,
-  `django-reinhardt`, `jimi-hendrix`, `paco-de-lucia`) are next up for
-  content creation.
-- The internal shape of `<slug>.bio.json` is still unconfirmed — no example
-  exists yet in the repo.
+`img` absent → `photos/default-male.svg` / `default-female.svg` /
+`default-mixed.svg` by `gender` (`mixed` also covers absent) — engraved SVG,
+~1.5 KB each, not photographs. If that 404s, the
+app draws a deterministic procedural monogram — a portrait is never broken.
+`hidden` rows need no `img`/`gender`.
+
+## Validation
+
+`npm run lint:content` (see spec §11). Errors: duplicate id/slug, missing
+`md`, bad ISO country, bad gender, a date field present in an index row,
+dangling `index-<lang>` key, any of the 7 removed fields still in a
+`*.bio.json`. Warnings: display name ≠ `forename + " " + surname`,
+`dates`/`ranking`/`url` differing between editions, a lone localized name equal
+to `title`, an untranslated-looking edition (Cyrillic-script edition holding pure
+ASCII prose, or vice versa).

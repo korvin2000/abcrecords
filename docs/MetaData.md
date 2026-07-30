@@ -1,11 +1,50 @@
 # MetaData.json Guide
 
+**Version:** 2.0 · **Date:** 2026-07-31
+
 ## Purpose
 
-`MetaData.json` stores structured information associated with one biography entry.  
-It is intended to supply the **Lore / Attributes**, **Gallery**, and **Documents** tabs, while the main biography text remains in a separate Markdown file referenced by `metadata.bio`.
+A metadata file stores the **dossier** of one biography entry: the structured
+facts behind the **Lore / Attributes**, **Gallery** and **Documents** tabs. The
+biography text itself lives in the companion Markdown article.
 
-This guide describes the structure inferred from the current JSON example. Fields marked as optional are inferred rather than formally enforced by a JSON Schema.
+On disk the file is named after its entry and lives in a per-language
+directory: `pages/<lang>/<slug>.bio.json`. "MetaData.json" is the name of the
+*format*, not of the file.
+
+### What is **not** here (moved to `index.json` in v2)
+
+`id`, `title`, `gender`, `type`, `country` and `bio` are **not** metadata
+fields. Identity, classification and paths belong to the catalogue index —
+see [`Catalog-Index.md`](Catalog-Index.md) — and the display name in each
+language belongs to `index-<lang>.json`. Keeping a second copy here caused the
+two to disagree.
+
+`dataStatus` was a fixture annotation and is gone.
+
+### Localization — read this before authoring
+
+**A metadata file is a per-language *edition*, not a translation of a canonical
+original.** Every prose field in `metadata` must be authored in the language of
+the directory it sits in:
+
+`forename`, `surname`, `birthname`, `birthplace`, `deathplace`, `relatives`,
+`instruments`, `genres`, `bands`, `awards`, `teachers`, `disciples`, `jobs`
+— and every `label` in `media.photos`, `media.music` and `documents`, since
+those are displayed text too. Their `target`s are **not** localized: media and
+documents are shared by all editions.
+
+Proper nouns keep their own spelling: band names (`Band of Gypsys`), work
+titles (`La Catedral`) and award names that are not conventionally translated
+stay as they are, in every edition.
+
+So `pages/ru/andres-segovia.bio.json` holds `"forename": "Андрес"`, and
+`pages/de/andres-segovia.bio.json` holds `"forename": "Andrés"`. The codex
+header and the Lore tab render these values directly — there is no runtime
+translation layer, and there must not be one.
+
+Only three fields are **language-invariant** and therefore identical in every
+edition of an entry: `dates`, `ranking`, `url`.
 
 ---
 
@@ -24,7 +63,7 @@ This guide describes the structure inferred from the current JSON example. Field
 
 | Section | Purpose |
 |---|---|
-| `metadata` | Identity, dates, classification, relationships, career data, biography file, and external URL |
+| `metadata` | Names, places, dates, relationships, career data, and the external source URL |
 | `media.photos` | Images displayed in the Gallery tab |
 | `media.music` | Audio files or music links |
 | `documents` | Documents, transcripts, dossiers, scans, or embedded records |
@@ -40,13 +79,14 @@ When creating or modifying `MetaData.json`:
 3. Do not add comments or trailing commas.
 4. Preserve the three top-level sections: `metadata`, `media`, and `documents`.
 5. Do not invent unknown biographical facts. Omit an optional field or use `null` when the application supports it.
-6. Keep `metadata.id` unique and stable.
+6. **Write every prose field in the language of the directory the file is in.** Do not copy an edition and leave it untranslated.
 7. Use `DD.MM.YYYY` for dates unless the project later standardizes another format.
-8. Use ISO 3166-1 alpha-2 country codes, for example `RU`, `DE`, `ES`, or `BR`.
+8. Keep `dates`, `ranking` and `url` **identical across all editions** of the same entry; they are language-invariant.
 9. Store file references as relative project paths whenever possible.
-10. Preserve Unicode names and titles without transliteration unless a separate transliterated field is introduced.
+10. Preserve Unicode names and titles without transliteration. The Latin form of a name belongs in `index.json`'s `title`, not here.
 11. Treat comma-separated fields as lists encoded in a string. Do not split names containing commas unless the source format explicitly uses commas as separators.
 12. Unknown fields should be preserved when editing an existing file.
+13. Do not add `id`, `title`, `gender`, `type`, `country`, `bio` or `dataStatus` — they belong to [`Catalog-Index.md`](Catalog-Index.md) and are rejected by `lint:content`.
 
 ---
 
@@ -54,18 +94,22 @@ When creating or modifying `MetaData.json`:
 
 ### Core identity fields
 
+All of these are **language-scoped**: authored in the edition's own language.
+
 | Field | Type | Expected meaning |
 |---|---:|---|
-| `id` | string | Unique biography identifier. Leading zeroes are significant. |
-| `title` | string | Primary display title of the biography entry. |
+| `forename` | string | Given name, in this edition's language. Rendered as the codex `<h1>`. |
+| `surname` | string | Family name, in this edition's language. Rendered as the codex `<h2>`. |
 | `birthname` | string | Full birth name or complete legal name. |
-| `gender` | string | Compact gender code, such as `m`, `f`, or another project-defined value. |
-| `type` | string | Entry category, for example `guitarist`, `composer`, `conductor`, or `luthier`. |
-| `surname` | string | Family name. |
-| `forename` | string | Given name. |
-| `country` | string | ISO two-letter country code. |
 | `birthplace` | string | Place of birth. |
 | `deathplace` | string | Place of death. |
+
+> A collective or roster entry may carry a comma-separated list in `forename`
+> (`"Сергей,Виктор,Александр"`) with the family name in `surname`. The renderer
+> wraps such lists deliberately; this is a supported convention, not a defect.
+
+Identity fields that used to live here — `id`, `title`, `gender`, `type`,
+`country` — are now in `index.json`. See [`Catalog-Index.md`](Catalog-Index.md) §2.
 
 ### Dates
 
@@ -87,6 +131,12 @@ When creating or modifying `MetaData.json`:
 
 Dates may be absent for living persons or when the source is unknown. A parser must not assume that every date exists.
 
+`dates` is **language-invariant**: identical in every edition of the entry.
+
+This file is the **only** home for dates — they are deliberately not mirrored
+into `index.json`, and a row there carrying `born`/`died`/`dates` is a
+validation error. See [`Catalog-Index.md`](Catalog-Index.md) §4.3.
+
 ### Relationships and career
 
 | Field | Type | Expected meaning |
@@ -99,9 +149,17 @@ Dates may be absent for living persons or when the source is unknown. A parser m
 | `teachers` | string | Teachers or mentors |
 | `disciples` | string | Students, disciples, or notable pupils |
 | `jobs` | string | Professions and professional roles |
-| `ranking` | number | Project-specific score; the sample suggests a numeric value, probably within `0–100` |
-| `bio` | string | Relative path to the Markdown biography document |
-| `url` | string | External reference or canonical source URL |
+| `ranking` | number | Project-specific score, `0–100`. **Language-invariant.** |
+| `url` | string | External reference or canonical source URL. **Language-invariant.** |
+
+Everything above except `ranking` and `url` is **language-scoped**: translate
+`instruments`, `genres`, `bands`, `awards`, `teachers`, `disciples`, `jobs` and
+`relatives` per edition. Do not leave English values in a Russian edition and
+expect the application to translate them — it will not.
+
+The path to the biography article is **not** stored here. It is `index.json`'s
+`md` field, and the article for this edition is the sibling file in the same
+directory.
 
 The current file uses strings for multi-value fields. A future normalized format may use arrays, but parsers should support the current representation first.
 
@@ -200,14 +258,9 @@ Suggested interpretation of `target`:
 ```json
 {
   "metadata": {
-    "id": "0001",
-    "title": "Display Name",
-    "birthname": "Full Birth Name",
-    "gender": "m",
-    "type": "guitarist",
-    "surname": "Surname",
     "forename": "Forename",
-    "country": "RU",
+    "surname": "Surname",
+    "birthname": "Full Birth Name",
     "birthplace": "City",
     "deathplace": "City",
     "dates": {
@@ -225,7 +278,6 @@ Suggested interpretation of `target`:
     "disciples": "Student Name",
     "jobs": "Guitarist,Composer",
     "ranking": 50,
-    "bio": "biography.md",
     "url": "https://example.org/source"
   },
   "media": {
@@ -259,10 +311,8 @@ Suggested interpretation of `target`:
 ```json
 {
   "metadata": {
-    "id": "0001",
-    "title": "Display Name",
-    "type": "guitarist",
-    "bio": "biography.md"
+    "forename": "Forename",
+    "surname": "Surname"
   },
   "media": {
     "photos": [],
@@ -272,7 +322,13 @@ Suggested interpretation of `target`:
 }
 ```
 
-This is a practical minimum inferred from the intended UI, not a formally validated requirement.
+Every field is optional — the Lore tab generates rows from whatever is present.
+`forename` / `surname` are the practical minimum because the codex header
+renders them.
+
+An entry that has no dossier at all is not an error either: omit `json` from
+its `index.json` row and it becomes a **page** rather than a biography
+(see [`Catalog-Index.md`](Catalog-Index.md) §9).
 
 ---
 
@@ -282,7 +338,7 @@ This is a practical minimum inferred from the intended UI, not a formally valida
 2. Parse it with a standard JSON parser.
 3. Verify that the root value is an object.
 4. Read `metadata`, `media`, and `documents` independently.
-5. Validate required application fields such as `metadata.id`, `metadata.title`, and `metadata.bio`.
+5. Do not require any field. Identity comes from `index.json`; this file is a dossier and every part of it may be missing, including the whole file.
 6. Parse dates explicitly as `DD.MM.YYYY`; do not pass them directly to JavaScript `Date`.
 7. Normalize comma-separated list fields only when the UI needs arrays.
 8. Resolve relative media/document paths against the configurable resource
@@ -298,9 +354,8 @@ This is a practical minimum inferred from the intended UI, not a formally valida
 ```ts
 type MetadataFile = {
   metadata: {
-    id: string;
-    title: string;
-    bio: string;
+    forename?: string;
+    surname?: string;
     dates?: {
       born?: string;
       died?: string;
@@ -341,12 +396,9 @@ function parseMetadata(jsonText: string): MetadataFile {
 
   const data = value as Partial<MetadataFile>;
 
-  if (!data.metadata?.id || !data.metadata.title || !data.metadata.bio) {
-    throw new Error("Missing metadata.id, metadata.title, or metadata.bio");
-  }
-
+  // No field is required: a dossier is additive detail on top of index.json.
   return {
-    metadata: data.metadata,
+    metadata: data.metadata ?? {},
     media: {
       photos: data.media?.photos ?? [],
       music: data.media?.music ?? []
@@ -362,12 +414,16 @@ function parseMetadata(jsonText: string): MetadataFile {
 
 | UI tab | JSON source |
 |---|---|
-| `Biography` | Markdown file referenced by `metadata.bio` |
+| `Biography` | the Markdown article named by `index.json`'s `md`, in this edition's directory |
 | `Gallery` | `media.photos` and optionally `media.music` |
 | `Documents` | `documents` |
-| `Lore` / `Attributes` | Fields inside `metadata` |
+| `Lore` / `Attributes` | fields inside `metadata`, plus `type`, `gender` and `country` from `index.json` |
 
-The Lore tab should generate rows dynamically from available metadata instead of relying on a fixed set of fields. Technical fields such as `id`, `bio`, and `url` may be hidden or presented separately.
+The Lore tab should generate rows dynamically from available metadata instead of relying on a fixed set of fields. `url` is presented separately, as the source row of the Documents tab.
+
+An entry **without** a metadata file has no tabs at all — its codex shows the
+header and the article only. See [`Catalog-Index.md`](Catalog-Index.md) §9 and
+[`Biography_card_Design.md`](Biography_card_Design.md).
 
 ---
 
@@ -376,9 +432,8 @@ The Lore tab should generate rows dynamically from available metadata instead of
 For the current format:
 
 - accept strings for list-like fields;
-- tolerate absent optional sections;
+- tolerate absent optional sections, and a missing file altogether;
 - accept unknown metadata keys;
-- preserve leading zeroes in `id`;
 - resolve local paths without rewriting them;
 - avoid automatic date conversion that may change day and month order.
 

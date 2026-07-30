@@ -1,13 +1,8 @@
 {
   "metadata": {
-    "id": "0004",
-    "title": "Джанго Рейнхардт",
-    "birthname": "Jean Reinhardt",
-    "gender": "m",
-    "type": "guitarist",
-    "surname": "Reinhardt",
     "forename": "Django",
-    "country": "FR",
+    "surname": "Reinhardt",
+    "birthname": "Jean Reinhardt",
     "birthplace": "Liberchies, Belgium",
     "deathplace": "Samois-sur-Seine, France",
     "dates": {
@@ -23,9 +18,7 @@
     "teachers": "Self-taught",
     "jobs": "Guitarist,Composer",
     "ranking": 95,
-    "bio": "django-reinhardt.bio.md",
-    "url": "https://www.jazz.com/encyclopedia/reinhardt-django-jean-baptiste",
-    "dataStatus": "test fixture: extracted facts with generated catalogue values"
+    "url": "https://www.jazz.com/encyclopedia/reinhardt-django-jean-baptiste"
   },
   "media": {
     "photos": [

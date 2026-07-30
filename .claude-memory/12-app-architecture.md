@@ -12,6 +12,14 @@ See [`app/README.md`](../app/README.md) for the full layer table.
 > [`15-app-critique.md`](15-app-critique.md) (strengths, risk register,
 > improvement backlog).
 
+> ⚠ **Catalogue v2 migration pending (2026-07-31).** Notes 12–15 describe the
+> code **as it is today (v1)**. The *format* has already moved to v2 —
+> [`docs/Catalog-Index.md`](../docs/Catalog-Index.md) + [`11`](11-index-json.md) —
+> and Steps 4–6 of
+> [`the plan`](../docs/proposals/Plan_Catalog-v2-index-ids-localized-names-codex-split.md)
+> rewrite the data layer, search and codex modal. **Read the plan before
+> changing anything described in 12–15.**
+
 ## Key facts
 
 - **Content stays in `pages/`** — mounted as Vite `publicDir` and fetched
@@ -85,6 +93,9 @@ See [`app/README.md`](../app/README.md) for the full layer table.
 - `index.json` `country` is free text → mapped to ISO via a small dict in
   `metadata.ts` (`countryDisplay`) so `Intl.DisplayNames` localizes it; the
   per-entry `.bio.json` files use real ISO codes (`PY`, `RS`, …).
+  **v2 removes this entirely:** `index.json` carries ISO directly, and
+  `COUNTRY_TEXT_TO_ISO` / `countryDisplay` / `resolveCountry` /
+  `resolveCountryCode` are deleted in favour of one `countryName(iso, locale)`.
 - The `authors` roster entry has a comma-list `forename` — the codex header
   wraps/shrinks long names (`longName` branch in `CodexModal`).
 - Cormorant (SC + Garamond via @fontsource) chosen because Cinzel/IM Fell

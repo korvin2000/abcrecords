@@ -1,57 +1,51 @@
 {
     "metadata": {
-        "id": "0001",
-        "title": "Абреу Зекинья",
-        "birthname": "Абреу Зекинья Викторович",
-        "gender": "m",
-        "type": "guitarist",
-        "surname": "Абреу",
-        "forename": "Зекинья",
-        "country": "RU",
-        "birthplace": "Москва",
-        "deathplace": "Москва",
+        "forename": "Имя",
+        "surname": "Фамилия",
+        "birthname": "Полное имя при рождении",
+        "birthplace": "Город, Страна",
+        "deathplace": "Город, Страна",
         "dates": {
             "born": "11.02.1920",
             "died": "11.02.1990",
             "activeFrom": "11.02.1940",
             "activeTo": "11.02.1980"
         },
-        "relatives": "Иван Зекинья",
-        "instruments": "guitar",
-        "genres": "rock,pop",
-        "bands": "Kino",
-        "awards": "AVN Premium Award",
-        "teachers": "Сеговия Андрей",
-        "disciples": "Сергей Руднев",
-        "jobs": "Дирижер",
+        "relatives": "Первый родственник,Второй родственник",
+        "instruments": "классическая гитара",
+        "genres": "классика,фольклор",
+        "bands": "Название ансамбля",
+        "awards": "Название награды",
+        "teachers": "Имя наставника",
+        "disciples": "Имя ученика",
+        "jobs": "Гитарист,Композитор",
         "ranking": 50,
-        "bio": "zekinia.md",
-        "url": "http://www.guitar-times.ru/index.htm"
+        "url": "https://example.org/source"
     },
     "media": {
         "photos": [
             {
-                "label": "main Photo",
-                "target": "/characters/vesper-reed.jpg"
+                "label": "Основной портрет",
+                "target": "photos/slug.jpg"
             }
         ],
         "music": [
             {
-                "label": "Love song",
-                "target": "/music/song.mp3"
+                "label": "Название записи",
+                "target": "music/mp/track.mp3"
             }
         ]
     },
     "documents": [
         {
-            "label": "Expulsion hearing",
-            "type": "TRANSCRIPT",
-            "target": "embedded"
+            "label": "Название документа",
+            "type": "ARTICLE",
+            "target": "documents/article.pdf"
         },
         {
-            "label": "Sealed bloodwork",
-            "type": "DOSSIER",
-            "target": "kael-voss"
+            "label": "Расшифровка слушания",
+            "type": "TRANSCRIPT",
+            "target": "embedded"
         }
     ]
 }

@@ -33,7 +33,34 @@ influences**. Feel: refined, archival, scholarly — **not** distressed or medie
 - A discreet ornamental **footer** marking the end of the entry.
 - Overall: symmetrical, calm, scholarly, luxurious, historically inspired.
 
-## The 4 required tabs
+## Two codex modes
+
+Not every catalogue page is a person. Which mode applies is **declared** by
+whether the entry has a dossier (`json` in `index.json` — see
+[`11-index-json.md`](11-index-json.md)), never inferred from a failed fetch.
+
+Everything outside the content area is **identical** in both modes: parchment
+panel, double border + corner flourishes, close button, prev/next page turns,
+per-entry language menu, scrollbar, page-turn animation, ornamental footer.
+Only the header and the presence of the tab bar differ.
+
+| | Biography mode (`json` present) | Page mode (`json` absent) |
+|---|---|---|
+| `<h1>` | `forename` from the **edition being read** | display name (`index-<lang>` → `title`) |
+| `<h2>` | `surname`, omitted when equal to `<h1>` | — none — |
+| Subtitle | craft · country · life years | country alone; omitted when absent |
+| Tabs | all 4 | none |
+
+Governing rule, same as the Lore rows: **absent data → absent element, never an
+empty one.** No blank craft, no separator with nothing around it, no em dash
+standing in for missing dates.
+
+**While the dossier loads** (biography mode has no names yet): show the display
+name as a single title line, no `<h2>`, no subtitle, then let it resolve. No
+header spinner — the entry is normally preloaded before the modal opens and the
+body already has a skeleton.
+
+## The 4 tabs (biography mode only)
 
 Horizontal navigation bar near the top; **same** codex styling. Labels short,
 elegant, uppercase/small-caps serif. Active tab clearly highlighted yet
@@ -42,13 +69,13 @@ muted tones (light antique UI).
 
 | Tab | Purpose | Source |
 |-----|---------|--------|
-| **Biography** | Main long-form biography text | `metadata.bio` (`.bio.md`) |
+| **Biography** | Main long-form biography text | the edition's `.bio.md` |
 | **Gallery** | Images / portraits / visual material | `media.photos` (+ `media.music`) |
-| **Documents** | Attached documents, sources, scans, references | `documents[]` |
-| **Lore** *(or Attributes)* | Structured character/person metadata | `metadata` fields |
+| **Documents** | Attached documents, sources, scans, references | `documents[]` (+ `url` as the source row) |
+| **Lore** *(or Attributes)* | Structured person metadata | `metadata` fields + `type`/`gender`/`country` from `index.json` |
 
 **Lore/Attributes tab:** dossier-like layout — clean rows, soft separators,
-serif type; scholarly, not a generic web form. Sourced from `MetaData.json`.
+serif type; scholarly, not a generic web form.
 
 ## Hard "avoid" list
 

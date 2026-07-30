@@ -1,37 +1,30 @@
 {
   "metadata": {
-    "id": "0005",
-    "title": "Джими Хендрикс",
-    "birthname": "James Marshall Hendrix",
-    "gender": "m",
-    "type": "guitarist",
-    "surname": "Hendrix",
-    "forename": "Jimi",
-    "country": "US",
-    "birthplace": "Seattle, Washington, United States",
-    "deathplace": "London, England, United Kingdom",
+    "forename": "Джими",
+    "surname": "Хендрикс",
+    "birthname": "Джеймс Маршалл Хендрикс",
+    "birthplace": "Сиэтл, штат Вашингтон, США",
+    "deathplace": "Лондон, Англия, Великобритания",
     "dates": {
       "born": "27.11.1942",
       "died": "18.09.1970",
       "activeFrom": "01.01.1963",
       "activeTo": "18.09.1970"
     },
-    "relatives": "Al Hendrix,Leon Hendrix",
-    "instruments": "electric guitar,vocals",
-    "genres": "rock,blues,psychedelic rock,R&B",
+    "relatives": "Эл Хендрикс,Леон Хендрикс",
+    "instruments": "электрогитара,вокал",
+    "genres": "рок,блюз,психоделический рок,ритм-энд-блюз",
     "bands": "The Jimi Hendrix Experience,Band of Gypsys",
-    "awards": "Rock and Roll Hall of Fame induction,Grammy Lifetime Achievement Award",
-    "teachers": "Self-taught",
-    "jobs": "Guitarist,Singer,Songwriter,Producer",
+    "awards": "Зал славы рок-н-ролла,Премия «Грэмми» за вклад в музыку",
+    "teachers": "Самоучка",
+    "jobs": "Гитарист,Певец,Автор песен,Продюсер",
     "ranking": 99,
-    "bio": "jimi-hendrix.bio.md",
-    "url": "https://www.jimihendrix.com/biography/",
-    "dataStatus": "test fixture: extracted facts with generated catalogue values"
+    "url": "https://www.jimihendrix.com/biography/"
   },
   "media": {
     "photos": [
       {
-        "label": "Main portrait",
+        "label": "Основной портрет",
         "target": "https://placehold.co/420x560?text=Jimi+Hendrix"
       }
     ],
@@ -39,7 +32,7 @@
   },
   "documents": [
     {
-      "label": "Official Jimi Hendrix biography",
+      "label": "Официальная биография Джими Хендрикса",
       "type": "REFERENCE",
       "target": "https://www.jimihendrix.com/biography/"
     }

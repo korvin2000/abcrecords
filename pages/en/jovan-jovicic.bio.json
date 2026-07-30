@@ -1,13 +1,8 @@
 {
   "metadata": {
-    "id": "0006",
-    "title": "Йован Йовичич",
-    "birthname": "Јован Јовичић",
-    "gender": "m",
-    "type": "guitarist",
-    "surname": "Јовичић",
-    "forename": "Јован",
-    "country": "RS",
+    "forename": "Jovan",
+    "surname": "Jovičić",
+    "birthname": "Jovan Jovičić",
     "birthplace": "Vrdnik, Serbia",
     "dates": {
       "born": "05.07.1926",
@@ -20,9 +15,7 @@
     "teachers": "Andrés Segovia",
     "jobs": "Guitarist,Composer,Physicist,Teacher,Author",
     "ranking": 88,
-    "bio": "jovan-jovicic.bio.md",
-    "url": "http://www.guitar-times.ru/pages/jovicic.htm",
-    "dataStatus": "test fixture: extracted facts with generated catalogue values"
+    "url": "http://www.guitar-times.ru/pages/jovicic.htm"
   },
   "media": {
     "photos": [

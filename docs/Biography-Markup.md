@@ -225,6 +225,29 @@ Use ordinary Markdown links for websites, email addresses, related articles, and
 
 Link text MUST remain meaningful without surrounding layout or a decorative arrow icon.
 
+#### Linking to another catalogue entry
+
+Two forms are equivalent and both open the target inside the codex:
+
+```md
+[Related biography](other-musician.bio.md)   ← the article's file name
+[Related biography](#/other-musician)        ← the entry's route
+```
+
+The **slug** is the article's file name with `.bio.md` or `.md` removed, and
+the route is `#/{slug}`. Slugs are unique across the catalogue and are defined
+by [`Catalog-Index.md`](Catalog-Index.md) §4.2.
+
+- The target MUST exist as a row in `pages/index.json`. A link to an article
+  that is not indexed resolves to nothing and is silently inert.
+- A target that is **not a biography** — an *about*, *sources* or continuation
+  page, whose file is named `<slug>.md` — is a perfectly valid link target and
+  opens in the codex's page mode.
+- A target marked `type: "hidden"` is also valid: hidden entries are excluded
+  from the catalogue grid and from search, but remain fully linkable.
+- Do **not** write the language directory into the link. Editions resolve
+  automatically; `[…](ru/other-musician.bio.md)` is wrong.
+
 ### 3.7 Footnotes
 
 New documents MUST use Markdown footnotes.
@@ -571,7 +594,8 @@ Rules:
 - navigation belonging to one later section goes immediately before that section;
 - a single continuation link MAY remain an ordinary Markdown link;
 - do not use `nav` for unrelated inline links;
-- `nav` items SHOULD target another catalogue entry (`*.bio.md`), a fragment, or an absolute URL. Media targets (audio, images, tablature) are not navigation and are rendered as plain links, without media widgets.
+- `nav` items SHOULD target another catalogue entry (`*.bio.md`, `<slug>.md`, or `#/{slug}` — see §3.6), a fragment, or an absolute URL. Media targets (audio, images, tablature) are not navigation and are rendered as plain links, without media widgets;
+- a nav that spans a multi-part work (a discography split across five pages, an alphabetical map) SHOULD point at entries marked `type: "hidden"` in `pages/index.json`, so the continuation pages stay reachable and linkable without each appearing as a separate card in the catalogue grid.
 
 The renderer presents a nav as a single **centered horizontal bar** of links. On narrow screens it wraps or scrolls within its own container and MUST NOT create page-level overflow.
 

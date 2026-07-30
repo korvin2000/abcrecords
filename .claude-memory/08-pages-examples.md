@@ -6,6 +6,20 @@ the repo (as opposed to `docs/`, which is specification). Treat it as a
 worked-example reference for how BioMD Lite is actually used in practice —
 including a few real-world deviations from the strict spec worth knowing about.
 
+> ⚠ **Partly outdated (2026-07-31).** Written when `pages/` held three flat
+> articles and no metadata files. Since then the tree moved to
+> `pages/<lang>/` and **all entries have `*.bio.json` dossiers** (12 files:
+> `ru` 8, `en` 3, `de` 1) — the "no MetaData.json exists yet" statements below
+> are stale; see [`11-index-json.md`](11-index-json.md).
+>
+> ⚠ **Do not copy these files as format examples.** The dossiers still use the
+> v1 field set, and their editions are untranslated copies (Latin
+> `forename`/`surname` in `pages/ru/`, English `jobs`/`birthplace`
+> everywhere). The normative examples are in
+> [`docs/Catalog-Index.md`](../docs/Catalog-Index.md) and
+> [`docs/MetaData.md`](../docs/MetaData.md); Step 2 of the v2 plan repairs the
+> fixtures. The **BioMD Lite** observations below remain valid.
+
 ## Files
 
 | File | What it demonstrates |

@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c ' *)",
+      "Bash(PYTHONIOENCODING=utf-8 python -c ' *)",
+      "Bash(grep -n \"bio\\\\.md\\\\|#/\\\\|slug\\\\|index.json\\\\|## 10\\\\|## 9\\\\|Links\\\\|link\" docs/Biography-Markup.md)",
+      "Bash(python -)",
+      "Bash(PYTHONIOENCODING=utf-8 python -)",
+      "Bash(git mv *)",
+      "Bash(PYTHONIOENCODING=utf-8 python \"C:/Users/TavrovsA/AppData/Local/Temp/claude/C--work-abc/a61b5368-5787-499f-8b06-3fe9a3ff6c0e/scratchpad/write_dossiers.py\")",
+      "Bash(PYTHONIOENCODING=utf-8 python \"C:/Users/TavrovsA/AppData/Local/Temp/claude/C--work-abc/a61b5368-5787-499f-8b06-3fe9a3ff6c0e/scratchpad/check_content.py\")",
+      "Bash(grep -n \"born\\\\|died\\\\|no dates\\\\|no \\\\`json\\\\`\" docs/Catalog-Index.md)"
+    ]
+  }
+}

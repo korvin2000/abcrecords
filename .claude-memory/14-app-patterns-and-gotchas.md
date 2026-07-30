@@ -4,6 +4,13 @@
 > [`13-app-code-map.md`](13-app-code-map.md) (where things live) and
 > [`15-app-critique.md`](15-app-critique.md) (what's weak).
 
+> ⚠ **Catalogue v2 migration pending (2026-07-31).** Everything below describes
+> the code **as it is today (v1)**. The data format is already v2 —
+> [`docs/Catalog-Index.md`](../docs/Catalog-Index.md) — so the *content-side*
+> recipes and landmines marked **v2** are the ones to follow; the code catches
+> up in Steps 4–6 of
+> [`the plan`](../docs/proposals/Plan_Catalog-v2-index-ids-localized-names-codex-split.md).
+
 ## Recurring patterns (learn these once — they repeat everywhere)
 
 - **Lazy + preload singleton.** `LazyX = lazy(loadX)` with a module-level `pending` promise, plus `preloadX = () => void loadX()` fired on hover/focus/click intent. Identical shape in `LazyCodexModal.ts`, `LazyImageViewer.ts`, `LazyAsciiTabViewer.ts`. Copy it for any new heavy overlay.
@@ -28,7 +35,9 @@
 - **Two independent bases.** index.json + its `json`/`md`/`img` resolve via `APP_BASE`; in-entry media/documents resolve via `RESOURCE_BASE_PATH` (`VITE_RESOURCE_BASE_PATH ?? /pages`). A plain root deploy will 404 media unless `VITE_RESOURCE_BASE_PATH` points where `pages/` actually lives; **dev only works because `vite.config.ts` proxies `/pages` → abc-guitars.com**.
 - **`publicDir = ../pages` IS the content store** — editing `../pages/**` changes served content with no rebuild; the tree also ships in `dist`.
 - **json/md are localized (`/<lang>/…`), media are NOT.** Use `localizeContentPath` only for json/md.
-- **`index.json` deviates from the metadata spec on purpose**: free-text `country` (not ISO), no `id`, mixed leading-slash conventions. Don't "correct" it — raise with the user.
+- **`index.json` v1 deviates from the metadata spec**: free-text `country` (not ISO), no `id`. ✅ **Resolved by the v2 spec** — the index now owns `id` and ISO `country` and is the source of truth for identity. Mixed leading-slash conventions stay (`json`/`md` rooted, `img` bucket-relative). Follow [`docs/Catalog-Index.md`](../docs/Catalog-Index.md) for new content.
+- **v2: `*.bio.json` is a per-language *edition*.** `forename`, `surname`, `birthplace`, `instruments`, `jobs`, … must be authored in the directory's language; only `dates`/`ranking`/`url` are invariant. The current fixtures violate this and are **not** examples to copy (Step 2 fixes them).
+- **v2: `json` present ⟺ biography.** An entry without a dossier is a *page*: no tabs, header shows display name + country. Declared in `index.json`, never inferred from a failed fetch.
 
 **Routing / modal / focus**
 - **Body scroll-lock is owned by `App`, not the modal** — per-modal locking miscounts during AnimatePresence overlap on ← → turns. Don't move it back.
@@ -42,7 +51,8 @@
 - **StrictMode double-invokes effects in dev** — schedulers/unlock must be idempotent.
 
 **Search / i18n / flags**
-- **The Latin slug (from the md filename) is the sole bridge letting Latin queries hit Cyrillic entries.** Keep migrated md filenames Latin/ASCII-hyphenated. There is no Latin→Cyrillic table.
+- **v1: the Latin slug (from the md filename) is the sole bridge letting Latin queries hit Cyrillic entries.** Keep migrated md filenames Latin/ASCII-hyphenated. There is no Latin→Cyrillic table. **v2** makes `index.json.title` the explicit Latin fallback and `index-<lang>.json` aliases the primary mechanism — the slug bridge stops being load-bearing (but the filenames stay Latin, because they are the routes).
+- **CJK cannot be transliterated at all.** `CYR_TO_LAT` covers Cyrillic only, so a `zh`/`ja`/`ko` query matches nothing in v1. Aliases in `index-<lang>.json` are the fix, not a bigger table.
 - **`fold` collapses `ё→е`**, which makes the `ё` transliteration entry dead — don't rely on ё-specific translit.
 - **Search is unranked and unthrottled** — add relevance ordering in `App.tsx` (not `search.ts`), and debounce before scaling past the 7 live entries toward the ~1249 legacy set.
 - **Flags are hand-drawn SVG, never emoji** (Windows renders flag emoji as letters). There are **two** sets: `Flag.tsx` (by UI language) and `CountryFlag.tsx` (by ISO country). Missing coverage falls back to text.
@@ -59,7 +69,9 @@
 
 - **Add a UI language:** (1) add to `LANGUAGES` in `languages.ts` (order is curated, not alphabetical); (2) create `lib/messages/<code>.ts` typed `Record<MsgKey,Message>` with ALL keys; (3) add it to `DICTS` in `messages/index.ts`; (4) draw the flag in `Flag.tsx` (`FLAGS` is `Record<Lang,…>` → compile error if missing). `Intl.PluralRules`/`DisplayNames` handle locale formatting.
 - **Add a message key:** add to `ru.ts` **first** (it defines `MsgKey`); the other 9 dicts then fail to compile until filled. Plural values need `one/few/many/other` in `ru` + `as Plural`.
-- **Add a catalogue entry:** append a row to `../pages/index.json` (`title,type,forename,surname,country`[free-text]`,lang,json,md,img`) + create `../pages/<lang>/<slug>.bio.json` and `.bio.md`. Keep the md filename Latin/ASCII (search depends on it). Put media under `../pages/` (never localized).
+- **Add a catalogue entry (v2 — follow [`docs/Catalog-Index.md`](../docs/Catalog-Index.md) §12):** append a row to `../pages/index.json` with the next unused `id` (string, never reused), a **Latin** `title`, `type`, `gender`, **ISO** `country`, `born`/`died` copied from the dossier, `lang`, and `md`/`json`/`img`. Create `../pages/<lang>/<slug>.bio.md` + `.bio.json` for **every** code in `lang`, each fully authored in that language. Add the localized name + search aliases to `../pages/index-<lang>.json` — including languages with no content edition. Keep the md filename Latin/ASCII (it is the slug and the route). Put media under `../pages/` (never localized). Then `npm run lint:content`.
+- **Add a technical page (v2):** same, but `type: "hidden"`, `md` → `/<slug>.md` (no `.bio.` infix), and **no** `json`/`img`/`gender`/`born`/`died`. It stays routable at `#/<slug>` and linkable from articles, but never appears in the grid, search, facets or ←/→ order.
+- **Add a searchable alias (v2):** append it to that entry's array in `../pages/index-<lang>.json`, after `[0]`. Content-only — no code change, no rebuild. This is how CJK search works; there is no transliteration path for `塞戈维亚`.
 - **Add a country flag:** add an ISO-keyed SVG to `COUNTRY_FLAGS` in `CountryFlag.tsx`; if the entry’s country arrives as free text via index.json, also add it to `COUNTRY_TEXT_TO_ISO` in `metadata.ts` (else no flag/localization).
 - **Add a BioMD block:** add a handler in `parse.ts` (`parseBlock`) and a case in `BioArticle.tsx` `renderNode`. Unknown blocks already render their children — extend, don't special-case-break. If the block owns both properties and a body, reuse `splitPropsAndBody` (not `parseProps`). Validate enum properties with `enumProp` + a warning, and if it needs CSS, scope it `.bio-article .your-class …` so it outranks the generic `.bio-article ul/a/p` rules regardless of source order.
 - **BioMD 1.3 additions (2026-07-29):** `::: align` (`position: left|center|right`), image/images `frame:` (`curl none mat black white red gold` — theme tokens only, never a literal colour; the four colour borders are broad by design; class names come from a static map in `CurlFrame`), and `::: nav` rendered as a centered pill bar. `frame:` (image property) and `::: frame` (callout block, still unimplemented) are different things. A `nav` item targeting a `*.bio.md` outside `index.json` is a silent no-op (`App.navigateByMdPath`). Conformance fixture: `pages/ru/biomd-demo.bio.md`.

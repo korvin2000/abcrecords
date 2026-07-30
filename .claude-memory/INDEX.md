@@ -25,7 +25,7 @@ Claude Code sessions can work efficiently without re-reading every source file.
 | [`08-pages-examples.md`](08-pages-examples.md) | Need real worked examples from `pages/`, or want to see where real content deviates from the `docs/` specs. |
 | [`09-prototypes.md`](09-prototypes.md) | Need to know what's inside the two `prototypes/` reference apps (`CodexLegends`, `Copendum`). |
 | [`10-ui-component-decision.md`](10-ui-component-decision.md) | **Building the real catalogue UI** — read this first: which prototype components were chosen and the dark→light re-theme plan. |
-| [`11-index-json.md`](11-index-json.md) | Work with `pages/index.json` — the main-menu/search index, or wire the search page to per-entry `json`/`md`/`img` files. |
+| [`11-index-json.md`](11-index-json.md) | **Work with `pages/index.json` or `pages/index-<lang>.json`** — the catalogue index: ids, classification, localized names/aliases, slugs & routing, hidden entries, field ownership & case rules. Spec: [`docs/Catalog-Index.md`](../docs/Catalog-Index.md). |
 | [`12-app-architecture.md`](12-app-architecture.md) | Work on the **production app in `app/`** — data flow, BioMD parser, search/i18n/audio modules, and gotchas (scroll-lock ownership, Cyrillic fonts, country mapping). |
 | [`13-app-code-map.md`](13-app-code-map.md) | Need to **navigate `app/` fast** — file-by-file map by layer, control/data-flow walkthroughs, and a component-relationship diagram. |
 | [`14-app-patterns-and-gotchas.md`](14-app-patterns-and-gotchas.md) | **About to change `app/` code** — the recurring patterns, the landmines to avoid (CSS layering, dates, two bases, audio, search, BioMD), and step-by-step task recipes. |
@@ -35,18 +35,24 @@ Claude Code sessions can work efficiently without re-reading every source file.
 
 - **Product:** RPG-codex-styled encyclopaedia of people/character profiles;
   current domain = musicians (mostly guitarists).
-- **Per entry:** one BioMD Lite article (`*.bio.md`) + one `MetaData.json` +
-  media + documents.
-- **UI:** full-screen antique "codex" modal, 4 tabs —
-  Biography / Gallery / Documents / Lore(Attributes).
-- **Tab → data source:** Biography ⇐ `metadata.bio` file · Gallery ⇐
-  `media.photos`/`media.music` · Documents ⇐ `documents[]` · Lore ⇐ `metadata` fields.
-- **Legacy origin:** migrated from `guitar-times.ru`; index in `search-list.json`.
-- **Search/menu index:** `pages/index.json` — the live catalogue list the
-  main page searches by `title`, pointing at each entry's `json` (metadata),
-  `md` (biography), and `img` (avatar). See
-  [`11-index-json.md`](11-index-json.md) for its structure and a few real
-  deviations from the `docs/MetaData.md` spec (free-text `country`, no `id`).
+- **Per entry:** one `index.json` row + one BioMD Lite article per language
+  (`pages/<lang>/*.bio.md`), plus — for biographies — a dossier
+  (`*.bio.json`), media and documents. **Each edition is fully authored in its
+  own language**, names included.
+- **UI:** full-screen antique "codex" modal in **two modes** — *biography*
+  (header + 4 tabs: Biography / Gallery / Documents / Lore(Attributes)) and
+  *page* (header + article, no tabs) for entries with no dossier.
+- **Tab → data source:** Biography ⇐ the edition's `.bio.md` · Gallery ⇐
+  `media.photos`/`media.music` · Documents ⇐ `documents[]` (+ `url`) · Lore ⇐
+  `metadata` fields + `type`/`gender`/`country` from `index.json`.
+- **Legacy origin:** migrated from `guitar-times.ru`; index in `docs/search-list.json`.
+- **Catalogue index:** `pages/index.json` (identity, classification, search
+  facets, paths) joined by `id` to `pages/index-<lang>.json` (localized names
+  + search aliases). Route = `#/{slug}`, slug = `md` basename. Spec:
+  [`docs/Catalog-Index.md`](../docs/Catalog-Index.md); notes:
+  [`11-index-json.md`](11-index-json.md).
+  ⚠ **v2 spec has landed; `pages/` data and `app/` code are still v1** — see
+  `docs/proposals/Plan_Catalog-v2-index-ids-localized-names-codex-split.md`.
 - **UI direction (decided):** detail/biography modal ← `Copendum`'s
   `CharacterDetail.tsx`; card + search bar + browse window ←
   `CodexLegends`'s `CharacterCard.tsx`/`SearchBar.tsx`/search screen, but

@@ -1,38 +1,31 @@
 {
   "metadata": {
-    "id": "0001",
-    "title": "Агустин Барриос",
-    "birthname": "Agustín Pío Barrios Ferreira",
-    "gender": "m",
-    "type": "guitarist",
-    "surname": "Barrios",
-    "forename": "Agustín",
-    "country": "PY",
-    "birthplace": "Misiones, Paraguay",
-    "deathplace": "San Salvador, El Salvador",
+    "forename": "Агустин",
+    "surname": "Барриос",
+    "birthname": "Агустин Пио Барриос Феррейра",
+    "birthplace": "Мисьонес, Парагвай",
+    "deathplace": "Сан-Сальвадор, Сальвадор",
     "dates": {
       "born": "05.05.1885",
       "died": "07.08.1944",
       "activeFrom": "01.01.1900",
       "activeTo": "07.08.1944"
     },
-    "instruments": "classical guitar",
-    "genres": "classical,Paraguayan folk",
-    "teachers": "Gustavo Sosa Escalada",
-    "jobs": "Guitarist,Composer,Teacher",
+    "instruments": "классическая гитара",
+    "genres": "классика,парагвайский фольклор",
+    "teachers": "Густаво Соса Эскалада",
+    "jobs": "Гитарист,Композитор,Педагог",
     "ranking": 94,
-    "bio": "agustin-barrios.bio.md",
-    "url": "https://en.wikipedia.org/wiki/Agust%C3%ADn_Barrios",
-    "dataStatus": "test fixture: extracted facts with generated catalogue values"
+    "url": "https://en.wikipedia.org/wiki/Agust%C3%ADn_Barrios"
   },
   "media": {
     "photos": [
       {
-        "label": "Main portrait",
+        "label": "Основной портрет",
         "target": "https://placehold.co/324x438?text=Agustin+Barrios"
       },
       {
-        "label": "Large portrait",
+        "label": "Большой портрет",
         "target": "https://placehold.co/794x1142?text=Agustin+Barrios+Portrait"
       }
     ],
@@ -42,7 +35,7 @@
         "target": "music/mp/juliaflorida.wav"
       },
       {
-        "label": "La Catedral — Prelude",
+        "label": "La Catedral — прелюдия",
         "target": "music/wma/la_catedral_prelude.wma"
       }
     ]

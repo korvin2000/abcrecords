@@ -25,7 +25,7 @@ Each entry combines:
 |-----------------|---------------------------------------------------------------------|
 | `app/`          | **The production catalogue app** (Vite + React + TS). Renders `pages/` content at runtime; see `app/README.md` and [`.claude-memory/12-app-architecture.md`](.claude-memory/12-app-architecture.md) (overview). For real work in `app/` read the deep-dive triad: [`13`](.claude-memory/13-app-code-map.md) code map · [`14`](.claude-memory/14-app-patterns-and-gotchas.md) patterns/gotchas/recipes · [`15`](.claude-memory/15-app-critique.md) critique/backlog. |
 | `docs/`         | Source specifications & guides (the source of truth — see below).   |
-| `pages/`        | Content pages / migrated entries. Per-language layout: each entry's `*.bio.md` + `*.bio.json` pair lives in `pages/<iso-lang>/` (`ru/`, `en/`, `de/`, …) per the `lang` field in `index.json`; `pages/photos/` (shared image assets) stays at the root and is never localized. |
+| `pages/`        | Content pages / migrated entries. `index.json` + `index-<lang>.json` at the root are the catalogue index ([`docs/Catalog-Index.md`](docs/Catalog-Index.md)); each entry's article (+ dossier, if it has one) lives in `pages/<iso-lang>/` (`ru/`, `en/`, `de/`, …) per the `lang` field; `pages/photos/` and other media stay at the root and are never localized. |
 | `prototypes/`   | Two throwaway React reference apps (`CodexLegends`, `Copendum`) exploring the codex UI. Not production code — see below. |
 | `.claude-memory/` | Condensed, indexed knowledge distilled from `docs/`, `pages/`, and `prototypes/` for fast recall. |
 
@@ -35,11 +35,16 @@ Each entry combines:
 
 ## Source documents (`docs/`)
 
+- `Catalog-Index.md` — **the catalogue index format (v2)**: `index.json`
+  (identity, classification, paths) + `index-<lang>.json`
+  (localized names & search aliases). Read this before touching `pages/`.
 - `Biography-Markup.md` — the **BioMD Lite** format spec (v1.3) + HTML migration rules.
 - `Biography-Markup-Appendix-1.3.md` — authoring guide for the 1.3 additions
   (`::: align`, image `frame:`, `::: nav`, `alt:`/`link:`): usage, examples,
   anti-patterns, diagnostics.
-- `MetaData.md` + `MetaData.json` — per-entry metadata schema, example & template.
+- `MetaData.md` + `MetaData.json` — per-entry **dossier** schema (v2), example
+  & template. Identity/classification are *not* here — they moved to
+  `Catalog-Index.md`.
 - `Biography_card_Design.md` — visual/UX design of the codex modal and its tabs.
 - `HTML-to-BioMD-Lite-Conversion-Guide.md` — practical legacy-HTML → BioMD rules.
 - `search-list.json` — legacy search index (~1249 entries) from `guitar-times.ru`.
@@ -52,13 +57,13 @@ Each entry combines:
   for what each one demonstrates, including a few real deviations from the
   spec worth knowing before you touch this content).
 - `pages/photos/*.jpg` — 5 real photo assets not yet linked to any entry.
-- `pages/index.json` — the **live main-menu/search index** (7 entries): search
-  by `title`, preview via `img`, link out to full metadata (`json`) and
-  biography (`md`) per entry; the `lang` field ("ru" / "ru,en") lists which
-  `pages/<lang>/` editions exist (first code = original language). See
-  [`.claude-memory/11-index-json.md`](.claude-memory/11-index-json.md) — it
-  has a few real deviations from the `MetaData.md` spec (free-text `country`,
-  no `id`) that should be raised with the user, not silently "corrected".
+- `pages/index.json` + `pages/index-<lang>.json` — the **live catalogue
+  index**. `index.json` owns identity (`id`), classification (`type`,
+  `gender`, lowercase ISO `country`), the Latin fallback
+  `title`, and the `md`/`json`/`img` paths; `index-<lang>.json` maps
+  `id → [localized name, …aliases]` per UI language. Spec:
+  [`docs/Catalog-Index.md`](docs/Catalog-Index.md); condensed notes in
+  [`.claude-memory/11-index-json.md`](.claude-memory/11-index-json.md).
 
 ## UI direction (decided — see [`.claude-memory/10-ui-component-decision.md`](.claude-memory/10-ui-component-decision.md))
 
@@ -75,18 +80,36 @@ Each entry combines:
 
 ## Core conventions (quick reference)
 
-- Biography **text + layout** → `*.bio.md` (BioMD Lite). **Metadata never goes
-  in the article**; it lives in `MetaData.json`.
+- **Three files, one fact each.** Identity/classification →
+  `index.json`. Localized display name + search aliases → `index-<lang>.json`.
+  Dossier prose → `pages/<lang>/*.bio.json`. Article text + layout →
+  `*.bio.md`. Never duplicate a fact across two of them.
+- **`*.bio.json` is a per-language *edition*** — `forename`, `surname`,
+  `birthplace`, `instruments`, `jobs` … are authored in that directory's
+  language. Only `dates`, `ranking`, `url` are language-invariant. **Metadata
+  never goes in the article.**
+- `index.json` `json` present ⟺ the entry is a **biography** (4-tab codex);
+  absent ⟺ a **page** (article only). `type: "hidden"` keeps an entry routable
+  but out of the grid, search and facets.
+- **`id` is a stable string, assigned once, never renumbered or reused** — it
+  is the join key to `index-<lang>.json`, not a position and not a route. The
+  route is `#/{slug}`, where slug = the `md` basename minus `.bio.md`/`.md`.
 - BioMD blocks use `::: name … :::` fences: `lead`, `align`, `image`, `images`,
   `document`, `columns`, `column`, `nav`. Prefer plain Markdown; use blocks only
   for layout/media. Image properties: `src`, `position`, `size`, `alt`,
   `caption`, `link`, `frame` (theme tokens only — never a literal colour).
 - **No raw HTML / CSS / JS** in BioMD Lite. No layout-by-whitespace.
-- Metadata dates are **`DD.MM.YYYY`** — do **not** feed them straight to JS
-  `Date`. Countries are ISO 3166-1 alpha-2 (`RU`, `DE`, `ES`, `BR`).
+- Dates are **`DD.MM.YYYY`** everywhere — do **not** feed them straight to JS
+  `Date`. They live **only** in `*.bio.json` `dates`, never in `index.json`.
+- Countries are ISO 3166-1 alpha-2, authored **lowercase** (`ru`, `de`, `es`,
+  `br`), never free text. `type`/`gender`/`lang`/`country` are all authored
+  lowercase and read case-insensitively — the loader normalizes once at the
+  boundary (`country` → uppercase, the rest lowercase). Chinese is `zh`,
+  never `ch`.
 - Multi-value metadata fields are **comma-separated strings** today
-  (`"rock,pop"`), parsed to arrays on demand. Preserve leading zeroes in `id`.
-  Preserve Unicode names (no transliteration).
+  (`"rock,pop"`), parsed to arrays on demand.
+  Preserve Unicode names (no transliteration) — the Latin form belongs in
+  `index.json`'s `title`.
 - Visual language: warm ivory/parchment, muted gold, burgundy, dark brown;
   serif type; antique/archival, calm, symmetrical. **Avoid** modern UI chrome,
   neon, strong shadows, heavy textures.

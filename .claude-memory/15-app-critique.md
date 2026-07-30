@@ -6,6 +6,12 @@
 > Many "weaknesses" only bite **at scale** (7 live entries today vs ~1249 in the
 > legacy index) — tagged *(scale)*.
 
+> ⚠ **Catalogue v2 (2026-07-31)** addresses several items below. The *spec* has
+> landed ([`docs/Catalog-Index.md`](../docs/Catalog-Index.md)); the code lands
+> in Steps 4–6 of
+> [`the plan`](../docs/proposals/Plan_Catalog-v2-index-ids-localized-names-codex-split.md).
+> Items it resolves are marked **[v2]** below — do not re-file them.
+
 ## Overall
 
 A genuinely well-crafted front end: coherent philosophy (pure renderer over
@@ -43,8 +49,9 @@ had a hardening pass.
 - 🟡 Background-tab `setInterval` catch-up → clustered "chord blast" on refocus; `NativeBackend.dispose` never `removeEventListener`s; autoplay-blocked `play()` is swallowed while UI optimistically shows "playing"; `themeIsPlaying` ignores `wave`/`bass`.
 
 ### Search / i18n
-- 🟠 **Latin→Cyrillic has no table — the Latin slug is a single point of failure** (`search.ts` haystack ← md filename via `paths.slugOf`). Works only because every migrated file has a Latin name; a Cyrillic md filename silently breaks Latin search for that entry.
-- 🟠 *(scale)* **Unranked + unthrottled + redundant.** No relevance sort; `SearchBar` has no debounce; `translitVariants` is recomputed per-doc though it depends only on the token (N× waste). Fine for 7; needs hoist + debounce + prebuilt index + ranking before surfacing ~1249.
+- 🟠 **[v2]** **Latin→Cyrillic has no table — the Latin slug is a single point of failure** (`search.ts` haystack ← md filename via `paths.slugOf`). Works only because every migrated file has a Latin name; a Cyrillic md filename silently breaks Latin search for that entry. *v2: `index.json.title` becomes the explicit Latin fallback.*
+- 🔴 **[v2]** **CJK search is impossible, not merely degraded.** `CYR_TO_LAT` covers Cyrillic only, so a `zh`/`ja`/`ko` query matches nothing at all. *v2: per-language alias index (`index-<lang>.json`).*
+- 🟠 *(scale)* **[v2]** **Unranked + unthrottled + redundant.** No relevance sort; `SearchBar` has no debounce; `translitVariants` is recomputed per-doc though it depends only on the token (N× waste). *v2: prefolded corpus + hoisted variants + weighted scoring + `useDeferredValue`.*
 - 🟡 **`fold` collapses `ё→е`** before translit runs → the `ё` transliteration entry is dead and the literal `.replace(/ё/g,…)` is redundant (NFD already stripped it). "Фёдор" can never yield "fyodor".
 - 🟡 Facet filter is exact-string on free-text country (case drift → duplicate chips); slug haystack isn't `fold`ed; `search.countFiltered` is a plain string (not a `Plural`) in every dict → won't decline correctly in Russian; translation *quality* is unpoliced (only presence is).
 
@@ -52,7 +59,8 @@ had a hardening pass.
 - 🟠 **Block-derived `src` bypasses sanitization.** `::: image`/`::: document` `src` flows through `resolveResourcePath` (passes `javascript:` through) into `<img src>`/`<a href>` without react-markdown's `urlTransform`. Content is trusted today, but it's a real injection vector.
 - 🟠 **Segmenter is unaware of Markdown code fences** — a ```` ``` ```` block containing a `:::` line is misparsed; fences must also start at column 0 (indented `:::` becomes prose).
 - 🟠 **Sticky negative caching** (`catalog.ts` `fetchJson`/`fetchText`): a transient failure caches a resolved-`null` promise permanently — no retry/invalidation until full reload (asymmetric with `loadIndex`, which stays refetchable).
-- 🟠 **Country mapping is a 10-entry band-aid** (`metadata.ts` `COUNTRY_TEXT_TO_ISO`): any other free-text country → raw text, no flag, no localization; non-English free text never maps.
+- 🟠 **[v2]** **Country mapping is a 10-entry band-aid** (`metadata.ts` `COUNTRY_TEXT_TO_ISO`): any other free-text country → raw text, no flag, no localization; non-English free text never maps. *v2: ISO in `index.json`; the dict and its three wrappers are deleted.*
+- 🟠 **[v2]** **Per-entry dossiers are language-blind in practice.** `pages/en/…` and `pages/de/…` are untranslated copies of the Russian originals, and the `ru` originals hold Latin `forename`/`surname` and English `jobs`/`birthplace`. `LoreTab.localizeJob` is a half-working patch over this. *v2 §3.3 makes per-edition authoring normative; Step 2 fixes the fixtures and deletes `localizeJob`.*
 - 🟠 **A11y: figures are mouse-only.** Inline `img` (`<span onClick>`) and block `Figure` (`<figure onClick>`) in `BioArticle.tsx` have no role/tabindex/keyboard handler (DocumentCard does it right with `<button>`/`<a>`).
 - 🟡 Silent `columns.slice(0,3)` truncation (no warning — contradicts the "never delete" invariant); parser warnings are DEV-only (no prod author feedback); `splitList` can't escape commas ("Crosby, Stills & Nash" → 3); `ageOf` mixes UTC parse with local "now" (day-boundary off-by-one); `parseDmy` accepts Feb 30; `slugOf` collides on duplicate md filenames; no `AbortSignal` on `loadEntry`.
 - 🟡 *(scale)* Prefetch is linear → ~1249 serial idle JSON fetches for the full legacy index.
@@ -79,8 +87,9 @@ had a hardening pass.
 3. 🟠 **Resolve the mute-vs-content bug**: route content playback through a gain the 🔊 toggle controls (or stop all content on mute) — or explicitly document it as intended and reflect that in the tooltip.
 4. 🟠 **Fix the orphaned-`MidiPlayer` leak** (disposed-guard around `loadMidi().then`), and `removeEventListener` in `NativeBackend.dispose`.
 5. 🟠 **Add an ErrorBoundary** around the codex/parser render path with a parchment-styled fallback.
-6. 🟠 **Consolidate the flag/country stack**: one ISO-keyed SVG source of truth; derive `Flag(lang)` from it; unify `COUNTRY_TEXT_TO_ISO` + `CountryFlag` coverage; ideally migrate index.json `country` to ISO (raise with user).
+6. 🟠 **Consolidate the flag/country stack**: one ISO-keyed SVG source of truth; derive `Flag(lang)` from it; unify `COUNTRY_TEXT_TO_ISO` + `CountryFlag` coverage. **[v2 does half of this]** — `index.json` `country` becomes ISO and the text→ISO dict is deleted, leaving only the two hand-drawn SVG sets to merge.
 7. 🟠 **ASCII-tab hardening**: charset fallback (CP1251/KOI8-R) for legacy tabs; fix the `r(n)` glyph; `React.memo`/virtualize `TabSystemSvg`; add a focus trap.
 8. 🟠 **Content robustness**: sanitize block-derived `src`; retry/invalidate negative fetch cache; surface parser warnings in prod (dev overlay or a `pages/` content-lint script); reconsider comma-lists vs arrays in the data model.
-9. 🟡 *(when surfacing the legacy set)* **Search scaling**: hoist `translitVariants`, debounce input, prebuild an index, add ranking; fix the `ё` fold; fold the slug haystack.
-10. 🟡 **Structure/a11y polish**: split `index.css` and move rules into `@layer`; extract one shared look-ahead scheduler + one viewer-provider factory; unify the reduced-motion policy (framer vs CSS); make BioMD figures keyboard-operable.
+9. 🟡 *(when surfacing the legacy set)* **Search scaling** — **[v2, Step 5]**: hoist `translitVariants`, prebuild the corpus, add ranking, `useDeferredValue`. Still open afterwards: the `ё` fold bug.
+10. 🟡 **Structure/a11y polish**: split `index.css` and move rules into `@layer`; extract one shared look-ahead scheduler + one viewer-provider factory; unify the reduced-motion policy (framer vs CSS); make BioMD figures keyboard-operable. **[v2, Step 6 does the `CodexModal` half of the "App.tsx/CodexModal are large" concern.]**
+11. 🟠 **[v2, Step 7]** **Content validation**: `scripts/lint-content.mjs` — the guard-rail for the two-file index split (dangling ids, duplicate slugs, drifted `born`/`died`, untranslated editions). The repo has no content validation at all today.

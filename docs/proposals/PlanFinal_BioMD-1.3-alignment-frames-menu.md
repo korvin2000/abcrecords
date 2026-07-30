@@ -37,7 +37,7 @@ verification recipe.
 | Semantic CSS classes `.bio-align-*` | **A** | B's "zero CSS via Tailwind `text-center`" collapses the moment block children must follow the alignment (the user asked for *element* alignment), and B's own `.bio-align.text-center` compound selector was a wart. |
 | Align block clears floats (`clear: both`) | **A** | Matches spec §6.2, where a following layout block ends image wrapping. Centering inside a float-narrowed measure is never the author's intent. |
 | Frame = optional `frame:` property, theme tokens | **both** | Identical proposals; accepted unchanged. |
-| No literal `#rrggbb` | **A** *(owner-approved)* | Colour stays a theme decision (spec §1 priority 5); closed enum keeps validation and the palette safe. `gold`/`burgundy`/`sepia` already deliver "different colours". |
+| No literal `#rrggbb` | **A** *(owner-approved)* | Colour stays a theme decision (spec §1 priority 5); closed enum keeps validation and the palette safe. `gold`/`black`/`red`/`white` already deliver "different colours". |
 | Frame vocabulary = 7 values | **merge** *(owner-approved)* | A's five + B's `mat` and (renamed) `ornate`. `ornate` is the modal's own double-border motif from `docs/Biography_card_Design.md`. |
 | `frame:` inheritable from `::: images` | **B** | ~4 parser lines; removes 4× repetition in the common "one frame for the row" case. Child always wins. |
 | Menu = implement existing `::: nav`, no `::: menu` | **both** | Already normative in v1.2 §10; this is renderer catch-up, not a format change. |
@@ -102,7 +102,7 @@ Key anchors (line numbers drift; treat as anchors):
 2. **Frames** — new **optional** property `frame:` on `::: image` (and on
    `::: images`, inherited by children that omit it). Closed enum, **no literal
    colours**:
-   `curl` (default) · `none` · `gold` · `burgundy` · `sepia` · `mat` · `ornate`.
+   `curl` (default) · `none` · `gold` · `black` · `red` · `white` · `mat`.
 3. **Menu** — implement the **existing** `::: nav` (v1.2 §10) unchanged. No new
    property, no `::: menu`. Centered by renderer contract.
 4. **Adjacent repairs in scope** — parse and honour `image.alt` and `image.link`
@@ -182,11 +182,11 @@ Nesting constraints to add:
 > | *(absent)* | identical to `curl` — the theme's default photographic frame |
 > | `curl` | the default treatment, stated explicitly (useful to override an inherited group frame) |
 > | `none` | no decorative frame and no frame shadow — a plain image |
-> | `gold` | thin muted-gold line |
-> | `burgundy` | thin deep-red line |
-> | `sepia` | thin dark-brown archival line |
+> | `gold` | thick gold line |
+> | `black` | thick black line |
+> | `red` | thick red line |
 > | `mat` | ivory mount (passe-partout) with a hairline |
-> | `ornate` | gold line with an inset darker inner line — the codex double-border motif |
+> | `white` | thick white line |
 >
 > ```md
 > ::: image
@@ -247,7 +247,7 @@ decorative borders and exact CSS colours. The historical
 - Added the `::: align` directive with a required `position: left|center|right`
   for meaningful horizontal alignment.
 - Added the optional `frame` property to `::: image` and `::: images`
-  (theme-named picture frames: curl, none, gold, burgundy, sepia, mat, ornate).
+  (theme-named picture frames: curl, none, gold, red, black, mat, white).
   Literal colours are not accepted.
 - Clarified that `frame` (image property) and `::: frame` (callout block) are
   unrelated.
@@ -282,7 +282,7 @@ decorative borders and exact CSS colours. The historical
   viewer click, same lazy/async loading, same size/float classes. **Only a
   modifier class is added.**
 - `curl` / absent → today's classes verbatim.
-- `gold` / `burgundy` / `sepia` / `mat` / `ornate` → suppress the curled-corner
+- `gold` / `black` / `red` / `mat` / `white` → suppress the curled-corner
   pseudo-elements, soften the drop shadow, apply the theme border (and mat).
 - `none` → no border, no curl corners, no frame shadow.
 - Keep the existing ~6 % hover zoom for all variants: it is the click affordance
@@ -318,7 +318,7 @@ render as plain links · an empty/malformed nav keeps its readable body and warn
 
 ```ts
 export type ContentAlignment = "left" | "center" | "right";
-export type ImageFrame = "curl" | "none" | "gold" | "burgundy" | "sepia" | "mat" | "ornate";
+export type ImageFrame = "curl" | "none" | "gold" | "black" | "read" | "mat" | "white";
 
 export interface AlignNode {
   kind: "align";
@@ -573,10 +573,10 @@ Extend in place — do not rename or split:
 const FRAME_CLASS: Partial<Record<ImageFrame, string>> = {
   none: "fx-curl--framed fx-curl--none",
   gold: "fx-curl--framed fx-curl--gold",
-  burgundy: "fx-curl--framed fx-curl--burgundy",
-  sepia: "fx-curl--framed fx-curl--sepia",
+  red: "fx-curl--framed fx-curl--red",
+  black: "fx-curl--framed fx-curl--black",
   mat: "fx-curl--framed fx-curl--mat",
-  ornate: "fx-curl--framed fx-curl--ornate",
+  white: "fx-curl--framed fx-curl--white",
   // `curl` (and undefined) intentionally absent → today's markup verbatim
 };
 
@@ -950,7 +950,7 @@ caption: Matted (inherited)
 
 ::: image
 src: photo/b/barrios2.jpg
-frame: burgundy
+frame: black
 caption: Overridden
 :::
 

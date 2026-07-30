@@ -6,6 +6,14 @@
 > here) and [`15-app-critique.md`](15-app-critique.md) (what's weak / backlog).
 > All paths are repo-relative; line numbers drift — treat them as anchors.
 
+> ⚠ **Catalogue v2 migration pending (2026-07-31).** This map describes the code
+> **as it is today (v1)**. Steps 4–6 of
+> [`the plan`](../docs/proposals/Plan_Catalog-v2-index-ids-localized-names-codex-split.md)
+> add `lib/names.ts` + `lib/entry.ts`, rewrite `search.ts`, delete
+> `prefetchAll`/`rankings`, and split `codex/CodexModal.tsx` into
+> Shell/Header/Tabs/BiographyView/PageView. Format spec:
+> [`docs/Catalog-Index.md`](../docs/Catalog-Index.md).
+
 ## Layered architecture (bottom → top)
 
 ```

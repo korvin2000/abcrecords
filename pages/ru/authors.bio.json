@@ -1,28 +1,21 @@
 {
   "metadata": {
-    "id": "0003",
-    "title": "Авторы проекта",
-    "birthname": "Коллектив проекта «Гитаристы и композиторы»",
-    "gender": "mixed",
-    "type": "project-team",
-    "surname": "Тавровские",
     "forename": "Сергей,Виктор,Александр,Константин",
-    "country": "UA",
+    "surname": "Тавровские",
+    "birthname": "Коллектив проекта «Гитаристы и композиторы»",
     "birthplace": "Украина и Польша",
     "dates": {
       "activeFrom": "01.01.2001"
     },
     "relatives": "Сергей Тавровский,Виктор Тавровский,Александр Тавровский,Константин Тавровский",
-    "instruments": "classical guitar",
-    "genres": "classical,educational",
+    "instruments": "классическая гитара",
+    "genres": "классика,просветительство",
     "bands": "Проект «Гитаристы и композиторы»",
     "awards": "Упоминание в альманахе «Ренессанс гитары-2002»",
     "teachers": "Виктор Борисович Негруш",
-    "jobs": "Guitarist,Teacher,Philosopher,Programmer,Project maintainer",
+    "jobs": "Гитарист,Педагог,Философ,Программист,Хранитель проекта",
     "ranking": 65,
-    "bio": "authors.bio.md",
-    "url": "http://www.abc-guitars.com/",
-    "dataStatus": "test fixture: roster-level metadata, not a single-person entry"
+    "url": "http://www.abc-guitars.com/"
   },
   "media": {
     "photos": [

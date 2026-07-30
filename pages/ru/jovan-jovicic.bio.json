@@ -1,41 +1,34 @@
 {
   "metadata": {
-    "id": "0006",
-    "title": "Йован Йовичич",
-    "birthname": "Јован Јовичић",
-    "gender": "m",
-    "type": "guitarist",
-    "surname": "Јовичић",
-    "forename": "Јован",
-    "country": "RS",
-    "birthplace": "Vrdnik, Serbia",
+    "forename": "Йован",
+    "surname": "Йовичич",
+    "birthname": "Йован Йовичич",
+    "birthplace": "Врдник, Сербия",
     "dates": {
       "born": "05.07.1926",
       "activeFrom": "01.01.1948"
     },
-    "instruments": "classical guitar,violin",
-    "genres": "classical,Serbian folk,Balkan folk",
-    "bands": "Solo artist",
-    "awards": "Silver medal at the 1957 Moscow competition,Belgrade City Prize",
-    "teachers": "Andrés Segovia",
-    "jobs": "Guitarist,Composer,Physicist,Teacher,Author",
+    "instruments": "классическая гитара,скрипка",
+    "genres": "классика,сербский фольклор,балканский фольклор",
+    "bands": "Сольный исполнитель",
+    "awards": "Серебряная медаль конкурса в Москве (1957),Премия города Белграда",
+    "teachers": "Андрес Сеговия",
+    "jobs": "Гитарист,Композитор,Физик,Педагог,Писатель",
     "ranking": 88,
-    "bio": "jovan-jovicic.bio.md",
-    "url": "http://www.guitar-times.ru/pages/jovicic.htm",
-    "dataStatus": "test fixture: extracted facts with generated catalogue values"
+    "url": "http://www.guitar-times.ru/pages/jovicic.htm"
   },
   "media": {
     "photos": [
       {
-        "label": "Portrait 1",
+        "label": "Портрет 1",
         "target": "https://placehold.co/500x595?text=Jovan+Jovicic+1"
       },
       {
-        "label": "Portrait 2",
+        "label": "Портрет 2",
         "target": "https://placehold.co/500x595?text=Jovan+Jovicic+2"
       },
       {
-        "label": "Performing",
+        "label": "На сцене",
         "target": "https://placehold.co/738x946?text=Jovan+Jovicic+Performing"
       }
     ],
@@ -43,7 +36,7 @@
   },
   "documents": [
     {
-      "label": "Jovan Jovicic — Classical Guitar track listing",
+      "label": "Jovan Jovicic — Classical Guitar: список записей",
       "type": "DISCOGRAPHY",
       "target": "embedded"
     }
