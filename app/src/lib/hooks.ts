@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
-import type { IndexEntry } from "./types";
-import { loadIndex, prefetchAll } from "./catalog";
+import { buildCatalog, loadIndex, loadNames, type Catalog } from "./catalog";
+import { decodeSlug, SLUG_PATTERN } from "./entry";
 import type { Lang } from "./languages";
 import { audio } from "./audio";
 
-/** Catalogue index load state. */
-export type LoadState =
+/** Catalogue load state. */
+export type CatalogState =
   | { kind: "loading" }
   | { kind: "error" }
-  | { kind: "ready"; entries: IndexEntry[] };
+  | { kind: "ready"; catalog: Catalog };
 
 /**
  * Unlock the audio context on the first real user gesture (autoplay policy).
@@ -30,42 +30,44 @@ export function useAudioUnlock(): void {
 }
 
 /**
- * Load the catalogue index (with a retry) and warm per-entry metadata in idle
- * time so cards can show ranking stars. Re-warms on language change — cached
- * tongues resolve instantly, so repeat passes are cheap.
+ * The catalogue index plus the localized name index for the reader's tongue,
+ * assembled into the single object everything downstream reads. Both files
+ * are cached module-side, so a language switch costs one small fetch — and
+ * the catalogue already on screen stays there while it arrives.
  */
-export function useCatalog(lang: Lang): {
-  state: LoadState;
-  retry: () => void;
-  rankings: ReadonlyMap<string, number>;
-} {
-  const [state, setState] = useState<LoadState>({ kind: "loading" });
-  const [rankings, setRankings] = useState<ReadonlyMap<string, number>>(new Map());
-
-  const retry = useCallback(() => {
-    setState({ kind: "loading" });
-    loadIndex()
-      .then((entries) => setState({ kind: "ready", entries }))
-      .catch(() => setState({ kind: "error" }));
-  }, []);
-
-  useEffect(retry, [retry]);
+export function useCatalog(lang: Lang): { state: CatalogState; retry: () => void } {
+  const [state, setState] = useState<CatalogState>({ kind: "loading" });
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
-    if (state.kind !== "ready") return;
-    prefetchAll(state.entries, lang, (slug, data) => {
-      const r = data?.metadata?.ranking;
-      if (typeof r === "number") setRankings((prev) => new Map(prev).set(slug, r));
-    });
-  }, [state, lang]);
+    let alive = true;
+    setState((prev) => (prev.kind === "ready" ? prev : { kind: "loading" }));
 
-  return { state, retry, rankings };
+    Promise.all([loadIndex(), loadNames(lang)])
+      .then(([entries, names]) => {
+        if (alive) setState({ kind: "ready", catalog: buildCatalog(entries, names) });
+      })
+      .catch(() => {
+        if (alive) setState({ kind: "error" });
+      });
+
+    return () => {
+      alive = false;
+    };
+  }, [lang, attempt]);
+
+  const retry = useCallback(() => setAttempt((n) => n + 1), []);
+
+  return { state, retry };
 }
 
-/** #/slug ↔ open codex — deep-linkable, back-button friendly. */
+/** #/slug ↔ open codex. Slugs are md basenames, so they may contain dots
+ *  ("goya2.right") — hence SLUG_PATTERN rather than \w+. */
 function slugFromHash(): string | null {
-  const m = /^#\/([\w-]+)$/.exec(window.location.hash);
-  return m ? m[1] : null;
+  const match = /^#\/([^?#]+)$/.exec(window.location.hash);
+  if (!match) return null;
+  const slug = decodeSlug(match[1]);
+  return SLUG_PATTERN.test(slug) ? slug : null;
 }
 
 /**

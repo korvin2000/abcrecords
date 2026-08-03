@@ -7,8 +7,16 @@
 **Step 2 (data migration) — ✅ DONE 2026-07-31**, with four as-built deviations
 recorded in §5.
 **Step 3 (name indexes + technical pages) — ✅ DONE 2026-07-31**; see §6.
-Steps 4–7 pending. One 🔴 code requirement was discovered in Step 3 and is
-recorded in §9 (`BioArticle` must recognise `#/slug` and `<slug>.md` links).
+**Step 4 (data layer + routing) — ✅ DONE 2026-07-31**, with five as-built
+deviations recorded in §7.
+**Step 6 (codex decomposition) — ✅ DONE 2026-07-31**; see §9. The 🔴
+`BioArticle` link-classification requirement found in Step 3 is **fixed** —
+`#/slug`, `<slug>.bio.md` and `<slug>.md` all navigate in-app, so the `::: nav`
+menus written in Step 3 work.
+**Step 5 (search + browse UI) — ✅ DONE 2026-07-31**; see §8. A pre-existing
+🔴 was found and fixed there: `fold()` destroyed Cyrillic `й`, so
+transliterated search could never reach **Йован Йовичич**.
+Only Step 7 (guard-rails: `lint:content` + Vitest) remains.
 Decisions D4, D6, D11, D12 signed off by the owner; **D10 was accepted then
 reversed** (dates stay in the dossier); D1–D3, D5, D7–D9 stand as
 recommendations unless contested.
@@ -179,9 +187,11 @@ documented, because it is the non-obvious part of the two-file split.
   validation error; the dossier's `dates` is the only home.
 - **Case** — `type`, `gender`, `country`, `lang` are authored lowercase and
   read case-insensitively; the loader normalizes each once (D12).
-- Default portrait map: `m → photos/default-male.jpg`,
-  `f → photos/default-female.jpg`, `mixed`/absent → `photos/default-mixed.jpg`.
-  A 404 on any portrait still falls through to the procedural SVG placeholder.
+- Default portrait map: `m → photos/default-male.svg`,
+  `f → photos/default-female.svg`, `mixed`/absent → `photos/default-mixed.svg`
+  (as built in Step 2 — engraved SVG, ~1.5 KB each, not the `.jpg` this plan
+  first assumed). A 404 on any portrait still falls through to the procedural
+  SVG placeholder.
 
 ### 3.2 `pages/index-<lang>.json`
 
@@ -441,6 +451,53 @@ or near-pure and is the natural first test target.
 **Exit criteria:** `npm run build` clean; the app renders the catalogue with
 localized card titles and ISO country names; `#/goya2.right` deep-links.
 
+### As built — ✅ DONE 2026-07-31
+
+`tsc -b` and `vite build` clean. Verified in the running app (DOM assertions;
+the Browser pane would not composite, so no screenshot):
+
+| Check | Result |
+|---|---|
+| Grid | 7 listed rows; the 8 hidden ones appear in no card, chip, count or search hit |
+| Localized titles | ru `Андрес Сеговия` · ja `アンドレス・セゴビア` · zh `安德烈斯·塞戈维亚`; id 4 has no `ja`/`zh` name → falls back to `title` |
+| Countries | ru `Испания` · de `Spanien` · ja `スペイン`, from lowercase `es` |
+| Facet order | sorted by **label** per locale — ru `Испания…Франция`, ja `アメリカ合衆国…フランス` |
+| CJK search | `塞戈维亚` (zh) and `セゴビア` (ja) each return exactly 1 — the original motivating failure |
+| Alias search | ru `Мангоре`, `Феррейра`, `Тавровские` → 1 each |
+| `#/goya2.right` | opens (§2.4 #1 fixed) |
+| `#/about` | deep-links; `aria-label`/`<h1>` = `О проекте`, no subtitle (nothing to show) |
+| Requests on boot | exactly `/index.json` + `/index-<lang>.json` — no dossier warm |
+| Page open | `#/about` fetched **only** `/ru/about.md`; no speculative `about.bio.json` |
+| Language switch | one `/index-ja.json` fetch; the grid never blanked to a skeleton |
+
+**Five as-built deviations from §7:**
+
+1. **`Catalog` is `{records, listed, bySlug, names}`** — `byId` and `lang` were
+   dropped. Nothing consumed either (search joins aliases through `names`, and
+   `App` already has `lang` from i18n), and an unread `lang` on the object is a
+   footgun for `EMPTY_CATALOG`. Both are one line to reinstate when a consumer
+   appears.
+2. **`buildCatalog` lives in `catalog.ts`, not `hooks.ts`.** It is pure, so it
+   belongs beside the loaders it consumes and is unit-testable without React;
+   `hooks.ts` stays React wiring only. `CatalogRecord` gained `display` (the
+   localized name) — it is a catalogue fact under the current language, needed
+   by the card, the codex header and the `aria-label`, not only by search.
+3. **`entryTargetSlug` shipped in Step 4** (§9 assigned it to Step 6) because
+   `App.navigateByMdPath` had to be rewritten here anyway and a second URL
+   parser was the thing to avoid. `BioArticle` is still unwired — Step 6.
+4. **A failed `loadIndex()` self-clears** instead of being cleared by `retry`.
+   Same effect, no extra API surface. `loadNames` likewise drops its cache
+   entry on a network error so a blip does not stick for the session.
+5. **Compile-forced component work landed early.** Deleting `prefetchAll`
+   removes the ranking source, so G1 (stars off the card) came with it; the
+   ISO switch made facet chips sort by raw code, so `Intl.Collator` label
+   sorting (listed under Step 5) came too. `CodexModal`, `GalleryTab` and
+   `LoreTab` were re-sourced (`type`/`gender`/`country` from the index row,
+   `display` for the name) but **not** decomposed — that is still Step 6.
+
+**Known-unchanged, by design:** a page still renders the 4-tab chrome
+(`PageView` is Step 6), and `LoreTab.localizeJob` is still there (Step 6).
+
 ---
 
 ## 8. Step 5 — Code, part 2: search + browse UI
@@ -493,6 +550,61 @@ native, no timers, no debounce constant to tune.
 **Exit criteria:** searching `Сеговия` (UI ru), `Segovia` (UI en),
 `塞戈维亚` (UI zh) and `セゴビア` (UI ja) all return the Segovia card; hidden
 entries appear nowhere; exact-name matches rank first.
+
+### As built — ✅ DONE 2026-07-31
+
+`tsc -b` and `vite build` clean, console clean on a fresh tab. `search.ts` is
+233 lines in four sections (folding · index · query · scoring), `CharacterGrid`
+78.
+
+**Measured, not assumed:** 1249 documents × a two-token query
+(`сеговия анд`), 100 runs → **0.398 ms per query**. That is the number the
+"no inverted index / no trie" decision rests on; re-measure before revisiting
+it.
+
+| Check | Result |
+|---|---|
+| Exit criteria | `Сеговия` (ru) · `Segovia` (en) · `塞戈维亚` (zh) · `セゴビア` (ja) → the Segovia card, 1 of 7, in each UI language |
+| Ranking | query `а` → prefix matches first (`Агустин`, `Андрес`, `Авторы`), then word-internal (`Джанго`, `Йован`, `Пако`), then alias-only (`Джими`) |
+| Ties | keep index order (`Array.prototype.sort` is stable per spec — no tiebreak field needed) |
+| AND across tokens | `агустин барриос` → 1 · `агустин хендрикс` → **0** |
+| Aliases | `Мангоре`, `Феррейра`, `Тавровские` → 1 each |
+| Latin fallback | `сеговия` finds Segovia even in **fr**, which has no `index-fr.json` at all — the Cyrillic query transliterates onto `index.json`'s Latin `title` |
+| Field build | Segovia in ru = display (w3) + 3 aliases (w2) + one deduped Latin field (w1); `title` and slug fold to the same text and collapse |
+| Empty query | filter-only path, no scoring pass |
+
+**Deviations and one bug found:**
+
+1. 🔴 **`fold()` was destroying `й`** — a pre-existing v1 defect, surfaced by
+   this work. `normalize("NFD")` decomposes `й` into `и` + combining breve and
+   the old blanket mark-strip deleted the breve, so `йовичич` folded to
+   `иовичич` and could only transliterate to `iovicic` — never `jovicic`.
+   A Cyrillic query for **Йован Йовичич** therefore missed the entry in every
+   non-`ru` language. Fixed by stripping marks only from Latin bases
+   (`/([a-z])[̀-ͯ]+/g`) and re-composing with NFC, so `Agustín →
+   agustin` and `Jovičić → jovicic` still hold while `й` survives. Verified:
+   `translitVariants("йовичич")` now yields all 12 spellings including
+   `jovicic`, and `йовичич` finds the entry in en/zh/fr.
+2. **Transliteration is gated on the field being ASCII, not on weight 1.**
+   §8 used weight as a proxy for "Latin text"; an ASCII flag computed once at
+   build time is the actual property, and an English alias in `index-en.json`
+   is weight 2 but still Latin. Same cost, no proxy.
+3. **Variants are built only for tokens that contain Cyrillic.** For a Latin
+   token `CYR_TO_LAT` echoes the input back, so the expansion was pure waste.
+4. **`SearchDoc` has no `display` field.** `record.display` already carries it
+   (Step 4), and duplicating it would be two sources for one fact.
+5. **`CharacterGrid` takes `records: CatalogRecord[]`, not `SearchDoc[]`.**
+   The grid renders a catalogue, not a search result; App maps `.record` at
+   the boundary. This drops the grid's dependency on `search.ts` entirely.
+6. **A stale-results cue was added** — while `query !== deferredQuery` the
+   grid dims to `opacity-60`. Two lines, and it is what makes
+   `useDeferredValue` legible to the reader rather than just faster.
+
+**Known limitation, not fixed:** the transliterator is single-character, so
+`хендрикс` does not reach `hendrix` (`кс`→`x` is a digraph rule the table
+cannot express). Adding digraph support would be a structural change for one
+name; an alias in `index-<lang>.json` is the documented mechanism for exactly
+this, and is a content decision.
 
 ---
 
@@ -606,6 +718,64 @@ for the rest. ~15 lines, data-driven. Say if that is out of scope.
 D4 header change; `#/about` renders header + article with no tab bar and no
 empty-metadata artifacts; language menu still works on both modes.
 
+### As built — ✅ DONE 2026-07-31
+
+`tsc -b` and `vite build` clean, console clean. **271 lines → 45**, across ten
+files none of which exceeds 161:
+
+| File | Lines | |
+|---|---|---|
+| `CodexModal.tsx` | 45 | picks the view, wires the shell |
+| `CodexShell.tsx` | 161 | all the chrome + the reading pane |
+| `BiographyView.tsx` | 92 | dossier header + tabs + tab switch |
+| `CodexHeader.tsx` | 54 | shared by both modes |
+| `CodexTabs.tsx` | 53 | tab strip + the `CodexTab` type |
+| `PageView.tsx` | 42 | header + article |
+| `useCodexEntry.ts` | 42 | `contentLang` + `bundle` |
+| `CodexArticle.tsx` | 32 | article body + missing-source fallback |
+| `codexScroll.ts` | 15 | the pane-reset context |
+| `CodexSkeleton.tsx` | 12 | |
+
+Verified in the running app (DOM assertions; the Browser pane will not
+composite, so no screenshot):
+
+| Check | Result |
+|---|---|
+| Page mode (`#/about`) | **0 tab strips, 0 tabs**; `<h1>` = `О проекте`, no `<h2>`, no subtitle; kicker and closing line kept |
+| `::: nav` menus | `#/sources`, `#/links`, `#/news` render **without `target="_blank"`**; clicking *Новости* switched the codex in place and moved `aria-current` |
+| Biography mode | 4 tabs, Biography selected; `<h1>Андрес</h1><h2>Сеговия</h2>`; subtitle `Гитарист · Испания · 1893 — 1987` |
+| Scroll context | pane at 400 px → **0** after a tab switch (two levels down, no ref threaded) |
+| Entry language switch | header re-titled to `Andrés` / `Segovia` from the **de** dossier, article German, pane reset to 0 |
+| All four tabs | Gallery 3 figures · Documents · Lore 3 sections · Biography 4600 chars |
+| `#/goya2.right` | page mode, 0 tabs, fetched only `/ru/goya2.right.md` |
+| Footer | 4 items became real `#/…` links and open their codex; 5 stay placeholders |
+
+**Four as-built deviations from §9:**
+
+1. **`BiographyTab` is deleted, not moved.** It was exactly "article, or the
+   missing-source line" — which is also the entire body of a page. Both now
+   use one `CodexArticle`; the caller names the message (`bio.missing` for a
+   chronicle, `codex.notFound` for a page), so the wording still fits each
+   context. This removes a file instead of adding one.
+2. **`onNavigateEntry` now carries the slug, not the URL.** `BioArticle` has
+   the URL and already classifies it, so making `App` re-parse would have been
+   the second parser §9 warns against. `App.openLinkedEntry(slug)` just checks
+   the slug exists.
+3. **Tab reset is by remount, not an effect.** `App` keys the modal on the
+   slug, so turning the page mounts a fresh `BiographyView` already on the
+   Biography tab. `CodexShell` still resets the *scroll* explicitly on
+   `[slug, contentLang]`, because a language switch does not remount.
+4. **`SiteFooter` wiring was done** (the optional item). `FOOTER_ITEMS` gained
+   an optional `slug`; an item renders as a link when `hasEntry(slug)` and as
+   the translated placeholder otherwise, so the five sections that do not
+   exist yet behave exactly as before.
+
+**Known gap, deferred to Step 7:** an in-app link whose slug is absent from
+`index.json` now does nothing (before, it opened a 404 in a new tab). That is
+a *content* error and belongs in `lint:content`, not in runtime defensiveness
+— see §10. `pages/ru/goya2.right.md` has several; it is a routing fixture, not
+reference content.
+
 ---
 
 ## 10. Step 7 — Guard-rails, verification, memory
@@ -626,6 +796,13 @@ empty-metadata artifacts; language menu still works on both modes.
    between editions of one entry (§3.3) · a localized name identical to the
    Latin `title` (dead weight, should be omitted) · `type: "hidden"` row with
    an `img`.
+
+   *Dead cross-links* ⚠ — an in-app link inside any `*.md` (`#/slug`,
+   `<slug>.bio.md`, `<slug>.md` — classify with the same rule as
+   `lib/entry.ts` `entryTargetSlug`) whose slug is not in `index.json`. Since
+   Step 6 these render as in-app links and silently do nothing when the target
+   is missing, so this check is what makes the failure visible. Skip
+   `goya2.right.md` (a routing fixture) or accept its warnings.
 
    *Translation smell* ⚠ — a non-Latin-script edition (`ru`, `zh`, `ja`, `ko`)
    whose `forename`/`surname`/`birthplace` are pure ASCII, or a Latin-script

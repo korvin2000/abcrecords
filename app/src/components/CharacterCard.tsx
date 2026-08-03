@@ -6,29 +6,24 @@ import {
   useSpring,
   useTransform,
 } from "framer-motion";
-import type { IndexEntry } from "@/lib/types";
-import { entryLangs, langInfo, pickContentLang, type Lang } from "@/lib/languages";
-import { loadEntry } from "@/lib/catalog";
+import { loadEntry, type CatalogRecord } from "@/lib/catalog";
+import { langInfo, pickContentLang } from "@/lib/languages";
+import { initialsFrom, portraitPath } from "@/lib/entry";
 import { resolveContentPath } from "@/lib/paths";
-import { accentFor, countryDisplay, rankStars } from "@/lib/metadata";
-import { initialsOf, placeholderPortrait } from "@/lib/placeholder";
+import { accentFor, countryName } from "@/lib/metadata";
+import { placeholderPortrait } from "@/lib/placeholder";
 import { audio } from "@/lib/audio";
 import { typeLabel, useI18n } from "@/lib/i18n";
 import { preloadCodexModal } from "./codex/LazyCodexModal";
 import clsx from "clsx";
 import { Flag } from "./Flag";
-import { OrnateFrame, RankStars } from "./OrnateFrame";
+import { OrnateFrame } from "./OrnateFrame";
 
 interface Props {
-  entry: IndexEntry;
-  slug: string;
-  /** metadata.ranking once the entry's bio.json is prefetched. */
-  ranking?: number;
+  record: CatalogRecord;
   /** Entry has no edition in the reader's language — render dimmed with a
    *  burgundy cast and flag chips of the tongues it IS written in. */
   foreign?: boolean;
-  /** Languages this entry is available in (shown on foreign cards). */
-  langs?: Lang[];
   /** Load above-the-fold portraits immediately; defer the rest. */
   eager?: boolean;
   onSelect: (slug: string) => void;
@@ -39,10 +34,10 @@ interface Props {
  * shine sweep, re-themed to the light manuscript palette. The 3D tilt only
  * engages on fine pointers; touch devices get the cheap path.
  */
-export function CharacterCard({ entry, slug, ranking, foreign = false, langs = [], eager = false, onSelect }: Props) {
+export function CharacterCard({ record, foreign = false, eager = false, onSelect }: Props) {
+  const { entry, slug, langs, display } = record;
   const { t, locale, lang } = useI18n();
   const accent = foreign ? "#8b2635" : accentFor(slug);
-  const stars = rankStars(ranking);
   const [imgFailed, setImgFailed] = useState(false);
   const langNames = langs.map((c) => langInfo(c).native).join(" · ");
 
@@ -68,14 +63,13 @@ export function CharacterCard({ entry, slug, ranking, foreign = false, langs = [
     py.set(0);
   }
 
-  const displayTitle = entry.title;
-  const subtitle = [typeLabel(t, entry.type), countryDisplay(entry.country, locale)]
+  const subtitle = [typeLabel(t, entry.type), countryName(entry.country, locale)]
     .filter(Boolean)
     .join(" · ");
 
   const portraitSrc = imgFailed
-    ? placeholderPortrait(slug, initialsOf(entry.forename, entry.surname))
-    : resolveContentPath(entry.img);
+    ? placeholderPortrait(slug, initialsFrom(display))
+    : resolveContentPath(portraitPath(entry));
 
   return (
     <m.button
@@ -88,7 +82,7 @@ export function CharacterCard({ entry, slug, ranking, foreign = false, langs = [
       onClick={() => {
         audio.unlock();
         preloadCodexModal();
-        void loadEntry(entry, pickContentLang(entryLangs(entry), lang));
+        void loadEntry(entry, pickContentLang(langs, lang));
         onSelect(slug);
       }}
       style={{ rotateX, rotateY, transformPerspective: 720 }}
@@ -96,7 +90,7 @@ export function CharacterCard({ entry, slug, ranking, foreign = false, langs = [
       transition={{ type: "spring", stiffness: 90, damping: 18, mass: 0.7 }}
       whileTap={{ scale: 0.97 }}
       className="group preserve-3d relative block w-full cursor-pointer text-left"
-      aria-label={t("card.open", { name: displayTitle })}
+      aria-label={t("card.open", { name: display })}
     >
       <OrnateFrame
         accent={foreign ? "#8b2635" : "#b8902a"}
@@ -114,7 +108,7 @@ export function CharacterCard({ entry, slug, ranking, foreign = false, langs = [
           <div className="relative aspect-[3/4] overflow-hidden">
             <img
               src={portraitSrc}
-              alt={displayTitle}
+              alt={display}
               loading={eager ? "eager" : "lazy"}
               fetchPriority={eager ? "high" : undefined}
               decoding="async"
@@ -150,9 +144,8 @@ export function CharacterCard({ entry, slug, ranking, foreign = false, langs = [
               <span className="rounded-sm bg-burgundy-600/90 px-1.5 py-0.5 font-heading text-[0.6rem] font-bold uppercase tracking-wider text-paper-50">
                 {typeLabel(t, entry.type)}
               </span>
+              {/* foreign find — flags of the tongues this entry IS written in */}
               <span className="flex flex-col items-end gap-1">
-                {stars !== null && <RankStars count={stars} accent={foreign ? "#8b2635" : "#8a6a1f"} />}
-                {/* foreign find — flags of the tongues this entry IS written in */}
                 {foreign && langs.length > 0 && (
                   <span
                     className="flex flex-col items-end gap-0.5"
@@ -184,7 +177,7 @@ export function CharacterCard({ entry, slug, ranking, foreign = false, langs = [
                 foreign ? "text-ink-900/75" : "text-ink-900",
               )}
             >
-              {displayTitle}
+              {display}
             </h3>
             <p
               className={clsx(

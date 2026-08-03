@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import type { EntryBundle, IndexEntry, MediaItem } from "@/lib/types";
+import type { EntryBundle, MediaItem } from "@/lib/types";
+import type { CatalogRecord } from "@/lib/catalog";
 import { resolveContentPath, resolveResourcePath } from "@/lib/paths";
 import { audio, themeFromSeed } from "@/lib/audio";
 import { audioKind, stopAllPlayback } from "@/lib/playback";
@@ -7,26 +8,27 @@ import { useI18n } from "@/lib/i18n";
 import { useImageViewer } from "@/lib/imageViewer";
 import { isAsciiTabUrl } from "@/lib/asciiTab";
 import { useAsciiTabViewer } from "@/lib/asciiTabViewer";
-import { AudioPlayer } from "../AudioPlayer";
-import { Divider } from "../OrnateFrame";
-import { CurlFrame } from "../CurlFrame";
+import { AudioPlayer } from "@/components/AudioPlayer";
+import { Divider } from "@/components/OrnateFrame";
+import { CurlFrame } from "@/components/CurlFrame";
 
 interface Props {
-  entry: IndexEntry;
-  slug: string;
+  record: CatalogRecord;
   bundle: EntryBundle;
 }
 
 /** Gallery — media.photos + media.music (docs/MetaData.md), plus the
  *  entry's procedurally generated theme (f = f₀·2^(n/12), seeded by name). */
-export function GalleryTab({ entry, slug, bundle }: Props) {
+export function GalleryTab({ record, bundle }: Props) {
+  const { entry, slug, display } = record;
   const { t } = useI18n();
   const openImage = useImageViewer();
   const openTab = useAsciiTabViewer();
 
   const photos: MediaItem[] = [
-    // the index portrait always leads the gallery
-    { label: entry.title, target: resolveContentPath(entry.img) },
+    // A declared index portrait leads the gallery; the synthetic default
+    // portrait is chrome, not a photograph, so it stays out.
+    ...(entry.img ? [{ label: display, target: resolveContentPath(entry.img) }] : []),
     ...(bundle.data?.media?.photos ?? []).map((photo) => ({
       ...photo,
       target: resolveResourcePath(photo.target),
@@ -87,7 +89,7 @@ export function GalleryTab({ entry, slug, bundle }: Props) {
             <AudioPlayer key={track.target} src={src} label={track.label} kind={audioKind(track.target) ?? "native"} />
           );
         })}
-        <ThemeRow slug={slug} name={entry.title} />
+        <ThemeRow slug={slug} name={display} />
       </div>
 
     </div>

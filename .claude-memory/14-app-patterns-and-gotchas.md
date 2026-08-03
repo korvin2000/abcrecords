@@ -4,12 +4,11 @@
 > [`13-app-code-map.md`](13-app-code-map.md) (where things live) and
 > [`15-app-critique.md`](15-app-critique.md) (what's weak).
 
-> ⚠ **Catalogue v2 migration pending (2026-07-31).** Everything below describes
-> the code **as it is today (v1)**. The data format is already v2 —
-> [`docs/Catalog-Index.md`](../docs/Catalog-Index.md) — so the *content-side*
-> recipes and landmines marked **v2** are the ones to follow; the code catches
-> up in Steps 4–6 of
-> [`the plan`](../docs/proposals/Plan_Catalog-v2-index-ids-localized-names-codex-split.md).
+> ✅ **Catalogue v2 — code complete (2026-07-31).** Format, data and code are
+> all v2 ([`docs/Catalog-Index.md`](../docs/Catalog-Index.md); Steps 4–6 of
+> [`the plan`](../docs/proposals/Plan_Catalog-v2-index-ids-localized-names-codex-split.md)).
+> Only Step 7 (`lint:content` + Vitest) is outstanding, so nothing below is
+> enforced by a test yet — verify changes by hand.
 
 ## Recurring patterns (learn these once — they repeat everywhere)
 
@@ -32,7 +31,10 @@
 
 **Content / paths / dates**
 - **Never `new Date(metadataDateString)`** — dates are `DD.MM.YYYY`. Use `parseDmy`/`formatDmy`/`yearOf`/`ageOf` (`metadata.ts`).
-- **Two independent bases.** index.json + its `json`/`md`/`img` resolve via `APP_BASE`; in-entry media/documents resolve via `RESOURCE_BASE_PATH` (`VITE_RESOURCE_BASE_PATH ?? /pages`). A plain root deploy will 404 media unless `VITE_RESOURCE_BASE_PATH` points where `pages/` actually lives; **dev only works because `vite.config.ts` proxies `/pages` → abc-guitars.com**.
+- **Two independent bases.** index.json + its `json`/`md`/`img` resolve via `APP_BASE`; in-entry media/documents resolve via `RESOURCE_BASE_PATH` (`VITE_RESOURCE_BASE_PATH ?? /pages`). A plain root deploy will 404 media unless `VITE_RESOURCE_BASE_PATH` points where `pages/` actually lives.
+- **Dev serves the archive by fall-through, not by prefix proxy.** `vite/legacy-archive.ts` fetches anything `publicDir` can't serve from abc-guitars.com and streams it back same-origin (local files always win). It replaced a `/pages` proxy, which could not work: a target that climbs out of the base (`^/main/x.jpg`, `/../main/x.jpg`) no longer *starts* with `/pages` by the time it is requested, so the proxy never matched and Vite answered with the SPA shell.
+- **Escaping the resource base is a real feature, not a hack** (BioMD 1.4 §15.1). `^/main/x.jpg` anchors at the resource root; `/../main/x.jpg` climbs out. `resolveResourcePath` collapses `.`/`..` itself and clamps at the root, so the emitted URL is the one actually requested. Prefer `^` — `..` only works when it matches the base depth segment for segment.
+- **`resolveResourcePath` swallows a leading `pages/`** (`basePrefix`, a documented back-compat shim for legacy content): `pages/photo/k/x.jpg` → `/pages/photo/k/x.jpg`, not `/pages/pages/…`. Consequence: a real directory named `pages` *inside* the base is unaddressable. Don't write the prefix in new content.
 - **`publicDir = ../pages` IS the content store** — editing `../pages/**` changes served content with no rebuild; the tree also ships in `dist`.
 - **json/md are localized (`/<lang>/…`), media are NOT.** Use `localizeContentPath` only for json/md.
 - **`index.json` v1 deviates from the metadata spec**: free-text `country` (not ISO), no `id`. ✅ **Resolved by the v2 spec** — the index now owns `id` and ISO `country` and is the source of truth for identity. Mixed leading-slash conventions stay (`json`/`md` rooted, `img` bucket-relative). Follow [`docs/Catalog-Index.md`](../docs/Catalog-Index.md) for new content.
@@ -42,7 +44,12 @@
 **Routing / modal / focus**
 - **Body scroll-lock is owned by `App`, not the modal** — per-modal locking miscounts during AnimatePresence overlap on ← → turns. Don't move it back.
 - **Escape ordering is capture-phase.** `LanguageMenu` and `ImageViewer` register `keydown` in the capture phase and `stopPropagation()` so Escape closes them before the codex behind them. Preserve this when adding nested overlays.
-- **Hash route slugs are Latin only** (`[\w-]+`); setting `location.hash` fires `hashchange` (state updates), but the null-clear uses `history.pushState` (no event). Programmatic hash changes from outside React may not switch entries — reload to re-init.
+- **Hash route slugs are ASCII `[\w.-]+`** (`SLUG_PATTERN` in `lib/entry.ts`, percent-decoded) — dots allowed, so `#/goya2.right` routes. Setting `location.hash` fires `hashchange` (state updates), but the null-clear uses `history.pushState` (no event). Programmatic hash changes from outside React may not switch entries — reload to re-init.
+- **One link classifier, `entryTargetSlug`** (`lib/entry.ts`) decides whether a URL is an in-app entry (`#/slug`, `/#/slug`, `x.bio.md`, `x.md`). `BioArticle`'s `a` handler is its only caller and passes the **slug** to `onNavigateEntry`; `App` only checks the slug exists. Don't add a second URL parser — extend this one.
+- **A link to a slug that isn't in `index.json` does nothing** (App's `bySlug.has` guard, unchanged policy from v1). That is a *content* error and belongs to `lint:content` (Step 7), not to runtime defensiveness. `pages/ru/goya2.right.md` has several — it is a routing fixture, not reference content.
+- 🔴 **`fold()` must not blanket-strip combining marks.** `normalize("NFD")` decomposes Cyrillic `й` into `и` + breve; deleting every mark turned `йовичич` into `иовичич`, so it could only transliterate to `iovicic`, never `jovicic` — a silent cross-script miss for every name with `й` (fixed 2026-07-31). The strip is now scoped to Latin bases (`/([a-z])[̀-ͯ]+/g`) followed by `normalize("NFC")`. If you touch `fold`, check `Agustín→agustin`, `Jovičić→jovicic`, `Ёлка→елка` **and** `йовичич→йовичич` together.
+- **Search work is split by what it depends on.** Corpus-only work (folding, weights, the ASCII flag) belongs in `buildSearchIndex`; query-only work (folding, tokenizing, transliterating) belongs in `tokenize`. Anything left in the per-doc loop runs `docs × fields` times per keystroke. The current budget: **0.398 ms/query at 1249 docs** — re-measure before adding an index.
+- **The codex is composed, not branched.** `CodexModal` (45 lines) picks `BiographyView` or `PageView` from `record.biography` and hands both to the same `CodexShell`; both build the same `CodexHeader` from different data. If you find yourself adding `if (isPage)` inside the shell or the header, the data should differ instead.
 
 **Audio**
 - **The mute (🔊) toggle silences only the procedural engine (SFX+ambient+theme)** — mp3/MIDI/tab playback live on separate contexts and keep playing. This is current behaviour, widely assumed to be a bug (see [15](15-app-critique.md)).

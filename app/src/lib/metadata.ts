@@ -1,8 +1,10 @@
 /**
  * MetaData.json field helpers (docs/MetaData.md parsing rules):
  *  - dates are DD.MM.YYYY and must NEVER go straight into `new Date(string)`;
- *  - multi-value fields are comma-separated strings, split on demand;
- *  - countries are ISO alpha-2 in *.bio.json but free text in index.json.
+ *  - multi-value fields are comma-separated strings, split on demand.
+ *
+ * Countries are not here: they belong to index.json, as ISO 3166-1 alpha-2
+ * (docs/Catalog-Index.md §4.2), and are localized by countryName() below.
  */
 
 export interface Dmy {
@@ -72,62 +74,29 @@ export function splitList(s: string | undefined | null): string[] {
     .filter(Boolean);
 }
 
-/** ISO alpha-2 → localized country name via Intl (zero-dependency). */
-export function regionName(code: string | undefined, locale: string): string | null {
-  if (!code) return null;
-  if (!/^[A-Za-z]{2}$/.test(code)) return code; // already free text
-  try {
-    const dn = new Intl.DisplayNames([locale], { type: "region" });
-    return dn.of(code.toUpperCase()) ?? code;
-  } catch {
-    return code;
+/** Intl.DisplayNames is expensive to construct and this runs per card and
+ *  per facet chip — one instance per locale, built on first use. */
+const regionNames = new Map<string, Intl.DisplayNames | null>();
+
+function regionNamesFor(locale: string): Intl.DisplayNames | null {
+  let names = regionNames.get(locale);
+  if (names === undefined) {
+    try {
+      names = new Intl.DisplayNames([locale], { type: "region" });
+    } catch {
+      names = null; // ancient engine — fall back to the bare code
+    }
+    regionNames.set(locale, names);
   }
+  return names;
 }
 
-/** index.json stores free-text English country names; map the known ones to
- *  ISO so both file conventions localize identically. Unknown → raw text. */
-const COUNTRY_TEXT_TO_ISO: Record<string, string> = {
-  paraguay: "PY",
-  spain: "ES",
-  ukraine: "UA",
-  france: "FR",
-  "united states": "US",
-  usa: "US",
-  serbia: "RS",
-  russia: "RU",
-  germany: "DE",
-  brazil: "BR",
-};
-
-export function countryDisplay(freeText: string | undefined, locale: string): string {
-  if (!freeText) return "";
-  const iso = COUNTRY_TEXT_TO_ISO[freeText.trim().toLowerCase()];
-  return (iso ? regionName(iso, locale) : null) ?? freeText;
-}
-
-/** Country for display: the entry's ISO metadata country (localized) when
- *  present, else the free-text country from index.json. Centralizes the
- *  fallback shared by the codex header and the Lore tab. */
-export function resolveCountry(
-  metaCountry: string | undefined,
-  indexCountry: string | undefined,
-  locale: string,
-): string {
-  return (metaCountry ? regionName(metaCountry, locale) : null) ?? countryDisplay(indexCountry, locale);
-}
-
-/** ISO 3166-1 alpha-2 code for an entry (uppercased) so a flag can be shown,
- *  or null when it can't be determined. Prefers the per-entry metadata code
- *  (already ISO), else maps the free-text index.json country. */
-export function resolveCountryCode(
-  metaCountry: string | undefined,
-  indexCountry: string | undefined,
-): string | null {
-  if (metaCountry && /^[A-Za-z]{2}$/.test(metaCountry.trim())) {
-    return metaCountry.trim().toUpperCase();
-  }
-  const iso = indexCountry ? COUNTRY_TEXT_TO_ISO[indexCountry.trim().toLowerCase()] : undefined;
-  return iso ?? null;
+/** ISO 3166-1 alpha-2 (read case-insensitively) → localized country name.
+ *  Absent or malformed → null, so the caller drops the row or chip. */
+export function countryName(code: string | undefined, locale: string): string | null {
+  if (!code || !/^[A-Za-z]{2}$/.test(code)) return null;
+  const iso = code.toUpperCase();
+  return regionNamesFor(locale)?.of(iso) ?? iso;
 }
 
 /** metadata.ranking (~0–100) → 1..5 star tier (the light-theme replacement

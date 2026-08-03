@@ -2,7 +2,7 @@ import { m } from "framer-motion";
 import clsx from "clsx";
 import { audio } from "@/lib/audio";
 import type { SearchFilters } from "@/lib/search";
-import { countryDisplay } from "@/lib/metadata";
+import { countryName } from "@/lib/metadata";
 import { typeLabel, useI18n } from "@/lib/i18n";
 
 interface Props {
@@ -12,6 +12,7 @@ interface Props {
   onToggleType: (t: string) => void;
   onToggleCountry: (c: string) => void;
   types: string[];
+  /** ISO 3166-1 alpha-2 codes; the chip shows the localized country name. */
   countries: string[];
   resultCount: number;
   totalCount: number;
@@ -123,7 +124,7 @@ export function SearchBar({
               {countries.map((c) => (
                 <Chip
                   key={c}
-                  label={countryDisplay(c, locale)}
+                  label={countryName(c, locale) ?? c}
                   active={filters.countries.has(c)}
                   onClick={() => onToggleCountry(c)}
                 />

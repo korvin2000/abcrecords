@@ -1,6 +1,6 @@
 # 02 · BioMD Lite Format
 
-**Source of truth:** [`docs/Biography-Markup.md`](../docs/Biography-Markup.md) (v1.3).
+**Source of truth:** [`docs/Biography-Markup.md`](../docs/Biography-Markup.md) (v1.4).
 Working name `BioMD Lite`, file extension **`.bio.md`**. Stores **article content
 and layout only** — metadata belongs in `MetaData.json`.
 
@@ -133,6 +133,12 @@ On narrow screens, columns stack in **source order**.
 4. resolve relative links/files against the configurable resource base
    (default `/pages`, independent of the app deployment base) → 5. render
    semantic HTML → 6. apply theme.
+
+**Resource targets (1.4, spec §15).** `photo/b/x.jpg` and `/photo/b/x.jpg`
+both resolve against the base. Two forms reach *outside* it — `^/main/x.jpg`
+(anchored at the resource root, base skipped) and `/../main/x.jpg` (climbs
+out). `.`/`..` are collapsed by the app and clamped at the root, never left
+to the browser. Prefer `^`: it is independent of how deep the base is.
 
 - **Source order = logical reading order**; visual position must not override it.
 - Captions stay attached to images. Embedded docs always keep a link fallback.

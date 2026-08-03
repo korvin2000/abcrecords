@@ -1,20 +1,23 @@
 import { useState } from "react";
 import { m, useReducedMotion, type Variants } from "framer-motion";
+import type { MsgKey } from "@/lib/messages";
 import { audio } from "@/lib/audio";
 import { useI18n } from "@/lib/i18n";
 import { CornerOrnament, Divider } from "./OrnateFrame";
 
+/** `slug` names the catalogue entry a section opens once one exists; items
+ *  without one — or whose entry is not in the index yet — stay placeholders. */
 const FOOTER_ITEMS = [
-  { key: "footer.about", numeral: "I" },
-  { key: "footer.sources", numeral: "II" },
+  { key: "footer.about", numeral: "I", slug: "about" },
+  { key: "footer.sources", numeral: "II", slug: "sources" },
   { key: "footer.literature", numeral: "III" },
-  { key: "footer.links", numeral: "IV" },
-  { key: "footer.news", numeral: "V" },
+  { key: "footer.links", numeral: "IV", slug: "links" },
+  { key: "footer.news", numeral: "V", slug: "news" },
   { key: "footer.guestbook", numeral: "VI" },
   { key: "footer.search", numeral: "VII" },
   { key: "footer.email", numeral: "VIII" },
   { key: "footer.audioMap", numeral: "IX" },
-] as const;
+] as const satisfies readonly { key: MsgKey; numeral: string; slug?: string }[];
 
 const listVariants: Variants = {
   hidden: {},
@@ -31,12 +34,18 @@ const itemVariants: Variants = {
   },
 };
 
+interface Props {
+  /** Slugs the catalogue can actually open; anything else stays a placeholder. */
+  hasEntry: (slug: string) => boolean;
+  onOpenEntry: (slug: string) => void;
+}
+
 /**
- * Project-wide footer / colophon. Menu entries intentionally remain local
- * placeholders until their sections exist; activating one gives translated
- * feedback instead of navigating to a broken route.
+ * Project-wide footer / colophon. A menu entry becomes a real link as soon as
+ * a matching catalogue entry exists; the rest give translated feedback
+ * instead of navigating to a broken route.
  */
-export function SiteFooter() {
+export function SiteFooter({ hasEntry, onOpenEntry }: Props) {
   const { t } = useI18n();
   const reduced = useReducedMotion();
   const [announcement, setAnnouncement] = useState<string | null>(null);
@@ -45,6 +54,12 @@ export function SiteFooter() {
     audio.unlock();
     audio.click();
     setAnnouncement(t("footer.placeholder", { section: label }));
+  };
+
+  const open = (slug: string) => {
+    audio.unlock();
+    audio.click();
+    onOpenEntry(slug);
   };
 
   return (
@@ -94,25 +109,48 @@ export function SiteFooter() {
             >
               {FOOTER_ITEMS.map((item) => {
                 const label = t(item.key);
+                const slug = "slug" in item && hasEntry(item.slug) ? item.slug : null;
+                const shared = {
+                  className: "footer-menu-item group",
+                  onMouseEnter: () => audio.hover(),
+                  whileHover: reduced ? undefined : { y: -3, scale: 1.015 },
+                  whileTap: { scale: 0.97 },
+                } as const;
+                const face = (
+                  <>
+                    <span className="footer-menu-numeral" aria-hidden>
+                      {item.numeral}
+                    </span>
+                    <span className="relative z-10 leading-tight">{label}</span>
+                    <span className="footer-menu-flourish" aria-hidden>
+                      ❦
+                    </span>
+                  </>
+                );
+
                 return (
                   <m.li key={item.key} variants={itemVariants} className="min-w-0">
-                    <m.button
-                      type="button"
-                      className="footer-menu-item group"
-                      onMouseEnter={() => audio.hover()}
-                      onClick={() => activatePlaceholder(label)}
-                      whileHover={reduced ? undefined : { y: -3, scale: 1.015 }}
-                      whileTap={{ scale: 0.97 }}
-                      title={t("footer.placeholderTitle")}
-                    >
-                      <span className="footer-menu-numeral" aria-hidden>
-                        {item.numeral}
-                      </span>
-                      <span className="relative z-10 leading-tight">{label}</span>
-                      <span className="footer-menu-flourish" aria-hidden>
-                        ❦
-                      </span>
-                    </m.button>
+                    {slug ? (
+                      <m.a
+                        {...shared}
+                        href={`#/${slug}`}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          open(slug);
+                        }}
+                      >
+                        {face}
+                      </m.a>
+                    ) : (
+                      <m.button
+                        {...shared}
+                        type="button"
+                        onClick={() => activatePlaceholder(label)}
+                        title={t("footer.placeholderTitle")}
+                      >
+                        {face}
+                      </m.button>
+                    )}
                   </m.li>
                 );
               })}

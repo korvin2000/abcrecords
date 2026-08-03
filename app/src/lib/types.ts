@@ -1,24 +1,46 @@
-/** One row of pages/index.json — the live search/browse index. */
+/**
+ * Catalogue v2 data shapes.
+ *
+ * One fact lives in exactly one file (docs/Catalog-Index.md, docs/MetaData.md):
+ *   pages/index.json          identity, classification, paths   → IndexEntry
+ *   pages/index-<lang>.json   display name + search aliases      → NameIndex
+ *   pages/<lang>/*.bio.json   the dossier, one edition per lang  → EntryData
+ */
+
+export type Gender = "m" | "f" | "mixed";
+
+/**
+ * One row of pages/index.json.
+ *
+ * Enum-like fields are authored lowercase and read case-insensitively; the
+ * loader normalizes them once at the boundary (`country` to UPPERCASE, the
+ * rest to lowercase), so nothing downstream ever compares case-insensitively.
+ */
 export interface IndexEntry {
+  /** Stable string, assigned once, never renumbered or reused — the join key
+   *  to index-<lang>.json. Not a position, and not the route. */
+  id: string;
+  /** Latin fallback name, used wherever no localized name is declared. */
   title: string;
-  /** Comma-separated ISO 639-1 codes ("ru" or "ru,en"); the first code is
-   *  the entry's original language. Missing → treated as "ru". */
-  lang?: string;
+  /** Craft ("guitarist"), or "hidden" for routable but unlisted entries. */
   type: string;
-  forename: string;
-  surname: string;
-  /** Free-text country name (NOT ISO code — a known index.json deviation). */
-  country: string;
-  /** Root-relative path to the entry's full metadata (leading slash).
-   *  The file itself lives in a per-language dir: /<lang>/<file>. */
-  json: string;
-  /** Root-relative path to the BioMD Lite biography (leading slash).
-   *  The file itself lives in a per-language dir: /<lang>/<file>. */
+  /** Root-relative path to the BioMD article; its basename is the slug, and
+   *  therefore the route. The file itself lives in pages/<lang>/. */
   md: string;
-  /** Bucket-relative path to the preview portrait (no leading slash).
-   *  Media is shared across languages — never localized. */
-  img: string;
+  /** Comma-separated ISO 639-1 editions ("ru,de"); the first is the entry's
+   *  original language. Absent → "ru". */
+  lang?: string;
+  gender?: Gender;
+  /** ISO 3166-1 alpha-2, UPPERCASE after normalization. */
+  country?: string;
+  /** Root-relative dossier path. Present ⟺ the entry is a biography. */
+  json?: string;
+  /** Bucket-relative portrait (never localized). Absent → gender default. */
+  img?: string;
 }
+
+/** pages/index-<lang>.json — id → [display name, ...search-only aliases]. */
+export type NameIndex = Readonly<Record<string, readonly string[]>>;
 
 /** Dates in `DD.MM.YYYY`; every field optional — never assume presence. */
 export interface EntryDates {
@@ -28,18 +50,21 @@ export interface EntryDates {
   activeTo?: string;
 }
 
-/** metadata section of a *.bio.json (docs/MetaData.md). Multi-value fields
- *  are comma-separated strings; unknown fields must be preserved/ignored. */
+/**
+ * `metadata` section of a *.bio.json (docs/MetaData.md). Multi-value fields
+ * are comma-separated strings; unknown fields must be preserved, not rejected.
+ *
+ * Every prose field is authored in its directory's language — a dossier is a
+ * per-language edition, not a translation of an original. Only `dates`,
+ * `ranking` and `url` are language-invariant.
+ *
+ * Identity and classification are NOT here: `id`, `title`, `gender`, `type`
+ * and `country` moved to index.json in v2.
+ */
 export interface EntryMeta {
-  id?: string;
-  title?: string;
-  birthname?: string;
-  gender?: string;
-  type?: string;
-  surname?: string;
   forename?: string;
-  /** ISO 3166-1 alpha-2 here (unlike index.json). */
-  country?: string;
+  surname?: string;
+  birthname?: string;
   birthplace?: string;
   deathplace?: string;
   dates?: EntryDates;
@@ -52,7 +77,6 @@ export interface EntryMeta {
   disciples?: string;
   jobs?: string;
   ranking?: number;
-  bio?: string;
   url?: string;
   [key: string]: unknown;
 }
@@ -77,7 +101,8 @@ export interface EntryData {
   documents?: DocumentItem[];
 }
 
-/** Lazily-loaded per-entry bundle; either half may be missing on error. */
+/** Lazily-loaded per-entry bundle. `data` is null for a page (no dossier
+ *  declared) as well as on a failed read; `md` is null only on failure. */
 export interface EntryBundle {
   data: EntryData | null;
   md: string | null;

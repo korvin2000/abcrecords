@@ -1,0 +1,25 @@
+{
+  "title": "Сергей Викторович Адамян",
+  "type": "guitarist",
+  "gender": "m",
+  "country": "ru",
+  "img": "",
+  "metadata": {
+    "forename": "Сергей",
+    "surname": "Адамян",
+    "birthplace": "Ленинград, ныне Санкт-Петербург",
+    "dates": {
+      "born": "20.09.1962"
+    },
+    "instruments": "гитара",
+    "jobs": "музыкант, гитарист, организатор, художественный руководитель, артист театра"
+  },
+  "media": {
+    "photos": [
+      {"label": "С. В. Адамян", "target": "photo/a/adamian_01.jpg"},
+      {"label": "Дуэт \"Ретро вдвоем\"", "target": "photo/a/adamian_02.jpg"}
+    ],
+    "music": []
+  },
+  "documents": []
+}

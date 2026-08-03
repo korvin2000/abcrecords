@@ -51,7 +51,8 @@ Claude Code sessions can work efficiently without re-reading every source file.
   + search aliases). Route = `#/{slug}`, slug = `md` basename. Spec:
   [`docs/Catalog-Index.md`](../docs/Catalog-Index.md); notes:
   [`11-index-json.md`](11-index-json.md).
-  ⚠ **v2 spec has landed; `pages/` data and `app/` code are still v1** — see
+  ✅ **v2 spec, data and code have all landed** (Steps 1–6); only the
+  guard-rails (Step 7: `lint:content` + Vitest) remain — see
   `docs/proposals/Plan_Catalog-v2-index-ids-localized-names-codex-split.md`.
 - **UI direction (decided):** detail/biography modal ← `Copendum`'s
   `CharacterDetail.tsx`; card + search bar + browse window ←

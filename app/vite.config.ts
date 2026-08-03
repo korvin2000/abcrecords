@@ -2,6 +2,7 @@ import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
+import { legacyArchive } from "./vite/legacy-archive";
 
 /**
  * The app is a pure renderer: all catalogue content (index.json, *.bio.json,
@@ -22,19 +23,13 @@ const base = process.env.DEPLOY_BASE ?? "/";
 
 export default defineConfig({
   base,
-  plugins: [react(), tailwindcss()],
+  plugins: [react(), tailwindcss(), legacyArchive("https://www.abc-guitars.com")],
   publicDir: fileURLToPath(new URL("../pages", import.meta.url)),
   resolve: {
     alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
   },
   server: {
     port: 5173,
-    proxy: {
-      "/pages": {
-        target: "https://www.abc-guitars.com",
-        changeOrigin: true,
-      },
-    },
   },
   build: {
     target: "baseline-widely-available",

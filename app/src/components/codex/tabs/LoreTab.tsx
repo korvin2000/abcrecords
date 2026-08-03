@@ -1,15 +1,18 @@
 import type { ReactNode } from "react";
 import type { EntryBundle, IndexEntry } from "@/lib/types";
-import { ageOf, formatDmy, rankStars, resolveCountry, resolveCountryCode, splitList } from "@/lib/metadata";
-import { typeLabel, useI18n, type TFunc } from "@/lib/i18n";
-import { RankStars } from "../OrnateFrame";
-import { CountryFlag, hasCountryFlag } from "../CountryFlag";
+import { ageOf, countryName, formatDmy, rankStars, splitList } from "@/lib/metadata";
+import { typeLabel, useI18n } from "@/lib/i18n";
+import { RankStars } from "@/components/OrnateFrame";
+import { CountryFlag, hasCountryFlag } from "@/components/CountryFlag";
 
 /**
  * Lore / Attributes — a scholarly dossier generated *dynamically* from
  * whatever metadata is present (docs/MetaData.md: never rely on a fixed
- * field set; absent value → absent row, not an empty label). Technical
- * fields (id, bio, url, dataStatus) are deliberately not shown.
+ * field set; absent value → absent row, not an empty label). `url` is shown
+ * by the Documents tab instead.
+ *
+ * Type, gender and country are classification, so they come from the index
+ * row rather than the dossier (docs/Catalog-Index.md §1).
  */
 export function LoreTab({ entry, bundle }: { entry: IndexEntry; bundle: EntryBundle }) {
   const { t, locale } = useI18n();
@@ -22,9 +25,8 @@ export function LoreTab({ entry, bundle }: { entry: IndexEntry; bundle: EntryBun
   const dates = meta.dates ?? {};
   const age = ageOf(dates.born, dates.died);
   const stars = rankStars(meta.ranking);
-  const country = resolveCountry(meta.country, entry.country, locale);
-  const countryCode = resolveCountryCode(meta.country, entry.country);
-  const genderKey = meta.gender === "m" || meta.gender === "f" ? (`lore.gender.${meta.gender}` as const) : null;
+  const gender = entry.gender;
+  const genderKey = gender === "m" || gender === "f" ? (`lore.gender.${gender}` as const) : null;
   const active =
     dates.activeFrom || dates.activeTo
       ? `${formatDmy(dates.activeFrom, locale) ?? "…"} — ${formatDmy(dates.activeTo, locale) ?? "…"}`
@@ -34,9 +36,9 @@ export function LoreTab({ entry, bundle }: { entry: IndexEntry; bundle: EntryBun
     <div className="mx-auto grid max-w-3xl gap-6 sm:grid-cols-2">
       <Section title={t("lore.identity")}>
         <Row label={t("lore.birthname")}>{meta.birthname}</Row>
-        <Row label={t("lore.gender")}>{genderValue(meta.gender, genderKey ? t(genderKey) : undefined)}</Row>
-        <Row label={t("lore.type")}>{typeLabel(t, meta.type ?? entry.type)}</Row>
-        <Row label={t("lore.country")}>{countryValue(countryCode, country)}</Row>
+        <Row label={t("lore.gender")}>{genderValue(gender, genderKey ? t(genderKey) : undefined)}</Row>
+        <Row label={t("lore.type")}>{typeLabel(t, entry.type)}</Row>
+        <Row label={t("lore.country")}>{countryValue(entry.country, countryName(entry.country, locale))}</Row>
         <Row label={t("lore.born")}>
           {joinParts(formatDmy(dates.born, locale), meta.birthplace)}
         </Row>
@@ -50,7 +52,7 @@ export function LoreTab({ entry, bundle }: { entry: IndexEntry; bundle: EntryBun
       <Section title={t("lore.career")}>
         <Row label={t("lore.instruments")}>{chips(splitList(meta.instruments))}</Row>
         <Row label={t("lore.genres")}>{chips(splitList(meta.genres))}</Row>
-        <Row label={t("lore.jobs")}>{chips(splitList(meta.jobs).map((j) => localizeJob(t, j)))}</Row>
+        <Row label={t("lore.jobs")}>{chips(splitList(meta.jobs))}</Row>
         <Row label={t("lore.bands")}>{chips(splitList(meta.bands))}</Row>
         <Row label={t("lore.awards")}>{listText(splitList(meta.awards))}</Row>
         <Row label={t("lore.ranking")}>
@@ -129,7 +131,7 @@ function genderValue(gender: string | undefined, label?: string): ReactNode {
 
 /** Country → flag when one is drawn for the code (name kept as its tooltip),
  *  otherwise the plain localized name. Absent → null so the row is dropped. */
-function countryValue(code: string | null, name: string): ReactNode {
+function countryValue(code: string | undefined, name: string | null): ReactNode {
   if (!name) return null;
   if (code && hasCountryFlag(code)) {
     return (
@@ -158,13 +160,6 @@ function chips(items: string[]): ReactNode {
 
 function listText(items: string[]): string | null {
   return items.length ? items.join(", ") : null;
-}
-
-/** Jobs arrive as English words in the data; reuse type labels where known. */
-function localizeJob(t: TFunc, job: string): string {
-  const lower = job.toLowerCase();
-  const label = typeLabel(t, lower);
-  return label === lower ? job : label;
 }
 
 function RankingBar({ value }: { value: number }) {

@@ -11,9 +11,10 @@ On disk: `pages/<lang>/<slug>.bio.json`, **one per language edition**.
 **Lore/Attributes, Gallery and Documents** tabs; the Biography tab uses the
 sibling `<slug>.bio.md`.
 
-> ⚠ **Migration status (2026-07-31).** Spec is v2; the 12 files under `pages/`
-> are still v1 (they still carry the 7 removed fields, and their prose is
-> largely untranslated across editions). See the Step-2 plan.
+> ✅ **Migration status (2026-07-31).** Spec **and** the 12 files under
+> `pages/` are v2 — the 7 removed fields are gone and every edition is
+> authored in its own language. The app reads them accordingly (`type`,
+> `gender`, `country` now come from `index.json`, not from here).
 
 ## Two rules that govern everything else
 

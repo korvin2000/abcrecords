@@ -2,7 +2,7 @@
 
 **Working name:** `BioMD Lite`  
 **File extension:** `.bio.md`  
-**Version:** 1.3  
+**Version:** 1.4  
 **Status:** normative format specification
 
 BioMD Lite is a deliberately small Markdown extension for biographies and closely related encyclopedia pages. It stores article content, semantic grouping, and a limited amount of responsive layout intent. Metadata belongs in a separate file.
@@ -719,7 +719,22 @@ Relative resource targets resolve against the application's configured resource 
 music/mp/track.mp3 -> /pages/music/mp/track.mp3
 ```
 
-Absolute URLs and fragment links remain unchanged.
+A leading slash does not change this: `/music/mp/track.mp3` resolves identically. Absolute URLs and fragment links remain unchanged.
+
+### 15.1 Reaching outside the resource base
+
+Part of the archive lives beside the resource base rather than inside it. Two forms reach it, and both are resolved by the application, not left to the browser's URL parser:
+
+```text
+^/main/cover.jpg      -> /main/cover.jpg     anchored at the resource root
+/../main/cover.jpg    -> /main/cover.jpg     climbs out of the base
+```
+
+A target beginning with `^` is anchored at the **resource root** — the base is skipped entirely. `.` and `..` segments are applied normally and clamped at that root, so `..` cannot escape above it.
+
+Authors SHOULD prefer `^`. It states the intent and holds however deep the base is configured, whereas `..` must match the base segment for segment: with a base of `/content/pages`, `/../main/x.jpg` lands at `/content/main/x.jpg`, while `^/main/x.jpg` still lands at `/main/x.jpg`.
+
+Neither form is a way to reach a *different host*. Use an absolute URL for that.
 
 Conversion MUST preserve target identity. If source and BioMD documents have different base locations, the converter must resolve the original target first and then rebase it deliberately for the BioMD resource model. It MUST NOT blindly copy or strip a `pages/` prefix.
 
@@ -844,6 +859,12 @@ The source remains authoritative for factual text. BioMD controls structure and 
 ---
 
 # Changelog
+
+## v1.4
+
+- Added the `^` resource prefix: a target beginning with `^` is anchored at the resource root, skipping the resource base (section 15.1). Preferred over `..` for reaching archive material that lives outside the base.
+- Specified that `.` and `..` segments in resource targets are resolved by the application and clamped at the resource root, instead of being left to the browser's URL parser (section 15.1).
+- No change to existing documents: `^` is new syntax, and `..` keeps the meaning it already had in practice.
 
 ## v1.3
 

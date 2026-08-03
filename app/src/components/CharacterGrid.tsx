@@ -1,24 +1,23 @@
 import { AnimatePresence, m } from "framer-motion";
-import type { SearchDoc } from "@/lib/search";
+import type { CatalogRecord } from "@/lib/catalog";
 import { useI18n } from "@/lib/i18n";
 import { CharacterCard } from "./CharacterCard";
 
 interface Props {
-  /** Already ordered: entries in the reader's language first. */
-  docs: SearchDoc[];
-  /** How many leading docs are in the reader's language; the rest render
+  /** Already ordered: entries in the reader's language first, best match up. */
+  records: CatalogRecord[];
+  /** How many leading records are in the reader's language; the rest render
    *  as dimmed "found in another tongue" cards behind an ornate divider. */
   nativeCount: number;
-  rankings: ReadonlyMap<string, number>;
   onSelect: (slug: string) => void;
 }
 
 const CELL_EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
-export function CharacterGrid({ docs, nativeCount, rankings, onSelect }: Props) {
+export function CharacterGrid({ records, nativeCount, onSelect }: Props) {
   const { t } = useI18n();
 
-  if (docs.length === 0) {
+  if (records.length === 0) {
     return (
       <m.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mx-auto mt-16 max-w-md px-6 text-center">
         <div className="mb-4 text-5xl opacity-70" aria-hidden>
@@ -30,26 +29,18 @@ export function CharacterGrid({ docs, nativeCount, rankings, onSelect }: Props) 
     );
   }
 
-  const hasDivider = nativeCount > 0 && nativeCount < docs.length;
+  const hasDivider = nativeCount > 0 && nativeCount < records.length;
 
-  const card = (doc: SearchDoc, i: number, foreign: boolean) => (
+  const card = (record: CatalogRecord, i: number, foreign: boolean) => (
     <m.div
-      key={doc.slug}
+      key={record.slug}
       layout
       initial={{ opacity: 0, y: 36, scale: 0.92 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
       transition={{ duration: 0.5, ease: CELL_EASE, delay: Math.min(i, 9) * 0.045 }}
     >
-      <CharacterCard
-        entry={doc.entry}
-        slug={doc.slug}
-        ranking={rankings.get(doc.slug)}
-        foreign={foreign}
-        langs={doc.langs}
-        eager={i < 4}
-        onSelect={onSelect}
-      />
+      <CharacterCard record={record} foreign={foreign} eager={i < 4} onSelect={onSelect} />
     </m.div>
   );
 
@@ -59,7 +50,7 @@ export function CharacterGrid({ docs, nativeCount, rankings, onSelect }: Props) 
       className="mx-auto grid max-w-6xl grid-cols-2 gap-4 px-4 pb-10 sm:grid-cols-3 sm:gap-6 lg:grid-cols-4"
     >
       <AnimatePresence mode="popLayout">
-        {docs.slice(0, nativeCount).map((doc, i) => card(doc, i, false))}
+        {records.slice(0, nativeCount).map((record, i) => card(record, i, false))}
 
         {hasDivider && (
           <m.div
@@ -80,7 +71,7 @@ export function CharacterGrid({ docs, nativeCount, rankings, onSelect }: Props) 
           </m.div>
         )}
 
-        {docs.slice(nativeCount).map((doc, i) => card(doc, nativeCount + i, true))}
+        {records.slice(nativeCount).map((record, i) => card(record, nativeCount + i, true))}
       </AnimatePresence>
     </m.div>
   );

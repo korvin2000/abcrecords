@@ -1,11 +1,19 @@
 /**
  * Content path resolution.
  *
- * index.json mixes two conventions (documented deviation):
+ * Two bases, deliberately independent:
+ *   • the application base (Vite BASE_URL) — where the SPA is deployed.
+ *     index.json and its json/md/img values resolve against it.
+ *   • the resource base (VITE_RESOURCE_BASE_PATH, default "/pages") — where
+ *     the media archive lives. Every src/target written inside a *.bio.md or
+ *     *.bio.json resolves against it (docs/Biography-Markup.md §15).
+ * They differ on purpose: the app can be deployed at /fable/ while its
+ * photographs stay at /pages/.
+ *
+ * index.json mixes two conventions (docs/Catalog-Index.md §4.1):
  *   json/md — root-relative with a leading slash ("/slug.bio.json")
  *   img     — bucket-relative without one   ("photos/slug.jpg")
  * Both resolve against the application base (Vite publicDir = pages/).
- * Resources referenced inside an entry use resolveResourcePath() instead.
  */
 const APP_BASE = import.meta.env.BASE_URL.replace(/\/+$/, "");
 
@@ -13,6 +21,12 @@ const APP_BASE = import.meta.env.BASE_URL.replace(/\/+$/, "");
 export const RESOURCE_BASE_PATH = normalizeResourceBase(
   import.meta.env.VITE_RESOURCE_BASE_PATH ?? "/pages",
 );
+
+/** The resource base split once: "https://cdn/a/pages" → "https://cdn" + ["a","pages"]. */
+const [RESOURCE_ORIGIN, RESOURCE_SEGMENTS] = splitBase(RESOURCE_BASE_PATH);
+
+/** Not ours to resolve: any URI scheme, protocol-relative, bare query/fragment. */
+const OPAQUE_TARGET = /^(?:[a-z][a-z\d+.-]*:|\/\/|[?#])/i;
 
 export function isExternalUrl(p: string): boolean {
   return /^(https?:)?\/\//i.test(p);
@@ -24,32 +38,67 @@ export function resolveContentPath(p: string): string {
 }
 
 /**
- * Resolve media/documents referenced by *.bio.md or *.bio.json independently
- * of Vite's application base. Absolute URLs, anchors, and query refs pass
- * through unchanged. Both "music/x.mp3" and "/music/x.mp3" become
- * "/pages/music/x.mp3" with the default configuration.
+ * Resolve a media/document target written inside *.bio.md or *.bio.json,
+ * independently of Vite's application base. With the default configuration:
+ *
+ *   photo/b/x.jpg    → /pages/photo/b/x.jpg   relative to the resource base
+ *   /photo/b/x.jpg   → /pages/photo/b/x.jpg   a leading slash means the same
+ *   ^/main/x.jpg     → /main/x.jpg            anchored at the resource root
+ *   /../main/x.jpg   → /main/x.jpg            climbs out of the base
+ *
+ * `..` is collapsed here rather than left for the browser's URL parser to
+ * clean up, so the emitted URL says what it means. Prefer `^` for reaching
+ * the archive outside the base: it holds however deep the base is, whereas
+ * `..` has to match it segment for segment.
  */
 export function resolveResourcePath(p: string): string {
-  if (!p || /^(?:[a-z][a-z\d+.-]*:|\/\/|[?#])/i.test(p)) return p;
+  if (!p || OPAQUE_TARGET.test(p)) return p;
 
-  const relative = p.replace(/^\/+/, "").replace(/^(?:\.\/)+/, "");
-  if (!relative) return RESOURCE_BASE_PATH || "/";
+  const mark = p.search(/[?#]/);
+  const target = mark < 0 ? p : p.slice(0, mark);
+  const suffix = mark < 0 ? "" : p.slice(mark);
 
-  // Keep already-resolved root paths stable.
-  if (!isExternalUrl(RESOURCE_BASE_PATH)) {
-    const rooted = `/${relative}`;
-    if (rooted === RESOURCE_BASE_PATH || rooted.startsWith(`${RESOURCE_BASE_PATH}/`)) {
-      return rooted;
-    }
+  const anchored = target.startsWith("^");
+  const relative = (anchored ? target.slice(1) : target).replace(/^\/+/, "").split("/");
+
+  const segments = collapse([...basePrefix(relative, anchored), ...relative]);
+  return `${RESOURCE_ORIGIN}/${segments.join("/")}${suffix}`;
+}
+
+/**
+ * The base to prepend: nothing for a `^`-anchored target, and nothing either
+ * when the target already spells the base out. That second case is a
+ * back-compat shim for legacy content — "pages/photo/k/x.jpg" keeps resolving
+ * to /pages/photo/k/x.jpg instead of /pages/pages/…. It is the one ambiguity
+ * left in this module: a real directory named "pages" *inside* the base is
+ * unaddressable. New content should omit the prefix.
+ */
+function basePrefix(relative: string[], anchored: boolean): string[] {
+  if (anchored) return [];
+  const alreadySpelledOut = RESOURCE_SEGMENTS.every((s, i) => relative[i] === s);
+  return alreadySpelledOut ? [] : RESOURCE_SEGMENTS;
+}
+
+/** Apply "." and ".." segment by segment; ".." past the root is clamped. */
+function collapse(segments: string[]): string[] {
+  const out: string[] = [];
+  for (const s of segments) {
+    if (!s || s === ".") continue;
+    if (s === "..") out.pop();
+    else out.push(s);
   }
-
-  return `${RESOURCE_BASE_PATH}/${relative}`;
+  return out;
 }
 
 function normalizeResourceBase(value: string): string {
   const base = (value.trim() || "/pages").replace(/\/+$/, "");
   if (!base || base === "/") return "";
   return isExternalUrl(base) ? base : `/${base.replace(/^\/+/, "")}`;
+}
+
+function splitBase(base: string): [origin: string, segments: string[]] {
+  const origin = /^(?:[a-z][a-z\d+.-]*:)?\/\/[^/]*/i.exec(base)?.[0] ?? "";
+  return [origin, base.slice(origin.length).split("/").filter(Boolean)];
 }
 
 /**
@@ -63,11 +112,4 @@ function normalizeResourceBase(value: string): string {
 export function localizeContentPath(p: string, lang: string): string {
   if (!p || isExternalUrl(p)) return p;
   return `/${lang}/${p.replace(/^\/+/, "")}`;
-}
-
-/** Stable slug for an index entry, derived from its md path
- *  ("/jovan-jovicic.bio.md" → "jovan-jovicic"). index.json has no id field. */
-export function slugOf(entry: { md: string }): string {
-  const file = entry.md.split("/").pop() ?? entry.md;
-  return file.replace(/\.bio\.md$/i, "").replace(/\.md$/i, "");
 }

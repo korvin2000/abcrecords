@@ -1,10 +1,12 @@
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence } from "framer-motion";
+import clsx from "clsx";
 import { LANG_CODES } from "@/lib/languages";
-import { slugOf } from "@/lib/paths";
-import { buildSearchDoc, searchEntries, type SearchFilters } from "@/lib/search";
+import { EMPTY_CATALOG } from "@/lib/catalog";
+import { countryName } from "@/lib/metadata";
+import { buildSearchIndex, searchEntries, type SearchFilters } from "@/lib/search";
 import { audio } from "@/lib/audio";
-import { useI18n } from "@/lib/i18n";
+import { typeLabel, useI18n } from "@/lib/i18n";
 import { useAudioUnlock, useCatalog, useHashRoute } from "@/lib/hooks";
 import { Background } from "@/components/Background";
 import { AnimatedTitle } from "@/components/AnimatedTitle";
@@ -15,11 +17,13 @@ import { LazyCodexModal } from "@/components/codex/LazyCodexModal";
 import { SiteFooter } from "@/components/SiteFooter";
 
 export default function App() {
-  const { t, lang, setLang } = useI18n();
+  const { t, lang, locale, setLang } = useI18n();
   useAudioUnlock();
-  const { state, retry, rankings } = useCatalog(lang);
+  const { state, retry } = useCatalog(lang);
   const { selectedSlug, openEntry } = useHashRoute();
   const [query, setQuery] = useState("");
+  // Typing stays on the input's own frame; the grid re-ranks behind it.
+  const deferredQuery = useDeferredValue(query);
   const [filters, setFilters] = useState<SearchFilters>({
     types: new Set<string>(),
     countries: new Set<string>(),
@@ -27,42 +31,58 @@ export default function App() {
   const [sound, setSound] = useState(true);
   const [ambient, setAmbient] = useState(false);
 
-  const entries = state.kind === "ready" ? state.entries : [];
-  const docs = useMemo(() => entries.map(buildSearchDoc), [entries]);
-  const bySlug = useMemo(() => new Map(docs.map((d) => [d.slug, d])), [docs]);
+  // Hidden entries stay out of the grid, the search and the facets, but keep
+  // their route — so `listed` drives the browse UI and `bySlug` covers all.
+  const catalog = state.kind === "ready" ? state.catalog : EMPTY_CATALOG;
+
+  // Folding and lowercasing happen here — once per catalogue load and per UI
+  // language — never per keystroke.
+  const docs = useMemo(() => buildSearchIndex(catalog.listed, catalog.names), [catalog]);
 
   // One shared index searches all tongues; entries available in the chosen
   // language lead, the rest follow after a divider (dimmed, flagged in the
-  // grid). ← → page-turn order matches this visual order.
-  const { filtered, nativeCount } = useMemo(() => {
-    const found = searchEntries(docs, query, filters);
-    const native = found.filter((d) => d.langs.includes(lang));
-    const foreign = found.filter((d) => !d.langs.includes(lang));
-    return { filtered: [...native, ...foreign], nativeCount: native.length };
-  }, [docs, query, filters, lang]);
+  // grid). Relevance order survives the split. ← → matches this visual order.
+  const { results, nativeCount } = useMemo(() => {
+    const found = searchEntries(docs, deferredQuery, filters);
+    const native = found.filter((d) => d.record.langs.includes(lang));
+    const foreign = found.filter((d) => !d.record.langs.includes(lang));
+    return {
+      results: [...native, ...foreign].map((d) => d.record),
+      nativeCount: native.length,
+    };
+  }, [docs, deferredQuery, filters, lang]);
 
-  // resonate with the search: chime on first match, low hum on none
+  // resonate with the search: chime on first match, low hum on none.
+  // Keyed to the deferred query so the sound matches what is on screen.
   const prevHasResults = useRef(true);
   useEffect(() => {
-    if (!query.trim()) {
+    if (!deferredQuery.trim()) {
       prevHasResults.current = true;
       return;
     }
-    const has = filtered.length > 0;
+    const has = results.length > 0;
     if (has && !prevHasResults.current) audio.found();
     else if (!has && prevHasResults.current) audio.error();
     prevHasResults.current = has;
-  }, [filtered.length, query]);
+  }, [results.length, deferredQuery]);
 
+  // Facet values are codes; readers see labels, so sort by the label in the
+  // reader's locale — otherwise ISO codes order the country chips at random.
   const facets = useMemo(() => {
     const types = new Set<string>();
     const countries = new Set<string>();
-    for (const e of entries) {
-      if (e.type) types.add(e.type);
-      if (e.country) countries.add(e.country);
+    for (const { entry } of catalog.listed) {
+      if (entry.type) types.add(entry.type);
+      if (entry.country) countries.add(entry.country);
     }
-    return { types: [...types].sort(), countries: [...countries].sort() };
-  }, [entries]);
+    const collator = new Intl.Collator(locale);
+    const by = (label: (v: string) => string) => (a: string, b: string) =>
+      collator.compare(label(a), label(b));
+    return {
+      types: [...types].sort(by((ty) => typeLabel(t, ty))),
+      countries: [...countries].sort(by((c) => countryName(c, locale) ?? c)),
+    };
+  }, [catalog, locale, t]);
 
   const toggleFilter = useCallback((key: keyof SearchFilters, val: string) => {
     setFilters((prev) => {
@@ -77,22 +97,22 @@ export default function App() {
   const turnPage = useCallback(
     (dir: -1 | 1) => {
       if (!selectedSlug) return;
-      const list = filtered.length ? filtered : docs;
-      const i = list.findIndex((d) => d.slug === selectedSlug);
+      const list = results.length ? results : catalog.listed;
+      const i = list.findIndex((r) => r.slug === selectedSlug);
       if (i === -1 || list.length < 2) return;
       audio.pageTurn();
       openEntry(list[(i + dir + list.length) % list.length].slug);
     },
-    [selectedSlug, filtered, docs, openEntry],
+    [selectedSlug, results, catalog, openEntry],
   );
 
-  // links inside biographies: "/paco-de-lucia.bio.md" → open that codex
-  const navigateByMdPath = useCallback(
-    (mdPath: string) => {
-      const slug = slugOf({ md: mdPath });
-      if (bySlug.has(slug)) openEntry(slug);
+  // Cross-links inside articles, already classified to a slug by BioArticle.
+  // Hidden entries are linkable, so this resolves against every record.
+  const openLinkedEntry = useCallback(
+    (slug: string) => {
+      if (catalog.bySlug.has(slug)) openEntry(slug);
     },
-    [bySlug, openEntry],
+    [catalog, openEntry],
   );
 
   const toggleSound = () => {
@@ -110,18 +130,18 @@ export default function App() {
     audio.setAmbient(next);
   };
 
-  const selectedDoc = selectedSlug ? (bySlug.get(selectedSlug) ?? null) : null;
+  const selectedRecord = selectedSlug ? (catalog.bySlug.get(selectedSlug) ?? null) : null;
 
   // Single owner of the body scroll lock — per-modal locking miscounts when
   // AnimatePresence overlaps an exiting and an entering codex during ← → turns.
   useEffect(() => {
-    if (!selectedDoc) return;
+    if (!selectedRecord) return;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = previousOverflow;
     };
-  }, [selectedDoc]);
+  }, [selectedRecord]);
 
   return (
     <div className="relative min-h-screen">
@@ -181,30 +201,35 @@ export default function App() {
               onToggleCountry={(v) => toggleFilter("countries", v)}
               types={facets.types}
               countries={facets.countries}
-              resultCount={filtered.length}
-              totalCount={entries.length}
+              resultCount={results.length}
+              totalCount={catalog.listed.length}
             />
 
-            <div className="mt-10">
-              <CharacterGrid docs={filtered} nativeCount={nativeCount} rankings={rankings} onSelect={openEntry} />
+            {/* While a long query is still being ranked, dim rather than block */}
+            <div
+              className={clsx(
+                "mt-10 transition-opacity duration-200",
+                query !== deferredQuery && "opacity-60",
+              )}
+            >
+              <CharacterGrid records={results} nativeCount={nativeCount} onSelect={openEntry} />
             </div>
           </>
         )}
 
       </main>
 
-      <SiteFooter />
+      <SiteFooter hasEntry={(slug) => catalog.bySlug.has(slug)} onOpenEntry={openEntry} />
 
-      <Suspense fallback={selectedDoc ? <CodexFallback /> : null}>
+      <Suspense fallback={selectedRecord ? <CodexFallback /> : null}>
         <AnimatePresence>
-          {selectedDoc && (
+          {selectedRecord && (
             <LazyCodexModal
-              key={selectedDoc.slug}
-              entry={selectedDoc.entry}
-              slug={selectedDoc.slug}
+              key={selectedRecord.slug}
+              record={selectedRecord}
               onClose={() => openEntry(null)}
               onTurn={turnPage}
-              onNavigateEntry={navigateByMdPath}
+              onNavigateEntry={openLinkedEntry}
             />
           )}
         </AnimatePresence>

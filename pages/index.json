@@ -134,5 +134,16 @@
     "lang": "ru",
     "type": "hidden",
     "md": "/news.md"
+  },
+  {
+    "id": "16",
+    "title": "Adamian",
+    "lang": "ru",
+    "gender": "m",
+    "country": "ru",
+    "type": "guitarist",
+    "md": "/adamjan.bio.md",
+    "json": "/adamjan.bio.json"
+
   }
 ]

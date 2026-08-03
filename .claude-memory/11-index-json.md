@@ -4,11 +4,13 @@
 2026-07-31). This note is the condensed version — when they disagree, the spec
 wins.
 
-> ⚠ **Migration status (2026-07-31).** Spec **and data** are v2; **`app/` code
-> is still v1** and does not yet read `id`, ISO `country` or
-> `index-<lang>.json`. Steps 4–7 of
+> ✅ **Migration status (2026-07-31).** Spec, data **and all app code** are v2 —
+> the app reads `id`, ISO `country` and `index-<lang>.json`; hidden rows are
+> out of the grid/search/facets but stay routable; aliases drive ranked
+> multilingual search; a dossier-less entry renders as a page. Only Step 7
+> (guard-rails) of
 > [`the plan`](../docs/proposals/Plan_Catalog-v2-index-ids-localized-names-codex-split.md)
-> migrate the code. Live corpus: **15 rows (7 listed, 8 hidden)**, 12 dossiers,
+> remains. Live corpus: **15 rows (7 listed, 8 hidden)**, 12 dossiers,
 > 5 name indexes (`ru en de zh ja`).
 
 ## The two files

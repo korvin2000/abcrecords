@@ -5,6 +5,7 @@ import clsx from "clsx";
 import { remarkHighlight } from "./remarkHighlight";
 import { parseBioMd, type BioNode, type ContentAlignment, type ImageNode, type NavNode } from "./parse";
 import { isExternalUrl, resolveResourcePath } from "../paths";
+import { entryTargetSlug } from "../entry";
 import { audioKind } from "../playback";
 import { isImageUrl, useImageViewer } from "../imageViewer";
 import { isAsciiTabUrl } from "../asciiTab";
@@ -22,8 +23,9 @@ import { CurlFrame } from "@/components/CurlFrame";
 
 interface ArticleProps {
   source: string;
-  /** Called when a link to another catalogue entry (*.bio.md) is clicked. */
-  onNavigateEntry?: (mdPath: string) => void;
+  /** Called with the slug when a link to another catalogue entry is clicked
+   *  (`#/slug`, `x.bio.md` or `x.md` — docs/Biography-Markup.md §3.6). */
+  onNavigateEntry?: (slug: string) => void;
   /** Hide the article's own `# title` (the codex header already shows it). */
   hideTitle?: boolean;
 }
@@ -46,7 +48,7 @@ function Md({
   nav,
 }: {
   text: string;
-  onNavigateEntry?: (p: string) => void;
+  onNavigateEntry?: (slug: string) => void;
   nav?: NavContext;
 }) {
   const { t } = useI18n();
@@ -65,13 +67,16 @@ function Md({
               </span>
             );
           }
-          if (/\.bio\.md$/i.test(url) && !isExternalUrl(url) && onNavigateEntry) {
+          // Another entry in the catalogue — the three in-app link forms are
+          // classified in one place (lib/entry.ts), never re-parsed here.
+          const entrySlug = onNavigateEntry ? entryTargetSlug(url) : null;
+          if (entrySlug && onNavigateEntry) {
             return (
               <a
-                href={`#/${url.split("/").pop()?.replace(/\.bio\.md$/i, "")}`}
+                href={`#/${entrySlug}`}
                 onClick={(e) => {
                   e.preventDefault();
-                  onNavigateEntry(url);
+                  onNavigateEntry(entrySlug);
                 }}
               >
                 {children}
