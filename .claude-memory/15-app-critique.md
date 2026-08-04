@@ -39,7 +39,7 @@ had a hardening pass.
 ### Process / tooling
 - 🔴 **No automated tests at all** (no runner/deps in `package.json`). The highest-logic, highest-risk code — `biomd/parse.ts`, search `fold`/`translitVariants`, `metadata` date/list parsing, `paths` resolution, i18n plurals — has zero coverage. This is the single biggest blocker to safe change.
 - 🟠 **No ESLint/Prettier, no CI.** Style/quality is unenforced; only `tsc` gates.
-- 🟠 **No React error boundary** (`main.tsx`, `App.tsx`) — an uncaught render error (a parser edge, a bad prop) blanks the whole app.
+- ✅ **[fixed 2026-08-04]** ~~No React error boundary — an uncaught render error (a parser edge, a bad prop) blanks the whole app.~~ `components/ErrorBoundary.tsx` is mounted twice: at the root (under `I18nProvider`, over both viewer providers) and around the codex `Suspense`. It was a **production** gap, not a dev nicety — the headline trigger is a deploy invalidating hashed chunk names under an open tab. See [14](14-app-patterns-and-gotchas.md) for the `resetKey`-not-`key` rule.
 
 ### Audio
 - 🟠 **Mute doesn't silence content.** `setEnabled` ramps only the engine `master` (`audio.ts`); mp3/MIDI/tab playback live on separate contexts/elements and keep sounding. Either intended or a headline bug — decide and document.
@@ -87,7 +87,7 @@ had a hardening pass.
 2. 🟠 **Add ESLint + Prettier + a CI check** (`tsc -b` + lint + test on push).
 3. 🟠 **Resolve the mute-vs-content bug**: route content playback through a gain the 🔊 toggle controls (or stop all content on mute) — or explicitly document it as intended and reflect that in the tooltip.
 4. 🟠 **Fix the orphaned-`MidiPlayer` leak** (disposed-guard around `loadMidi().then`), and `removeEventListener` in `NativeBackend.dispose`.
-5. 🟠 **Add an ErrorBoundary** around the codex/parser render path with a parchment-styled fallback.
+5. ✅ **ErrorBoundary — done (2026-08-04).** Root + codex boundaries with parchment-styled, localized fallbacks (`app.crash*`); DEV-only logging. Still open by choice: the image and ascii-tab viewers rely on the *root* boundary (a throw there replaces the page rather than just the overlay) — give each its own boundary when the tab viewer is hardened (item 7).
 6. 🟠 **Consolidate the flag/country stack**: one ISO-keyed SVG source of truth; derive `Flag(lang)` from it; unify `COUNTRY_TEXT_TO_ISO` + `CountryFlag` coverage. **[v2 does half of this]** — `index.json` `country` becomes ISO and the text→ISO dict is deleted, leaving only the two hand-drawn SVG sets to merge.
 7. 🟠 **ASCII-tab hardening**: charset fallback (CP1251/KOI8-R) for legacy tabs; fix the `r(n)` glyph; `React.memo`/virtualize `TabSystemSvg`; add a focus trap.
 8. 🟠 **Content robustness**: sanitize block-derived `src`; retry/invalidate negative fetch cache; surface parser warnings in prod (dev overlay or a `pages/` content-lint script); reconsider comma-lists vs arrays in the data model.

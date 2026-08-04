@@ -12,7 +12,7 @@
 
 ## Recurring patterns (learn these once — they repeat everywhere)
 
-- **Lazy + preload singleton.** `LazyX = lazy(loadX)` with a module-level `pending` promise, plus `preloadX = () => void loadX()` fired on hover/focus/click intent. Identical shape in `LazyCodexModal.ts`, `LazyImageViewer.ts`, `LazyAsciiTabViewer.ts`. Copy it for any new heavy overlay.
+- **Lazy + preload singleton.** `LazyX = lazy(loadX)` with a module-level `pending` promise, plus `preloadX = () => void loadX()` fired on hover/focus/click intent. Identical shape in `LazyCodexModal.ts`, `LazyImageViewer.ts`, `LazyAsciiTabViewer.ts`. Copy it for any new heavy overlay — and give it an `ErrorBoundary`, because a failed import is unrecoverable without a reload (see App-wide below).
 - **One state value, patched from many controls.** `App` holds one `SearchCriteria`; the search bar, the quick chips and every field in the refinement panel report a `Partial<SearchCriteria>` patch and hold nothing of their own. That is why the chips and the panel can never disagree. Copy this before inventing a second source of truth for a form.
 - **Compile once, then loop.** `compile(criteria)` folds terms, parses years and collapses "unset" to `null` **once per criteria change**; the per-entry loop only compares. Same discipline as `buildSearchIndex` (corpus-side) vs `tokenize` (query-side) — split work by *what it depends on*, never by file size.
 - **Module-level store + `useSyncExternalStore`.** Work that outlives a component and must happen at most once per (catalogue, language) — today the dossier crawl — lives at module scope with a registry (`factsIndexFor`), a `dispose()`d predecessor, and a **fresh immutable snapshot per notification** so `useMemo` deps behave. Notifications are throttled; completion is not.
@@ -79,7 +79,9 @@
 - **No `rehype-raw`** ⇒ raw HTML in BioMD is inert (intended). Adding `rehype-raw` would open an XSS hole. Note block-derived `src` (image/document) bypasses react-markdown's `urlTransform` — treat content as trusted-only.
 
 **App-wide**
-- **No error boundary exists** — an uncaught render error (e.g. a parser edge case) blanks the app. Consider one if you add risky render logic.
+- ✅ **Two error boundaries exist (2026-08-04)** — `components/ErrorBoundary.tsx`, a class (hooks cannot catch). Placement is deliberate: one under `I18nProvider` in `main.tsx` wrapping **both viewer providers**, because they mount their overlays as *siblings* of `children`, so a boundary around `<App />` alone would not catch a throw from the image/ascii-tab viewer; one around the codex's `Suspense` in `App.tsx`, so a codex that will not open costs that entry and not the grid. Fallbacks reuse App's `loadError` voice (`font-display text-xl text-burgundy-600` + `.btn-rpg`) and the `app.crash`/`app.crashReload`/`app.crashCodex` keys. Logging is DEV-only (`import.meta.env.DEV`, `warnDev` style) — verified absent from the prod bundle.
+- 🔴 **Never re-arm the codex boundary with `key`.** It takes `resetKey={selectedSlug}` (a prop compared in `componentDidUpdate`) precisely because keying the boundary would remount the `Suspense`/`AnimatePresence` beneath it and kill the ← → page-turn animation. Without any re-arm, one entry with unrenderable content would keep every later entry shut.
+- **A rejected `lazy()` import is permanent for the life of the page** — `pending ??=` caches the rejected promise *and* React caches the rejected payload, so no retry can ever succeed. That is why both fallbacks offer a **reload**, not a retry. This is a production failure mode, not just a dev one: the classic trigger is a deploy replacing hashed chunk filenames under an already-open tab (verified against `dist` with the codex chunk deleted), the second is a dropped request on a phone.
 
 ## Task recipes
 

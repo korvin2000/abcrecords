@@ -10,6 +10,9 @@ export const pt: Record<MsgKey, Message> = {
   "app.footer": "✦ Encadernado a ouro · um nome na crónica abre a sua página · use ← → para folhear as entradas ✦",
   "app.loadError": "A crónica não se abriu. O pergaminho index.json está inacessível.",
   "app.retry": "Tentar novamente",
+  "app.crash": "O códice tropeçou: esta página não pôde ser desenhada.",
+  "app.crashReload": "Reabrir o códice",
+  "app.crashCodex": "Esta entrada não abriu. Recarregue a página e tente novamente.",
 
   "footer.kicker": "Arquivo · Navegação · Correspondência",
   "footer.title": "Secções do projeto",

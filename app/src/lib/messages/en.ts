@@ -10,6 +10,9 @@ export const en: Record<MsgKey, Message> = {
   "app.footer": "✦ Bound in gold · a name within a tale opens its page · use ← → to turn between entries ✦",
   "app.loadError": "The chronicle would not open. The index.json scroll is unreachable.",
   "app.retry": "Try again",
+  "app.crash": "The codex faltered — this page could not be drawn.",
+  "app.crashReload": "Reopen the codex",
+  "app.crashCodex": "This entry would not open. Reload the page and try again.",
 
   "footer.kicker": "Archive · Navigation · Correspondence",
   "footer.title": "Project sections",

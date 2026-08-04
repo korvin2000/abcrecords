@@ -9,6 +9,9 @@ export const ja: Record<MsgKey, Message> = {
   "app.footer": "✦ 金で装丁された書 · 記された名はその頁を開く · ← → キーで記録をめくる ✦",
   "app.loadError": "年代記を開けませんでした。巻物 index.json に届きません。",
   "app.retry": "再試行",
+  "app.crash": "写本が途切れました — この頁を描けませんでした。",
+  "app.crashReload": "写本を開き直す",
+  "app.crashCodex": "この記録は開けませんでした。頁を再読み込みしてお試しください。",
 
   "footer.kicker": "書庫 · 案内 · 便り",
   "footer.title": "プロジェクトの各章",

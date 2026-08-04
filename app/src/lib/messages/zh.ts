@@ -9,6 +9,9 @@ export const zh: Record<MsgKey, Message> = {
   "app.footer": "✦ 以金装帧 · 编年史中的名字会翻开它的一页 · 使用 ← → 翻阅条目 ✦",
   "app.loadError": "编年史无法开启。卷轴 index.json 不可达。",
   "app.retry": "重试",
+  "app.crash": "法典中断了 — 此页无法绘制。",
+  "app.crashReload": "重新打开法典",
+  "app.crashCodex": "此条目未能打开。请刷新页面后重试。",
 
   "footer.kicker": "档案 · 导航 · 信札",
   "footer.title": "项目栏目",

@@ -10,6 +10,9 @@ export const fr: Record<MsgKey, Message> = {
   "app.footer": "✦ Relié d'or · un nom dans la chronique ouvre sa page · utilisez ← → pour feuilleter les entrées ✦",
   "app.loadError": "La chronique ne s'est pas ouverte. Le parchemin index.json est introuvable.",
   "app.retry": "Réessayer",
+  "app.crash": "Le codex s'est interrompu : cette page n'a pu être dessinée.",
+  "app.crashReload": "Rouvrir le codex",
+  "app.crashCodex": "Cette entrée ne s'est pas ouverte. Rechargez la page et réessayez.",
 
   "footer.kicker": "Archives · Navigation · Correspondance",
   "footer.title": "Sections du projet",

@@ -9,6 +9,9 @@ export const ko: Record<MsgKey, Message> = {
   "app.footer": "✦ 금으로 장정된 책 · 연대기 속 이름은 그 페이지를 연다 · ← → 키로 기록을 넘긴다 ✦",
   "app.loadError": "연대기가 열리지 않았습니다. 두루마리 index.json에 닿을 수 없습니다.",
   "app.retry": "다시 시도",
+  "app.crash": "코덱스가 멈췄습니다 — 이 페이지를 그릴 수 없었습니다.",
+  "app.crashReload": "코덱스 다시 열기",
+  "app.crashCodex": "이 기록을 열지 못했습니다. 페이지를 새로 고친 뒤 다시 시도하세요.",
 
   "footer.kicker": "서고 · 안내 · 서신",
   "footer.title": "프로젝트의 장",

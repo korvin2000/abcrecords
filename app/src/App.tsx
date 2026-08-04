@@ -23,6 +23,7 @@ import { HeraldBanner } from "@/components/herald";
 import { LanguageMenu } from "@/components/LanguageMenu";
 import { SearchBar } from "@/components/search";
 import { CharacterGrid } from "@/components/CharacterGrid";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { LazyCodexModal } from "@/components/codex/LazyCodexModal";
 import { SiteFooter } from "@/components/SiteFooter";
 
@@ -245,19 +246,29 @@ export default function App() {
 
       <SiteFooter hasEntry={(slug) => catalog.bySlug.has(slug)} onOpenEntry={openEntry} />
 
-      <Suspense fallback={selectedRecord ? <CodexFallback /> : null}>
-        <AnimatePresence>
-          {selectedRecord && (
-            <LazyCodexModal
-              key={selectedRecord.slug}
-              record={selectedRecord}
-              onClose={() => openEntry(null)}
-              onTurn={turnPage}
-              onNavigateEntry={openLinkedEntry}
-            />
-          )}
-        </AnimatePresence>
-      </Suspense>
+      {/* The codex gets a boundary of its own: a chunk that will not import, or
+          an entry whose content will not render, then costs the reader that
+          entry instead of the grid. `resetKey` re-arms it per entry — keying the
+          boundary itself would remount AnimatePresence and kill the ← → turn. */}
+      <ErrorBoundary
+        label="codex"
+        resetKey={selectedSlug ?? ""}
+        fallback={selectedRecord ? <CodexError onClose={() => openEntry(null)} /> : null}
+      >
+        <Suspense fallback={selectedRecord ? <CodexFallback /> : null}>
+          <AnimatePresence>
+            {selectedRecord && (
+              <LazyCodexModal
+                key={selectedRecord.slug}
+                record={selectedRecord}
+                onClose={() => openEntry(null)}
+                onTurn={turnPage}
+                onNavigateEntry={openLinkedEntry}
+              />
+            )}
+          </AnimatePresence>
+        </Suspense>
+      </ErrorBoundary>
     </div>
   );
 }
@@ -303,6 +314,26 @@ function CodexFallback() {
   return (
     <div className="fixed inset-0 z-40 grid place-items-center bg-ink-950/40 backdrop-blur-[2px]" aria-busy="true">
       <span className="h-12 w-12 animate-spin rounded-full border-2 border-gold-300/40 border-t-gold-500" />
+    </div>
+  );
+}
+
+/** The codex refused to open. Closing returns the reader to an intact grid; a
+ *  retry is not offered because React caches a rejected `lazy()` payload, so
+ *  only a reload can fetch the chunk again — which the message says. */
+function CodexError({ onClose }: { onClose: () => void }) {
+  const { t } = useI18n();
+  return (
+    <div
+      className="fixed inset-0 z-40 grid place-items-center bg-ink-950/40 px-6 backdrop-blur-[2px]"
+      role="alert"
+    >
+      <div className="parchment ornate-border max-w-md px-8 py-7 text-center">
+        <p className="font-display text-xl text-burgundy-600">{t("app.crashCodex")}</p>
+        <button onClick={onClose} className="btn-rpg mt-5">
+          {t("codex.close")}
+        </button>
+      </div>
     </div>
   );
 }

@@ -10,6 +10,9 @@ export const it: Record<MsgKey, Message> = {
   "app.footer": "✦ Rilegato in oro · un nome nella cronaca ne apre la pagina · usa ← → per sfogliare le voci ✦",
   "app.loadError": "La cronaca non si è aperta. La pergamena index.json non è raggiungibile.",
   "app.retry": "Riprova",
+  "app.crash": "Il codice si è interrotto: questa pagina non è stata disegnata.",
+  "app.crashReload": "Riapri il codice",
+  "app.crashCodex": "Questa voce non si è aperta. Ricarica la pagina e riprova.",
 
   "footer.kicker": "Archivio · Navigazione · Corrispondenza",
   "footer.title": "Sezioni del progetto",

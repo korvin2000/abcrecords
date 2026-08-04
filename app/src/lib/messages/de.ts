@@ -10,6 +10,9 @@ export const de: Record<MsgKey, Message> = {
   "app.footer": "✦ In Gold gebunden · ein Name in der Chronik öffnet ihre Seite · mit ← → blättern Sie durch die Einträge ✦",
   "app.loadError": "Die Chronik ließ sich nicht öffnen. Die Schriftrolle index.json ist unerreichbar.",
   "app.retry": "Erneut versuchen",
+  "app.crash": "Der Kodex ist ins Stocken geraten — diese Seite ließ sich nicht zeichnen.",
+  "app.crashReload": "Kodex neu öffnen",
+  "app.crashCodex": "Dieser Eintrag ließ sich nicht öffnen. Laden Sie die Seite neu und versuchen Sie es erneut.",
 
   "footer.kicker": "Archiv · Navigation · Korrespondenz",
   "footer.title": "Bereiche des Projekts",

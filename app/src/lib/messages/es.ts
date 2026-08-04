@@ -10,6 +10,9 @@ export const es: Record<MsgKey, Message> = {
   "app.footer": "✦ Encuadernado en oro · un nombre en la crónica abre su página · use ← → para hojear las entradas ✦",
   "app.loadError": "La crónica no se abrió. El pergamino index.json no está disponible.",
   "app.retry": "Intentar de nuevo",
+  "app.crash": "El códice se ha trabado: esta página no pudo dibujarse.",
+  "app.crashReload": "Reabrir el códice",
+  "app.crashCodex": "Esta entrada no se abrió. Recargue la página e inténtelo de nuevo.",
 
   "footer.kicker": "Archivo · Navegación · Correspondencia",
   "footer.title": "Secciones del proyecto",
