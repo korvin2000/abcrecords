@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import { AnimatePresence, m } from "framer-motion";
 import clsx from "clsx";
 import { LANGUAGES, type Lang } from "@/lib/languages";
 import { audio } from "@/lib/audio";
+import { useDismissOnOutside } from "@/lib/dismiss";
 import { Flag } from "./Flag";
 
 interface Props {
@@ -30,32 +31,15 @@ interface Props {
  */
 export function LanguageMenu({ value, options, onSelect, variant, title, heading }: Props) {
   const [open, setOpen] = useState(false);
-  const rootRef = useRef<HTMLDivElement>(null);
 
   const items = LANGUAGES.filter((l) => options.includes(l.code));
   const current = LANGUAGES.find((l) => l.code === value) ?? items[0];
 
-  // Dismiss on outside click / Escape — a menu, not a modal. The key handler
-  // runs in the capture phase and stops propagation so that Escape closes
+  // Dismiss on outside click / Escape — a menu, not a modal. The shared hook
+  // handles Escape in the capture phase and stops propagation, so Escape closes
   // ONLY the menu, not the codex modal listening behind it.
-  useEffect(() => {
-    if (!open) return;
-    const onPointer = (e: PointerEvent) => {
-      if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.stopPropagation();
-        setOpen(false);
-      }
-    };
-    window.addEventListener("pointerdown", onPointer);
-    window.addEventListener("keydown", onKey, { capture: true });
-    return () => {
-      window.removeEventListener("pointerdown", onPointer);
-      window.removeEventListener("keydown", onKey, { capture: true });
-    };
-  }, [open]);
+  const close = useCallback(() => setOpen(false), []);
+  const rootRef = useDismissOnOutside<HTMLDivElement>(open, close);
 
   const toggle = () => {
     audio.click();

@@ -33,12 +33,26 @@ See [`app/README.md`](../app/README.md) for the full layer table.
   tolerant per spec: unknown blocks render inner content, unclosed fences
   warn), rendering via react-markdown + remark-gfm + a custom
   `==highlight==` remark plugin → `<mark>`.
-- **Search** (`src/lib/search.ts`): diacritic folding + bounded Cyrillic↔Latin
+- **Search** (`src/lib/search/`): diacritic folding + bounded Cyrillic↔Latin
   transliteration variant expansion; the Latin slug doubles as a haystack so
   Latin queries reach Cyrillic-titled entries. One index searches ALL
   languages; `App` orders results native-language-first and `CharacterGrid`
   renders foreign finds behind a burgundy divider as dimmed red-tinted cards
-  with flag chips (`CharacterCard foreign` prop).
+  with flag chips (`CharacterCard foreign` prop). Beside the free-text query
+  there is a **refinement panel** (`src/components/search/`) over one
+  `SearchCriteria` value: language scope, gender, craft, country from
+  `index.json`, and given/family name plus birth/death year ranges from the
+  dossiers. Layers: `fold · docs · scoring · criteria · predicates · engine`.
+- **Dossier facts index** (`src/lib/dossier/`): the one background crawl of
+  every listed entry's `*.bio.json`, shared by the name/year criteria and the
+  herald's "on this day" lookup. Bounded concurrency, idle-scheduled, throttled
+  notifications, dossier-only (never the article), cache-shared with the codex.
+  Tunable in `src/config.ts`.
+- **Herald** (`src/lib/herald/` + `src/components/herald/`): the line under the
+  title is dynamic — the catalogue's subtitle, then a birth/death anniversary
+  falling on today (births take precedence), then a saying from
+  `pages/quotes/quote-<lang>.json`, taking turns every 30 s. Four tones from one
+  static table; gendered sentences pick a whole template (`.m`/`.f`/`.x`).
 - **i18n** (`src/lib/i18n.tsx` + `src/lib/messages/*.ts`): TEN UI languages
   (en es ja de fr it pt ru zh ko — registry in `src/lib/languages.ts`), one
   complete dictionary per language typed against the ru key set,

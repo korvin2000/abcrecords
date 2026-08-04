@@ -34,7 +34,10 @@ The paths declared by `index.json` continue to use the application base.
 | Content root | `vite.config.ts` `publicDir: ../pages` | `index.json` drives the grid; lightweight `.bio.json` metadata is cached/prefetched while biography Markdown stays lazy until a codex opens. |
 | BioMD Lite | `src/lib/biomd/` | Recursive `::: block` parser (`lead/align/image/images/document/columns/column/nav`, unknown blocks render their content per spec) + react-markdown (GFM) + `==highlight==` remark plugin. Image properties: `src/position/size/alt/caption/link/frame`. |
 | Metadata | `src/lib/metadata.ts` | `DD.MM.YYYY` parsed explicitly (never `new Date(string)`), comma-lists split on demand, ISO countries localized via `Intl.DisplayNames`, `ranking` → 1–5 renown stars. |
-| Search | `src/lib/search.ts` | Case/diacritic folding + bounded Cyrillic↔Latin transliteration variants («сеговия» → Segovia; "jovan" → Јован via the Latin slug). |
+| Search | `src/lib/search/` | `fold` (case/diacritics + bounded Cyrillic↔Latin transliteration: «сеговия» → Segovia) · `docs` (weighted pre-folded corpus) · `scoring` (relevance) · `criteria` (the form state + its compiled form) · `predicates` (index-only vs dossier-backed filters) · `engine` (one pass, cheapest filter first). |
+| Advanced search | `src/components/search/` · `src/components/form/` | A refinement panel behind the search bar: language scope, gender, craft, country, given/family name, birth & death year ranges. Controlled view of one `SearchCriteria`; the quick facet chips bind to the same value. |
+| Dossier facts | `src/lib/dossier/` | The one crawl of every listed entry's `*.bio.json`, shared by name/year search and the herald. Bounded concurrency, idle-scheduled, throttled notifications, read via `useSyncExternalStore`; shares `catalog.ts`'s per-path cache and never fetches article text. |
+| Herald | `src/lib/herald/` · `src/components/herald/` | The dynamic line under the title: the catalogue's own subtitle, then "on this day" (births take precedence over deaths), then a saying from `pages/quotes/quote-<lang>.json`, taking turns every 30 s. Four tones (default/birth/mourning/quote) from one static table. |
 | i18n | `src/lib/i18n.tsx` | ru (primary) / en, `Intl.PluralRules`, persisted in localStorage. |
 | Sound | `src/lib/audio.ts` | Procedural WebAudio (no audio files): hover/click/page-turn SFX, ambient drone, and a deterministic per-entry theme from `f = f₀·2^(n/12)` seeded by the entry slug. |
 | Audio player | `src/lib/playback.ts` · `src/lib/midi.ts` · `src/components/AudioPlayer.tsx` | Built-in player for `media.music` and audio links in biographies. Native `<audio>` (mp3/wav/ogg/…) plus a MIDI synth (`.mid` parsed with the lazily-loaded `@tonejs/midi`, rendered through oscillators — no SoundFont). One source sounds at a time; every player also offers a download. |
@@ -51,8 +54,11 @@ The paths declared by `index.json` continue to use the application base.
   lazy loading and procedural SVG fallbacks.
 - Fonts are self-hosted with `unicode-range`; Garamond uses one variable
   weight file per script instead of several static weights.
-- `/fable/` production build: ≈ 121 KB initial gzip JS + 12.6 KB CSS;
-  Codex/Markdown adds ≈ 55 KB gzip only when first opened.
+- `/fable/` production build: ≈ 135 KB initial gzip JS + 15.6 KB CSS;
+  Codex/Markdown adds ≈ 59 KB gzip only when first opened.
+- The dossier facts crawl is the one many-request feature: bounded concurrency,
+  idle-scheduled, throttled notifications, and it reuses the codex's own cache
+  rather than competing with it. Tunable (or switchable off) in `src/config.ts`.
 
 ## Architecture docs
 

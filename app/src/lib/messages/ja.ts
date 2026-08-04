@@ -35,6 +35,26 @@ export const ja: Record<MsgKey, Message> = {
   "search.empty.hint": "写本にその名の記録はありません。別の名を試すか、絞り込みを解いてください。",
   "search.otherLangs": "他の言語で見つかった記録",
 
+  "search.advanced": "検索を絞り込む",
+  "search.advanced.hide": "絞り込みを隠す",
+  "search.advanced.title": "詳細検索",
+  "search.advanced.reset": "絞り込みを解除",
+  "search.refinements": { other: "絞り込み {n} 件" },
+  "search.scope": "記録の言語",
+  "search.scope.all": "すべての言語",
+  "search.scope.current": "現在の言語のみ",
+  "search.gender": "性別",
+  "search.gender.any": "指定しない",
+  "search.forename": "名",
+  "search.surname": "姓",
+  "search.country.any": "すべての国",
+  "search.born": "生年",
+  "search.died": "没年",
+  "search.yearFrom": "から",
+  "search.yearTo": "まで",
+  "search.dossier.hint": "名・姓・年は各記録の名簿から読み取ります。",
+  "search.dossier.progress": "名簿を照合中 — {n}%",
+
   "facet.type": "生業",
   "facet.country": "国",
 
@@ -46,6 +66,16 @@ export const ja: Record<MsgKey, Message> = {
 
   "card.open": "記録を開く:{name}",
   "card.foreignHint": "利用可能な言語:{langs}",
+
+  "herald.label.born": "この日 · 誕生",
+  "herald.label.died": "この日 · 追悼",
+  "herald.label.quote": "語録より",
+  "herald.born.m": "本日でちょうど{years}前、{name}が生まれました",
+  "herald.born.f": "本日でちょうど{years}前、{name}が生まれました",
+  "herald.born.x": "本日でちょうど{years}前 — {name}の誕生日",
+  "herald.died.m": "本日でちょうど{years}前、{name}が世を去りました",
+  "herald.died.f": "本日でちょうど{years}前、{name}が世を去りました",
+  "herald.died.x": "本日でちょうど{years}前 — {name}を追悼して",
 
   "codex.entry": "❖ 写本の記録 ❖",
   "codex.close": "✕ 写本を閉じる",

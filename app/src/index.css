@@ -218,6 +218,350 @@ body {
 }
 
 /* ============================================================
+   Search refinement panel (components/search/AdvancedSearchPanel)
+   A parchment leaf that slides out from under the search bar: the codex's
+   double frame, a gold-lit heading rule, and a scroll of its own on short
+   screens so it never pushes the grid around.
+
+   NB: `position` is owned here (the heading rules are ::before/::after), so
+   this element must not also carry a Tailwind position utility.
+   ============================================================ */
+.search-panel {
+  position: relative;
+  max-height: min(72vh, 40rem);
+  overflow-y: auto;
+  padding: 1.15rem 1.35rem 1rem;
+  border: 1.5px solid rgba(184, 144, 42, 0.7);
+  outline: 1px solid rgba(84, 56, 30, 0.35);
+  outline-offset: -5px;
+  border-radius: 10px;
+  background:
+    radial-gradient(600px 200px at 50% 0%, rgba(212, 175, 55, 0.14), transparent 70%),
+    linear-gradient(180deg, rgba(250, 245, 230, 0.98), rgba(240, 230, 203, 0.97));
+  box-shadow:
+    inset 0 0 30px rgba(138, 106, 31, 0.1),
+    0 14px 40px rgba(51, 34, 15, 0.28);
+  backdrop-filter: blur(3px);
+}
+
+.search-panel-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  margin: 0 0 0.95rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(184, 144, 42, 0.4);
+  color: var(--color-sepia-600);
+  font-family: var(--font-heading);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+.search-panel-title > span {
+  color: var(--color-gold-600);
+}
+
+@media (max-width: 480px) {
+  .search-panel { padding: 0.95rem 0.9rem 0.85rem; }
+}
+
+/* ============================================================
+   Form atoms (components/form/) — ink on paper, gold hairlines.
+   Shared by the search refinement panel and anything built after it.
+   ============================================================ */
+.form-ink {
+  width: 100%;
+  padding: 0.4rem 0.65rem;
+  border: 1px solid rgba(184, 144, 42, 0.45);
+  border-radius: 3px;
+  color: var(--color-ink-900);
+  background: rgba(250, 245, 230, 0.75);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  line-height: 1.35;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+.form-ink::placeholder {
+  color: rgba(138, 111, 77, 0.6);
+  font-style: italic;
+}
+.form-ink:hover {
+  border-color: rgba(184, 144, 42, 0.75);
+}
+.form-ink:focus {
+  outline: none;
+  border-color: var(--color-gold-600);
+  background: rgba(251, 243, 210, 0.9);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.18);
+}
+
+/* Native select: only the closed control is restyled; the open list stays the
+   platform's, which is the right trade on a phone and with a screen reader. */
+.form-select-shell {
+  position: relative;
+  display: block;
+}
+.form-select {
+  appearance: none;
+  padding-right: 1.9rem;
+  cursor: pointer;
+}
+.form-select-chevron {
+  position: absolute;
+  top: 50%;
+  right: 0.6rem;
+  width: 0.6rem;
+  height: 0.4rem;
+  transform: translateY(-50%);
+  color: var(--color-gold-700);
+  pointer-events: none;
+}
+
+/* Segmented one-of-few strip. */
+.form-segments {
+  display: inline-flex;
+  overflow: hidden;
+  border: 1px solid rgba(184, 144, 42, 0.45);
+  border-radius: 999px;
+  background: rgba(250, 245, 230, 0.7);
+}
+.form-segment {
+  padding: 0.32rem 0.8rem;
+  border: none;
+  border-left: 1px solid rgba(184, 144, 42, 0.28);
+  color: var(--color-sepia-600);
+  background: transparent;
+  font-family: var(--font-heading);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 0.2s, background 0.2s;
+}
+.form-segment:first-child {
+  border-left: none;
+}
+.form-segment:hover {
+  color: var(--color-ink-800);
+  background: rgba(212, 175, 55, 0.14);
+}
+.form-segment--on,
+.form-segment--on:hover {
+  color: var(--color-paper-50);
+  background: linear-gradient(180deg, var(--color-burgundy-500), var(--color-burgundy-700));
+}
+.form-segment:focus-visible {
+  outline: 2px solid var(--color-gold-600);
+  outline-offset: -2px;
+}
+
+/* ============================================================
+   Herald plaque — the dynamic line under the title
+   (components/herald/, tone table in components/herald/tones.ts)
+
+   One shell, four tones. The tone only ever changes the wash, the hairlines
+   and the border, and all three are transitioned, so the plaque tints itself
+   across a message change while the text cross-fades on top of it.
+
+   NB: `.herald` owns `position` (the corner ornaments and the two inner rules
+   are absolutely positioned against it). This file is unlayered, so it beats
+   Tailwind's layered utilities — do not put `relative`/`absolute` classes on
+   the same element.
+   ============================================================ */
+.herald {
+  position: relative;
+  padding: 1.15rem 2.1rem;
+  border: 1px solid rgba(184, 144, 42, 0.5);
+  outline: 1px solid rgba(84, 56, 30, 0.22);
+  outline-offset: -5px;
+  border-radius: 2px;
+  background:
+    radial-gradient(520px 150px at 50% 0%, rgba(212, 175, 55, 0.14), transparent 70%),
+    repeating-linear-gradient(
+      96deg,
+      rgba(107, 74, 42, 0.022) 0,
+      rgba(107, 74, 42, 0.022) 1px,
+      transparent 1px,
+      transparent 5px
+    ),
+    linear-gradient(180deg, rgba(250, 245, 230, 0.9), rgba(236, 223, 192, 0.82));
+  box-shadow:
+    inset 0 0 26px rgba(138, 106, 31, 0.09),
+    0 4px 16px rgba(51, 34, 15, 0.1);
+  transition:
+    background 0.7s ease,
+    border-color 0.7s ease,
+    box-shadow 0.7s ease;
+}
+
+/* Two hairlines echo the colophon's rules and keep the text off the border. */
+.herald::before,
+.herald::after {
+  content: "";
+  position: absolute;
+  left: 2.2rem;
+  right: 2.2rem;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(184, 144, 42, 0.5), transparent);
+  transition: background 0.7s ease;
+}
+.herald::before { top: 0.5rem; }
+.herald::after { bottom: 0.5rem; }
+
+.herald-corner {
+  position: absolute;
+  z-index: 1;
+  width: 1.4rem;
+  height: 1.4rem;
+  pointer-events: none;
+  opacity: 0.85;
+  transition: opacity 0.7s ease;
+}
+
+/* A settled height, so a short saying following a long sentence does not make
+   the whole page jump. */
+.herald-body {
+  position: relative;
+  display: flex;
+  min-height: 3.5rem;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+}
+
+.herald-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+  font-family: var(--font-heading);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+
+.herald-line {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 1.02rem;
+  line-height: 1.5;
+  text-wrap: balance;
+}
+@media (min-width: 640px) {
+  .herald-line { font-size: 1.12rem; }
+}
+
+/* The anniversary line leads into the codex, so it is a button — styled as
+   prose, with the affordance carried by a gold underline on hover. */
+.herald-line-link {
+  display: block;
+  width: 100%;
+  border: none;
+  background: none;
+  color: inherit;
+  text-align: inherit;
+  cursor: pointer;
+  padding: 0.1rem 0;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.25s ease, color 0.25s ease;
+}
+.herald-line-link:hover {
+  border-bottom-color: rgba(184, 144, 42, 0.75);
+}
+.herald-line-link:focus-visible {
+  outline: 2px solid var(--color-burgundy-600);
+  outline-offset: 3px;
+}
+
+.herald-quote { margin: 0; }
+.herald-quote-mark {
+  color: rgba(184, 144, 42, 0.8);
+  font-family: var(--font-display);
+  font-size: 1.15em;
+}
+.herald-quote-author {
+  display: block;
+  margin-top: 0.45rem;
+  font-family: var(--font-heading);
+  font-size: 0.72rem;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-sepia-600);
+}
+
+/* ---- tones -------------------------------------------------------------- */
+
+/* A birth: warmer paper, a brighter gold frame and a slow halo — glad, but
+   still ink on parchment. */
+.herald--birth {
+  border-color: rgba(212, 175, 55, 0.85);
+  background:
+    radial-gradient(560px 170px at 50% 0%, rgba(212, 175, 55, 0.3), transparent 72%),
+    linear-gradient(180deg, rgba(251, 243, 210, 0.96), rgba(244, 236, 214, 0.9));
+  box-shadow:
+    inset 0 0 34px rgba(212, 175, 55, 0.2),
+    0 4px 20px rgba(138, 106, 31, 0.18);
+  animation: herald-halo 7s ease-in-out infinite;
+}
+.herald--birth::before,
+.herald--birth::after {
+  background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.8), transparent);
+}
+
+@keyframes herald-halo {
+  0%, 100% { box-shadow: inset 0 0 34px rgba(212, 175, 55, 0.2), 0 4px 20px rgba(138, 106, 31, 0.18); }
+  50% { box-shadow: inset 0 0 44px rgba(212, 175, 55, 0.32), 0 4px 26px rgba(138, 106, 31, 0.26); }
+}
+
+/* A death: cooler, greyer paper inside a burgundy mourning band. */
+.herald--mourning {
+  border-color: rgba(94, 18, 32, 0.55);
+  outline-color: rgba(94, 18, 32, 0.3);
+  background:
+    radial-gradient(520px 160px at 50% 0%, rgba(122, 31, 43, 0.12), transparent 72%),
+    linear-gradient(180deg, rgba(238, 230, 210, 0.94), rgba(220, 206, 178, 0.9));
+  box-shadow:
+    inset 0 0 30px rgba(74, 13, 24, 0.12),
+    0 4px 16px rgba(51, 34, 15, 0.16);
+}
+.herald--mourning::before,
+.herald--mourning::after {
+  background: linear-gradient(90deg, transparent, rgba(122, 31, 43, 0.5), transparent);
+}
+
+/* A saying: the quietest tone — plain aged paper, sepia rules. */
+.herald--quote {
+  border-color: rgba(138, 106, 31, 0.5);
+  background:
+    repeating-linear-gradient(
+      96deg,
+      rgba(107, 74, 42, 0.03) 0,
+      rgba(107, 74, 42, 0.03) 1px,
+      transparent 1px,
+      transparent 6px
+    ),
+    linear-gradient(180deg, rgba(246, 239, 219, 0.92), rgba(232, 219, 188, 0.86));
+}
+.herald--quote::before,
+.herald--quote::after {
+  background: linear-gradient(90deg, transparent, rgba(138, 106, 31, 0.45), transparent);
+}
+
+@media (max-width: 480px) {
+  .herald { padding: 1rem 1.2rem; }
+  .herald::before, .herald::after { left: 1.1rem; right: 1.1rem; }
+  .herald-corner { width: 1.1rem; height: 1.1rem; }
+}
+
+/* ============================================================
    Project footer / archival colophon
    ============================================================ */
 .site-footer-shell {

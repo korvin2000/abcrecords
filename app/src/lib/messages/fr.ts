@@ -37,6 +37,26 @@ export const fr: Record<MsgKey, Message> = {
   "search.empty.hint": "Le codex ne garde aucune trace de ce nom. Essayez autrement, ou levez les filtres.",
   "search.otherLangs": "Trouvé en d'autres langues",
 
+  "search.advanced": "Affiner la recherche",
+  "search.advanced.hide": "Masquer les précisions",
+  "search.advanced.title": "Recherche avancée",
+  "search.advanced.reset": "Effacer les précisions",
+  "search.refinements": { one: "{n} précision", other: "{n} précisions" },
+  "search.scope": "Langues des entrées",
+  "search.scope.all": "Toutes les langues",
+  "search.scope.current": "La langue actuelle",
+  "search.gender": "Sexe",
+  "search.gender.any": "Indifférent",
+  "search.forename": "Prénom",
+  "search.surname": "Nom de famille",
+  "search.country.any": "Tout pays",
+  "search.born": "Années de naissance",
+  "search.died": "Années de décès",
+  "search.yearFrom": "de",
+  "search.yearTo": "à",
+  "search.dossier.hint": "Prénom, nom et années se lisent dans les dossiers des entrées.",
+  "search.dossier.progress": "Consultation des dossiers — {n} %",
+
   "facet.type": "Métier",
   "facet.country": "Pays",
 
@@ -48,6 +68,16 @@ export const fr: Record<MsgKey, Message> = {
 
   "card.open": "Ouvrir l'entrée : {name}",
   "card.foreignHint": "Disponible en : {langs}",
+
+  "herald.label.born": "Ce jour-là · une naissance",
+  "herald.label.died": "Ce jour-là · en mémoire",
+  "herald.label.quote": "Du livre des paroles",
+  "herald.born.m": "Il y a exactement {years} naissait {name}",
+  "herald.born.f": "Il y a exactement {years} naissait {name}",
+  "herald.born.x": "Il y a exactement {years} — anniversaire de {name}",
+  "herald.died.m": "Il y a exactement {years} mourait {name}",
+  "herald.died.f": "Il y a exactement {years} mourait {name}",
+  "herald.died.x": "Il y a exactement {years} — en mémoire de {name}",
 
   "codex.entry": "❖ ENTRÉE DU CODEX ❖",
   "codex.close": "✕ Fermer le codex",

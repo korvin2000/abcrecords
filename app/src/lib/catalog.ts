@@ -236,15 +236,27 @@ function fetchText(path: string): Promise<string | null> {
   );
 }
 
+/**
+ * One language edition of an entry's dossier, without its article. Callers
+ * that only need metadata (the facts index behind date search and the
+ * herald's "on this day" lookup) must not drag the Markdown along — but they
+ * do share `loadEntry`'s cache, so warming the index makes opening a codex
+ * cheaper rather than more expensive.
+ *
+ * A page declares no dossier, so it resolves to null without a request.
+ */
+export function loadEntryData(entry: IndexEntry, lang: Lang): Promise<EntryData | null> {
+  return entry.json ? fetchJson(localizeContentPath(entry.json, lang)) : Promise.resolve(null);
+}
+
 /** Load (and cache) one language edition of an entry — dossier + article in
- *  parallel. A page declares no dossier, so its `data` is null without a
- *  request; a missing file also fails soft to null. */
+ *  parallel. A missing file fails soft to null. */
 export function loadEntry(entry: IndexEntry, lang: Lang): Promise<EntryBundle> {
   const key = `${slugOf(entry)}::${lang}`;
   let request = bundleCache.get(key);
   if (!request) {
     request = Promise.all([
-      entry.json ? fetchJson(localizeContentPath(entry.json, lang)) : Promise.resolve(null),
+      loadEntryData(entry, lang),
       fetchText(localizeContentPath(entry.md, lang)),
     ]).then(([data, md]) => ({ data, md }));
     bundleCache.set(key, request);

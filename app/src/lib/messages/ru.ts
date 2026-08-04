@@ -42,6 +42,31 @@ export const ru = {
   "search.empty.hint": "В кодексе нет записи с таким именем. Попробуйте иначе или снимите фильтры.",
   "search.otherLangs": "Найдено на других языках",
 
+  "search.advanced": "Уточнить поиск",
+  "search.advanced.hide": "Скрыть уточнения",
+  "search.advanced.title": "Расширенный поиск",
+  "search.advanced.reset": "Сбросить уточнения",
+  "search.refinements": {
+    one: "{n} уточнение",
+    few: "{n} уточнения",
+    many: "{n} уточнений",
+    other: "{n} уточнения",
+  } as Plural,
+  "search.scope": "Языки записей",
+  "search.scope.all": "Все языки",
+  "search.scope.current": "Только текущий",
+  "search.gender": "Пол",
+  "search.gender.any": "Любой",
+  "search.forename": "Имя",
+  "search.surname": "Фамилия",
+  "search.country.any": "Любая страна",
+  "search.born": "Годы рождения",
+  "search.died": "Годы смерти",
+  "search.yearFrom": "от",
+  "search.yearTo": "до",
+  "search.dossier.hint": "Имя, фамилия и годы читаются из досье записей.",
+  "search.dossier.progress": "Сверяем досье — {n}%",
+
   "facet.type": "Ремесло",
   "facet.country": "Страна",
 
@@ -53,6 +78,19 @@ export const ru = {
 
   "card.open": "Открыть запись: {name}",
   "card.foreignHint": "Доступно на: {langs}",
+
+  // The herald block under the title. `{years}` is already a localized
+  // quantity ("134 года") — see lore.years; `.x` is the gender-free wording
+  // used for groups and for entries whose gender is not recorded.
+  "herald.label.born": "В этот день · рождение",
+  "herald.label.died": "В этот день · память",
+  "herald.label.quote": "Из книги изречений",
+  "herald.born.m": "Сегодня ровно {years} назад родился {name}",
+  "herald.born.f": "Сегодня ровно {years} назад родилась {name}",
+  "herald.born.x": "Сегодня ровно {years} назад — день рождения: {name}",
+  "herald.died.m": "Сегодня ровно {years} назад умер {name}",
+  "herald.died.f": "Сегодня ровно {years} назад умерла {name}",
+  "herald.died.x": "Сегодня ровно {years} назад — день памяти: {name}",
 
   "codex.entry": "❖ ЗАПИСЬ В КОДЕКСЕ ❖",
   "codex.close": "✕ Закрыть кодекс",

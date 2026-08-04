@@ -1,0 +1,1 @@
+export { HeraldBanner } from "./HeraldBanner";

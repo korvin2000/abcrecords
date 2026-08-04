@@ -37,6 +37,26 @@ export const it: Record<MsgKey, Message> = {
   "search.empty.hint": "Il codice non serba alcuna voce con questo nome. Prova diversamente o togli i filtri.",
   "search.otherLangs": "Trovato in altre lingue",
 
+  "search.advanced": "Affina la ricerca",
+  "search.advanced.hide": "Nascondi le precisazioni",
+  "search.advanced.title": "Ricerca avanzata",
+  "search.advanced.reset": "Azzera le precisazioni",
+  "search.refinements": { one: "{n} precisazione", other: "{n} precisazioni" },
+  "search.scope": "Lingue delle voci",
+  "search.scope.all": "Tutte le lingue",
+  "search.scope.current": "Solo quella corrente",
+  "search.gender": "Sesso",
+  "search.gender.any": "Qualsiasi",
+  "search.forename": "Nome",
+  "search.surname": "Cognome",
+  "search.country.any": "Qualsiasi paese",
+  "search.born": "Anni di nascita",
+  "search.died": "Anni di morte",
+  "search.yearFrom": "da",
+  "search.yearTo": "a",
+  "search.dossier.hint": "Nome, cognome e anni si leggono nei dossier delle voci.",
+  "search.dossier.progress": "Consultazione dei dossier — {n}%",
+
   "facet.type": "Mestiere",
   "facet.country": "Paese",
 
@@ -48,6 +68,16 @@ export const it: Record<MsgKey, Message> = {
 
   "card.open": "Apri la voce: {name}",
   "card.foreignHint": "Disponibile in: {langs}",
+
+  "herald.label.born": "In questo giorno · una nascita",
+  "herald.label.died": "In questo giorno · in memoria",
+  "herald.label.quote": "Dal libro dei detti",
+  "herald.born.m": "Oggi, esattamente {years} fa, nasceva {name}",
+  "herald.born.f": "Oggi, esattamente {years} fa, nasceva {name}",
+  "herald.born.x": "Oggi, esattamente {years} fa — genetliaco di {name}",
+  "herald.died.m": "Oggi, esattamente {years} fa, moriva {name}",
+  "herald.died.f": "Oggi, esattamente {years} fa, moriva {name}",
+  "herald.died.x": "Oggi, esattamente {years} fa — in memoria di {name}",
 
   "codex.entry": "❖ VOCE DEL CODICE ❖",
   "codex.close": "✕ Chiudi il codice",

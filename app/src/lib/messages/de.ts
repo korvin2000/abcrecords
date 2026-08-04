@@ -37,6 +37,26 @@ export const de: Record<MsgKey, Message> = {
   "search.empty.hint": "Der Kodex kennt keinen Eintrag mit diesem Namen. Versuchen Sie es anders oder lösen Sie die Filter.",
   "search.otherLangs": "In anderen Sprachen gefunden",
 
+  "search.advanced": "Suche verfeinern",
+  "search.advanced.hide": "Verfeinerungen verbergen",
+  "search.advanced.title": "Erweiterte Suche",
+  "search.advanced.reset": "Verfeinerungen zurücksetzen",
+  "search.refinements": { one: "{n} Verfeinerung", other: "{n} Verfeinerungen" },
+  "search.scope": "Sprachen der Einträge",
+  "search.scope.all": "Alle Sprachen",
+  "search.scope.current": "Nur die aktuelle",
+  "search.gender": "Geschlecht",
+  "search.gender.any": "Beliebig",
+  "search.forename": "Vorname",
+  "search.surname": "Familienname",
+  "search.country.any": "Beliebiges Land",
+  "search.born": "Geburtsjahre",
+  "search.died": "Sterbejahre",
+  "search.yearFrom": "von",
+  "search.yearTo": "bis",
+  "search.dossier.hint": "Vorname, Familienname und Jahre stehen in den Dossiers der Einträge.",
+  "search.dossier.progress": "Dossiers werden gelesen — {n}%",
+
   "facet.type": "Handwerk",
   "facet.country": "Land",
 
@@ -48,6 +68,16 @@ export const de: Record<MsgKey, Message> = {
 
   "card.open": "Eintrag öffnen: {name}",
   "card.foreignHint": "Verfügbar auf: {langs}",
+
+  "herald.label.born": "An diesem Tag · eine Geburt",
+  "herald.label.died": "An diesem Tag · zum Gedenken",
+  "herald.label.quote": "Aus dem Buch der Sprüche",
+  "herald.born.m": "Heute vor genau {years} wurde {name} geboren",
+  "herald.born.f": "Heute vor genau {years} wurde {name} geboren",
+  "herald.born.x": "Heute vor genau {years} — Geburtstag von {name}",
+  "herald.died.m": "Heute vor genau {years} starb {name}",
+  "herald.died.f": "Heute vor genau {years} starb {name}",
+  "herald.died.x": "Heute vor genau {years} — zum Gedenken an {name}",
 
   "codex.entry": "❖ EINTRAG IM KODEX ❖",
   "codex.close": "✕ Kodex schließen",

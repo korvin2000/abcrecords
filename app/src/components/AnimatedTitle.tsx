@@ -109,14 +109,9 @@ export function AnimatedTitle() {
         <Divider className="mx-auto mt-5 w-full max-w-md" />
       </m.div>
 
-      <m.p
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1.05 }}
-        className="mx-auto mt-3 max-w-2xl font-body text-base italic text-sepia-600 sm:text-lg"
-      >
-        {t("app.subtitle")}
-      </m.p>
+      {/* The line under the rule is no longer static: `<HeraldBanner>` (mounted
+          by App right below this header) opens with `app.subtitle` and then
+          takes turns with "on this day" and the book of sayings. */}
     </header>
   );
 }

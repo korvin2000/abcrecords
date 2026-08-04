@@ -1,17 +1,27 @@
 import { Suspense, useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import clsx from "clsx";
+import { DOSSIER, FEATURES, HERALD } from "@/config";
 import { LANG_CODES } from "@/lib/languages";
 import { EMPTY_CATALOG } from "@/lib/catalog";
 import { countryName } from "@/lib/metadata";
-import { buildSearchIndex, searchEntries, type SearchFilters } from "@/lib/search";
+import { NO_FACTS, useFacts } from "@/lib/dossier";
+import {
+  buildSearchIndex,
+  compile,
+  searchEntries,
+  withoutRefinements,
+  EMPTY_CRITERIA,
+  type SearchCriteria,
+} from "@/lib/search";
 import { audio } from "@/lib/audio";
 import { typeLabel, useI18n } from "@/lib/i18n";
 import { useAudioUnlock, useCatalog, useHashRoute } from "@/lib/hooks";
 import { Background } from "@/components/Background";
 import { AnimatedTitle } from "@/components/AnimatedTitle";
+import { HeraldBanner } from "@/components/herald";
 import { LanguageMenu } from "@/components/LanguageMenu";
-import { SearchBar } from "@/components/SearchBar";
+import { SearchBar } from "@/components/search";
 import { CharacterGrid } from "@/components/CharacterGrid";
 import { LazyCodexModal } from "@/components/codex/LazyCodexModal";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -21,13 +31,9 @@ export default function App() {
   useAudioUnlock();
   const { state, retry } = useCatalog(lang);
   const { selectedSlug, openEntry } = useHashRoute();
-  const [query, setQuery] = useState("");
+  const [criteria, setCriteria] = useState<SearchCriteria>(EMPTY_CRITERIA);
   // Typing stays on the input's own frame; the grid re-ranks behind it.
-  const deferredQuery = useDeferredValue(query);
-  const [filters, setFilters] = useState<SearchFilters>({
-    types: new Set<string>(),
-    countries: new Set<string>(),
-  });
+  const deferredCriteria = useDeferredValue(criteria);
   const [sound, setSound] = useState(true);
   const [ambient, setAmbient] = useState(false);
 
@@ -39,24 +45,39 @@ export default function App() {
   // language — never per keystroke.
   const docs = useMemo(() => buildSearchIndex(catalog.listed, catalog.names), [catalog]);
 
+  // Parsing years, folding name terms and collapsing "unset" to null happen
+  // once per criteria change, not once per entry.
+  const compiled = useMemo(() => compile(deferredCriteria), [deferredCriteria]);
+
+  // Dossier metadata is read in the background: always for the herald's "on
+  // this day" lookup, and on demand the moment a criterion needs a name or a
+  // year. Both readers share one crawl (see lib/dossier).
+  const heraldWantsFacts = FEATURES.herald && HERALD.anniversaries && DOSSIER.warmOnIdle;
+  const facts = useFacts(catalog.listed, lang, heraldWantsFacts || compiled.needsDossier);
+
+  // Handing the search a stable empty map unless it actually reads dossiers
+  // keeps the streaming index from re-running the search on every batch.
+  const searchFacts = compiled.needsDossier ? facts.bySlug : NO_FACTS;
+
   // One shared index searches all tongues; entries available in the chosen
   // language lead, the rest follow after a divider (dimmed, flagged in the
   // grid). Relevance order survives the split. ← → matches this visual order.
   const { results, nativeCount } = useMemo(() => {
-    const found = searchEntries(docs, deferredQuery, filters);
+    const found = searchEntries(docs, compiled, { lang, facts: searchFacts });
     const native = found.filter((d) => d.record.langs.includes(lang));
     const foreign = found.filter((d) => !d.record.langs.includes(lang));
     return {
       results: [...native, ...foreign].map((d) => d.record),
       nativeCount: native.length,
     };
-  }, [docs, deferredQuery, filters, lang]);
+  }, [docs, compiled, searchFacts, lang]);
 
   // resonate with the search: chime on first match, low hum on none.
-  // Keyed to the deferred query so the sound matches what is on screen.
+  // Keyed to the deferred criteria so the sound matches what is on screen.
+  const searching = compiled.tokens.length > 0 || compiled.needsDossier;
   const prevHasResults = useRef(true);
   useEffect(() => {
-    if (!deferredQuery.trim()) {
+    if (!searching) {
       prevHasResults.current = true;
       return;
     }
@@ -64,7 +85,7 @@ export default function App() {
     if (has && !prevHasResults.current) audio.found();
     else if (!has && prevHasResults.current) audio.error();
     prevHasResults.current = has;
-  }, [results.length, deferredQuery]);
+  }, [results.length, searching]);
 
   // Facet values are codes; readers see labels, so sort by the label in the
   // reader's locale — otherwise ISO codes order the country chips at random.
@@ -84,13 +105,12 @@ export default function App() {
     };
   }, [catalog, locale, t]);
 
-  const toggleFilter = useCallback((key: keyof SearchFilters, val: string) => {
-    setFilters((prev) => {
-      const next = { ...prev, [key]: new Set(prev[key]) };
-      if (next[key].has(val)) next[key].delete(val);
-      else next[key].add(val);
-      return next;
-    });
+  const patchCriteria = useCallback((patch: Partial<SearchCriteria>) => {
+    setCriteria((prev) => ({ ...prev, ...patch }));
+  }, []);
+
+  const resetRefinements = useCallback(() => {
+    setCriteria(withoutRefinements);
   }, []);
 
   // ← → leaf between entries while the codex is open (wraps around)
@@ -179,6 +199,7 @@ export default function App() {
 
       <main className="relative z-10 px-1 pb-16 pt-20 sm:px-2">
         <AnimatedTitle />
+        <HeraldBanner facts={facts.bySlug} onOpenEntry={openEntry} />
 
         {state.kind === "error" && (
           <div className="mx-auto mt-14 max-w-md px-6 text-center">
@@ -194,22 +215,25 @@ export default function App() {
         {state.kind === "ready" && (
           <>
             <SearchBar
-              value={query}
-              onChange={setQuery}
-              filters={filters}
-              onToggleType={(v) => toggleFilter("types", v)}
-              onToggleCountry={(v) => toggleFilter("countries", v)}
+              criteria={criteria}
+              onPatch={patchCriteria}
+              onReset={resetRefinements}
               types={facets.types}
               countries={facets.countries}
               resultCount={results.length}
               totalCount={catalog.listed.length}
+              dossier={{
+                active: compiled.needsDossier,
+                progress: facts.progress,
+                done: facts.done,
+              }}
             />
 
             {/* While a long query is still being ranked, dim rather than block */}
             <div
               className={clsx(
                 "mt-10 transition-opacity duration-200",
-                query !== deferredQuery && "opacity-60",
+                criteria !== deferredCriteria && "opacity-60",
               )}
             >
               <CharacterGrid records={results} nativeCount={nativeCount} onSelect={openEntry} />

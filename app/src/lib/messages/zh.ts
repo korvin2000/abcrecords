@@ -35,6 +35,26 @@ export const zh: Record<MsgKey, Message> = {
   "search.empty.hint": "法典中没有此名的记录。请换个名字,或解除筛选。",
   "search.otherLangs": "于其他语言中寻得",
 
+  "search.advanced": "细化检索",
+  "search.advanced.hide": "收起细化条件",
+  "search.advanced.title": "高级检索",
+  "search.advanced.reset": "清除细化条件",
+  "search.refinements": { other: "{n} 项细化条件" },
+  "search.scope": "记录语言",
+  "search.scope.all": "所有语言",
+  "search.scope.current": "仅当前语言",
+  "search.gender": "性别",
+  "search.gender.any": "不限",
+  "search.forename": "名",
+  "search.surname": "姓",
+  "search.country.any": "不限国别",
+  "search.born": "生年",
+  "search.died": "卒年",
+  "search.yearFrom": "自",
+  "search.yearTo": "至",
+  "search.dossier.hint": "姓、名与年份取自各条记录的档案。",
+  "search.dossier.progress": "正在查阅档案 — {n}%",
+
   "facet.type": "技艺",
   "facet.country": "国家",
 
@@ -46,6 +66,16 @@ export const zh: Record<MsgKey, Message> = {
 
   "card.open": "打开条目:{name}",
   "card.foreignHint": "可用语言:{langs}",
+
+  "herald.label.born": "是日 · 诞辰",
+  "herald.label.died": "是日 · 追念",
+  "herald.label.quote": "语录摘录",
+  "herald.born.m": "今日恰是{years}前,{name}诞生",
+  "herald.born.f": "今日恰是{years}前,{name}诞生",
+  "herald.born.x": "今日恰是{years}前 — {name}的诞辰",
+  "herald.died.m": "今日恰是{years}前,{name}辞世",
+  "herald.died.f": "今日恰是{years}前,{name}辞世",
+  "herald.died.x": "今日恰是{years}前 — 追念{name}",
 
   "codex.entry": "❖ 法典条目 ❖",
   "codex.close": "✕ 合上法典",

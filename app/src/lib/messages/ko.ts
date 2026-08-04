@@ -35,6 +35,26 @@ export const ko: Record<MsgKey, Message> = {
   "search.empty.hint": "코덱스에 그 이름의 기록이 없습니다. 다른 이름을 시도하거나 필터를 해제하세요.",
   "search.otherLangs": "다른 언어에서 발견됨",
 
+  "search.advanced": "검색 다듬기",
+  "search.advanced.hide": "세부 조건 숨기기",
+  "search.advanced.title": "상세 검색",
+  "search.advanced.reset": "세부 조건 지우기",
+  "search.refinements": { other: "세부 조건 {n}개" },
+  "search.scope": "기록의 언어",
+  "search.scope.all": "모든 언어",
+  "search.scope.current": "현재 언어만",
+  "search.gender": "성별",
+  "search.gender.any": "무관",
+  "search.forename": "이름",
+  "search.surname": "성",
+  "search.country.any": "모든 국가",
+  "search.born": "출생 연도",
+  "search.died": "사망 연도",
+  "search.yearFrom": "부터",
+  "search.yearTo": "까지",
+  "search.dossier.hint": "이름, 성, 연도는 각 기록의 조서에서 읽어옵니다.",
+  "search.dossier.progress": "조서를 살펴보는 중 — {n}%",
+
   "facet.type": "직분",
   "facet.country": "나라",
 
@@ -46,6 +66,16 @@ export const ko: Record<MsgKey, Message> = {
 
   "card.open": "기록 열기: {name}",
   "card.foreignHint": "이용 가능 언어: {langs}",
+
+  "herald.label.born": "이 날 · 탄생",
+  "herald.label.died": "이 날 · 추모",
+  "herald.label.quote": "어록에서",
+  "herald.born.m": "오늘로 정확히 {years} 전, {name}이(가) 태어났습니다",
+  "herald.born.f": "오늘로 정확히 {years} 전, {name}이(가) 태어났습니다",
+  "herald.born.x": "오늘로 정확히 {years} 전 — {name}의 생일",
+  "herald.died.m": "오늘로 정확히 {years} 전, {name}이(가) 세상을 떠났습니다",
+  "herald.died.f": "오늘로 정확히 {years} 전, {name}이(가) 세상을 떠났습니다",
+  "herald.died.x": "오늘로 정확히 {years} 전 — {name}을(를) 추모하며",
 
   "codex.entry": "❖ 코덱스의 기록 ❖",
   "codex.close": "✕ 코덱스 닫기",

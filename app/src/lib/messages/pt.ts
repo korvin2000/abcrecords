@@ -37,6 +37,26 @@ export const pt: Record<MsgKey, Message> = {
   "search.empty.hint": "O códice não guarda registo com esse nome. Tente de outro modo ou solte os filtros.",
   "search.otherLangs": "Encontrado noutras línguas",
 
+  "search.advanced": "Afinar a busca",
+  "search.advanced.hide": "Ocultar os afinamentos",
+  "search.advanced.title": "Busca avançada",
+  "search.advanced.reset": "Limpar os afinamentos",
+  "search.refinements": { one: "{n} afinamento", other: "{n} afinamentos" },
+  "search.scope": "Línguas das entradas",
+  "search.scope.all": "Todas as línguas",
+  "search.scope.current": "Apenas a actual",
+  "search.gender": "Sexo",
+  "search.gender.any": "Qualquer",
+  "search.forename": "Nome próprio",
+  "search.surname": "Sobrenome",
+  "search.country.any": "Qualquer país",
+  "search.born": "Anos de nascimento",
+  "search.died": "Anos de morte",
+  "search.yearFrom": "de",
+  "search.yearTo": "a",
+  "search.dossier.hint": "O nome, o sobrenome e os anos leem-se nos dossiês das entradas.",
+  "search.dossier.progress": "A consultar os dossiês — {n}%",
+
   "facet.type": "Ofício",
   "facet.country": "País",
 
@@ -48,6 +68,16 @@ export const pt: Record<MsgKey, Message> = {
 
   "card.open": "Abrir entrada: {name}",
   "card.foreignHint": "Disponível em: {langs}",
+
+  "herald.label.born": "Neste dia · um nascimento",
+  "herald.label.died": "Neste dia · em memória",
+  "herald.label.quote": "Do livro dos ditos",
+  "herald.born.m": "Hoje, há exactamente {years}, nascia {name}",
+  "herald.born.f": "Hoje, há exactamente {years}, nascia {name}",
+  "herald.born.x": "Hoje, há exactamente {years} — natalício de {name}",
+  "herald.died.m": "Hoje, há exactamente {years}, morria {name}",
+  "herald.died.f": "Hoje, há exactamente {years}, morria {name}",
+  "herald.died.x": "Hoje, há exactamente {years} — em memória de {name}",
 
   "codex.entry": "❖ ENTRADA NO CÓDICE ❖",
   "codex.close": "✕ Fechar o códice",

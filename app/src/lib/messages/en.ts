@@ -37,6 +37,26 @@ export const en: Record<MsgKey, Message> = {
   "search.empty.hint": "The codex holds no record matching your seek. Try another name, or release the filters.",
   "search.otherLangs": "Found in other languages",
 
+  "search.advanced": "Refine the search",
+  "search.advanced.hide": "Hide refinements",
+  "search.advanced.title": "Advanced search",
+  "search.advanced.reset": "Clear refinements",
+  "search.refinements": { one: "{n} refinement", other: "{n} refinements" },
+  "search.scope": "Entry languages",
+  "search.scope.all": "All languages",
+  "search.scope.current": "Current only",
+  "search.gender": "Gender",
+  "search.gender.any": "Any",
+  "search.forename": "Given name",
+  "search.surname": "Family name",
+  "search.country.any": "Any country",
+  "search.born": "Years of birth",
+  "search.died": "Years of death",
+  "search.yearFrom": "from",
+  "search.yearTo": "to",
+  "search.dossier.hint": "Given name, family name and years are read from the entries' dossiers.",
+  "search.dossier.progress": "Consulting the dossiers — {n}%",
+
   "facet.type": "Craft",
   "facet.country": "Country",
 
@@ -48,6 +68,16 @@ export const en: Record<MsgKey, Message> = {
 
   "card.open": "Open entry: {name}",
   "card.foreignHint": "Available in: {langs}",
+
+  "herald.label.born": "On this day · a birth",
+  "herald.label.died": "On this day · in memory",
+  "herald.label.quote": "From the book of sayings",
+  "herald.born.m": "Exactly {years} ago today, {name} was born",
+  "herald.born.f": "Exactly {years} ago today, {name} was born",
+  "herald.born.x": "Exactly {years} ago today — the birthday of {name}",
+  "herald.died.m": "Exactly {years} ago today, {name} died",
+  "herald.died.f": "Exactly {years} ago today, {name} died",
+  "herald.died.x": "Exactly {years} ago today — in memory of {name}",
 
   "codex.entry": "❖ ENTRY IN THE CODEX ❖",
   "codex.close": "✕ Close Codex",
