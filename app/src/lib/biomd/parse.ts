@@ -398,12 +398,12 @@ const BLOCKS = new Map<string, BlockSpec>(
     nav: {
       props: ["title", "active"],
       build: (c) => {
+        repairHardBreaks(c.body, c.warn);
         const markdown = c.body.join("\n").trim();
         if (!markdown) {
           c.warn.push("::: nav without a link list — skipped.");
           return null;
         }
-        checkHardBreaks(c.body, c.warn);
         return {
           kind: "nav",
           title: c.props.title || undefined,
@@ -608,13 +608,21 @@ function isBlank(line: string): boolean {
 /**
  * A trailing `\` is a Markdown hard break — but only *inside* a block. At the end
  * of a paragraph, heading or list item it has nothing to join, and CommonMark
- * renders it as a visible backslash (spec 3.1), which is never what an author
- * meant. Diagnose it; never rewrite it — the text stays plain Markdown.
+ * renders it as a visible backslash, which is never what an author meant.
  *
- * One pass, allocation-free: a line costs one charCodeAt for the fence probe and
- * one for the break probe, and the regex runs only for a line ending in `\`.
+ * Such a break carries no content, so it is dropped rather than displayed
+ * (spec 3.1, and the same cleanup licence as 1/5 and 16.3) — and warned about, so
+ * the source still gets cleaned up. An author who wants a literal trailing
+ * backslash escapes it (`\\`), which is an even run and left alone.
+ *
+ * Rewrites `lines` in place: they belong to the segment being parsed and are
+ * joined into one Markdown island straight afterwards.
+ *
+ * One pass, allocation-free apart from a repair: a line costs one charCodeAt for
+ * the fence probe and one for the break probe, and the regex runs only for a line
+ * that ends in `\`.
  */
-function checkHardBreaks(lines: readonly string[], warn: Warn): void {
+function repairHardBreaks(lines: string[], warn: Warn): void {
   let marker = 0; // the fence we are inside; 0 = prose
   let fence = 0; // length of the run that opened it
   for (let i = 0; i < lines.length; i++) {
@@ -638,7 +646,8 @@ function checkHardBreaks(lines: readonly string[], warn: Warn): void {
     if ((trailingBackslashes(line) & 1) === 0) continue;
     const next = lines[i + 1];
     if (next !== undefined && !isBlank(next) && !BLOCK_START.test(next)) continue;
-    warn.push(`Trailing "\\" ends a block, so it renders as a visible backslash: "${line.trim()}"`);
+    lines[i] = line.slice(0, -1).trimEnd();
+    warn.push(`Trailing "\\" ends a block and cannot join anything — dropped: "${line.trim()}"`);
   }
 }
 
@@ -646,10 +655,9 @@ function parseNodes(lines: string[], warn: Warn): BioNode[] {
   const nodes: BioNode[] = [];
   for (const seg of segment(lines, warn)) {
     if ("md" in seg) {
+      repairHardBreaks(seg.md, warn);
       const text = seg.md.join("\n").trim();
-      if (!text) continue;
-      checkHardBreaks(seg.md, warn);
-      nodes.push({ kind: "markdown", text });
+      if (text) nodes.push({ kind: "markdown", text });
     } else {
       nodes.push(...nodesOf(buildBlock(seg, warn)));
     }

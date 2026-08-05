@@ -180,8 +180,10 @@ paragraph, a heading, or a list item:
 - Том II Рок-н-ролл (1986–1994)             ← each item is already its own block
 ```
 
-A renderer MUST NOT rewrite the author's Markdown here, but SHOULD warn when a
-trailing backslash sits at the end of a block, where it can only be a mistake.
+A break in that position carries no content, so a renderer SHOULD **drop** it
+rather than display it — the same cleanup licence as section 1 priority 5 and
+16.3 — and SHOULD warn, so the source gets corrected too. To end a line with a
+*literal* backslash, escape it (`\\`); an escaped one is never touched.
 
 ### 3.2 Headings
 
