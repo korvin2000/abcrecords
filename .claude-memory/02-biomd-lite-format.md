@@ -1,6 +1,6 @@
 # 02 · BioMD Lite Format
 
-**Source of truth:** [`docs/Biography-Markup.md`](../docs/Biography-Markup.md) (v1.4).
+**Source of truth:** [`docs/Biography-Markup.md`](../docs/Biography-Markup.md) (v1.5).
 Working name `BioMD Lite`, file extension **`.bio.md`**. Stores **article content
 and layout only** — metadata belongs in `MetaData.json`.
 
@@ -102,15 +102,20 @@ active: 1995–2002        # optional: exact label of the current item
 - [Официальный сайт](https://example.org)
 :::
 ```
-Body is a bullet list with **one link per item**. Rendered as one centered pill bar
+Body is a bullet list with **one link per item** — except that the current item
+MAY be plain text instead of a link (1.5); the renderer marks it current exactly
+as `active` does. Rendered as one centered pill bar
 (codex tab-strip look) of real links — the `active` item becomes a non-clickable
 `aria-current="page"` item. Items should be page links: audio/image/tab targets stay
 plain links (no player/viewer widgets inside a menu). A `*.bio.md` target must exist
 in `index.json`, otherwise the click silently does nothing (`App.navigateByMdPath`).
 
-### `columns` / `column` — up to 3 columns
+### `columns` / `column` — a parallel grid
 ```md
 ::: columns
+columns: 2          # optional (1.5): 2 | 3 | 4 explicit tracks
+divider: true       # optional: meaningful vertical rule
+
 ::: column
 Left content.
 :::
@@ -119,13 +124,58 @@ Right content or an image.
 :::
 :::
 ```
-On narrow screens, columns stack in **source order**.
+Without `columns:` the grid has as many tracks as there are `::: column`
+children (2–3) — the pre-1.5 rule. **With** `columns: N` a single block may hold
+any number of cells: they flow in source order and wrap into a new row after
+every N, so a whole record grid needs one block instead of one per row. On
+narrow screens every cell stacks in **source order**, and a `divider` becomes a
+horizontal separator.
 
-## Quotations & tables
+### `frame` — bordered notice / callout (1.1, retokenized 1.4)
+```md
+::: frame
+frame: black         # gold (default) | black | red | white
+title: Объявление    # optional internal heading
 
-- Quotations use standard Markdown `>` blocks (with `— Author` line).
+**14 августа 2020 года** …
+
+::: image
+src: photo/b/breem.jpg
+position: center
+size: small
+:::
+
+:::
+```
+A frame must wrap the **complete** enclosed region — an image the source border
+encloses with the announcement stays inside it. Body: Markdown, `align`, leaf
+media. **No** nested `frame`, **no** `nav`. Renderer: `black` restrained
+(in memoriam), `red` celebratory, `gold` ceremonial double rule, `white` a
+raised ivory card. The block property `frame:` and the image property `frame:`
+share tokens but not scope.
+
+### `signature` — closing author/place/credit block
+```md
+::: signature
+
+*Авторы проекта*\
+*Виктор и Сергей Тавровские*
+
+:::
+```
+Right-aligned (reading-end) and compact on wide screens, ordinary prose on
+narrow ones. Not for arbitrary right-aligned text — that is `::: align`.
+
+## Quotations, lists & tables
+
+- Quotations use standard Markdown `>` blocks (with `— Author` line). A `>` block
+  may also carry a deliberately subordinate commentary/source credit (1.5 §3.5).
+- **Zero-padded ordered lists** (1.5): source markers `01.`, `02.` keep their
+  width — the renderer detects the padding and switches the list to
+  `decimal-leading-zero`. Never convert explicit source numbers to `1.`.
 - Markdown tables **only for real tabular data** (works, recordings, dates,
-  awards). Never for layout/margins/image placement.
+  awards). Never for layout/margins/image placement. A `columns` record grid is
+  not a table: use a table when the cells form a header/row matrix.
 
 ## Engine rules (for renderer work)
 
@@ -143,7 +193,10 @@ to the browser. Prefer `^`: it is independent of how deep the base is.
 - **Source order = logical reading order**; visual position must not override it.
 - Captions stay attached to images. Embedded docs always keep a link fallback.
 - Everything readable **without JavaScript**.
-- **Unknown block → render its inner text + warn; never delete content.**
+- **Unknown block → render its inner text + warn; never delete content.** The
+  same applies to an undeclared property (kept as text / ignored, warned) and to
+  a **misplaced** directive: `columns`/`nav` in `align`, `frame`/`nav` in
+  `frame`, `columns` in `column` are unwrapped in place, never dropped.
 - Raw HTML / CSS / JS are **not** part of BioMD Lite.
 
 ## Authoring checklist

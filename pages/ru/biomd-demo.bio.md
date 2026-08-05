@@ -1,15 +1,15 @@
-# BioMD 1.3 — конформность
+# BioMD 1.5 — конформность
 
-*Проверочная страница для расширений формата: `::: align`, `frame:`, `::: nav`*
+*Проверочная страница расширений формата: `::: frame`, `::: signature`, `columns: N`, `divider`, нумерация `01.`, восстановление после ошибок*
 
 ::: nav
 title: Разделы демонстрации
-active: Выравнивание
 
-- [Выравнивание](biomd-demo.bio.md)
-- [Рамки](agustin-barrios.bio.md)
-- [Меню](jovan-jovicic.bio.md)
+- Конформность 1.5
+- [Барриос](agustin-barrios.bio.md)
+- [Йовичич](jovan-jovicic.bio.md)
 - [Внешняя ссылка](https://www.abc-guitars.com)
+- [Табулатура остаётся ссылкой](tabs/jsb1006p.tab.txt)
 :::
 
 ::: lead
@@ -36,23 +36,10 @@ position: right
 :::
 
 ::: align
-position: left
-
-**Слева** — значение по умолчанию, указанное явно.
-
-:::
-
-::: align
-
-Блок без `position`: предупреждение в консоли, текст сохранён и выровнен по
-умолчанию.
-
-:::
-
-::: align
 position: middle
 
-Неизвестное значение `position`: тоже предупреждение и обычное выравнивание.
+Неизвестное значение `position`: предупреждение в консоли, текст сохранён и
+выровнен по умолчанию.
 
 :::
 
@@ -80,35 +67,12 @@ caption: без frame (по умолчанию)
 
 ::: image
 src: photo/b/barrios2.jpg
-caption: frame: curl
-frame: curl
-:::
-
-::: image
-src: photo/b/barrios1.jpg
 caption: frame: none
 frame: none
 :::
 
-:::
-
-::: images
-columns: 3
-
-::: image
-src: photo/b/barrios2.jpg
-caption: frame: white
-frame: white
-:::
-
 ::: image
 src: photo/b/barrios1.jpg
-caption: frame: red
-frame: red
-:::
-
-::: image
-src: photo/b/barrios2.jpg
 caption: frame: gold
 frame: gold
 :::
@@ -135,14 +99,6 @@ frame: red
 
 :::
 
-::: image
-src: photo/b/barrios.jpg
-position: center
-size: medium
-caption: неизвестное значение frame → рамка по умолчанию
-frame: neon
-:::
-
 ## 3. Ссылки на изображениях
 
 ::: image
@@ -156,15 +112,6 @@ frame: black
 :::
 
 ::: image
-src: photo/b/barrios2.jpg
-position: left
-size: small
-alt: Обложка со ссылкой на внешний сайт
-caption: link → внешний сайт
-link: https://www.abc-guitars.com
-:::
-
-::: image
 src: photo/b/barrios.jpg
 position: left
 size: small
@@ -172,48 +119,12 @@ caption: небезопасная схема link отбрасывается
 link: javascript:alert(1)
 :::
 
-## 4. Меню без заголовка
+## 4. Колонки
 
-::: nav
-
-- [Агустин Барриос](agustin-barrios.bio.md)
-- [Андрес Сеговия](andres-segovia.bio.md)
-- [Джанго Рейнхардт](django-reinhardt.bio.md)
-- [Пако де Лусия](paco-de-lucia.bio.md)
-- [Джими Хендрикс](jimi-hendrix.bio.md)
-- [Йован Йовичич](jovan-jovicic.bio.md)
-- [Авторы проекта](authors.bio.md)
-- [Табулатура вместо страницы](music/tab/abmcueca.txt)
-:::
-
-test test test
-::: columns
-
-::: column
-
-Столбцы, изображения и списки продолжают работать без изменений.
-
-- первый пункт
-- второй пункт
-
-:::
-
-::: column
-
-Любой дрогой текст, бла-бла-бла
-
-- третий пункт
-- четвертый пункт
-
-:::
-
-:::
-
-
-
-## 5. Старая разметка рядом с новой
+Старая запись без `columns:` — число дорожек равно числу блоков `::: column`.
 
 ::: columns
+divider: true
 
 ::: column
 
@@ -227,7 +138,7 @@ test test test
 ::: column
 
 ::: image
-src: photo/b/barrios.jpg
+src: photo/b/barrios2.jpg
 position: center
 size: medium
 caption: изображение внутри столбца
@@ -235,6 +146,228 @@ caption: изображение внутри столбца
 
 :::
 
+:::
+
+Новая запись: `columns: 2` задаёт две дорожки, а записей в блоке сколько угодно —
+они заполняют сетку построчно. Один блок вместо пяти.
+
+::: columns
+columns: 2
+divider: true
+
+::: column
+**La Catedral**
+:::
+
+::: column
+1921
+:::
+
+::: column
+**Julia Florida**
+:::
+
+::: column
+1938
+:::
+
+::: column
+**Las Abejas**
+:::
+
+::: column
+1921
+:::
+
+::: column
+**Vals № 3**
+:::
+
+::: column
+1923
+:::
+
+:::
+
+Три дорожки без разделителя; последняя строка остаётся неполной.
+
+::: columns
+columns: 3
+
+::: column
+Прелюдия
+:::
+
+::: column
+Сарабанда
+:::
+
+::: column
+Жига
+:::
+
+::: column
+Бурре
+:::
+
+:::
+
+## 5. Нумерация с ведущим нулём
+
+01. Preludio
+02. Andantino
+03. Allegretto
+04. Vals
+05. Estudio
+06. Mazurka
+07. Barcarola
+08. Cueca
+09. Choro
+10. Final
+
+Обычный нумерованный список рядом, для сравнения:
+
+1. Preludio
+2. Andantino
+
+## 6. Рамка-врезка (`::: frame`)
+
+::: frame
+frame: black
+
+**14 августа 2020 года** в возрасте 87 лет скончался выдающийся британский
+гитарист и лютнист
+
+**Джулиан БРИМ**
+
+::: image
+src: photo/b/barrios.jpg
+position: center
+size: small
+caption: Джулиан Брим (1933–2020)
+frame: black
+:::
+
+:::
+
+::: frame
+frame: red
+
+## ПОЗДРАВЛЯЕМ
+
+**[Агустина Барриоса](agustin-barrios.bio.md)**\
+*(Асунсьон)*
+
+с присуждением звания почётного члена общества
+
+:::
+
+::: frame
+frame: gold
+title: Торжественное объявление
+
+Церемониальная рамка: двойная золотая линия. Внутри разрешён блок
+`::: align` — и он работает:
+
+::: align
+position: center
+
+*Посвящается памяти Андреса Сеговии*
+
+:::
+
+:::
+
+::: frame
+
+Без свойства `frame` действует значение по умолчанию — `gold`.
+
+:::
+
+::: frame
+frame: white
+
+Рамка `white`: приподнятая карточка цвета бумаги для любой другой
+осмысленной границы источника.
+
+:::
+
+## 7. Подпись (`::: signature`)
+
+::: signature
+
+*Авторы проекта «Гитаристы и композиторы»*\
+*Виктор и Сергей Тавровские*\
+*Кишинёв — Киев — Харьков*
+
+:::
+
+## 8. Документы
+
+::: document
+src: tabs/jsb1006p.tab.txt
+title: Партита BWV 1006 — табулатура
+mode: link
+:::
+
+Для `mode: embed` в корпусе пока нет ни одного PDF: блок покажет встроенный
+просмотр там, где браузер его поддерживает, и всегда сохранит карточку-ссылку
+как запасной вариант.
+
+## 9. Восстановление после ошибок
+
+Всё ниже содержит намеренные ошибки: содержимое обязано сохраниться, а в
+консоли должны появиться предупреждения.
+
+::: align
+position: center
+
+`::: columns` внутри `::: align` запрещён — колонки разворачиваются в обычный
+поток:
+
+::: columns
+
+::: column
+левая колонка
+:::
+
+::: column
+правая колонка
+:::
+
+:::
+
+:::
+
+::: frame
+frame: red
+
+Вложенная рамка запрещена — её содержимое остаётся здесь:
+
+::: frame
+frame: black
+
+текст внутренней рамки
+
+:::
+
+Меню внутри рамки тоже запрещено — остаётся обычным списком ссылок:
+
+::: nav
+
+- [Барриос](agustin-barrios.bio.md)
+- [Йовичич](jovan-jovicic.bio.md)
+:::
+
+:::
+
+::: image
+src: photo/b/barrios2.jpg
+position: center
+size: small
+postion: опечатка в имени свойства — предупреждение, свойство игнорируется
+caption: неизвестное свойство и неизвестное значение frame
+frame: neon
 :::
 
 ::: unknownblock

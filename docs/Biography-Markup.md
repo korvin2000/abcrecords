@@ -2,7 +2,7 @@
 
 **Working name:** `BioMD Lite`  
 **File extension:** `.bio.md`  
-**Version:** 1.4  
+**Version:** 1.5  
 **Status:** normative format specification
 
 BioMD Lite is a deliberately small Markdown extension for biographies and closely related encyclopedia pages. It stores article content, semantic grouping, and a limited amount of responsive layout intent. Metadata belongs in a separate file.
@@ -199,7 +199,19 @@ Use normal Markdown bullet and numbered lists.
 
 Convert both real HTML lists and fake lists made from bullets plus `<br>`. Use numbering only when the source supplies numbers or sequence is meaningful, such as a track order.
 
-### 3.5 Quotations
+Preserve a consistent leading-zero marker when the source shows one:
+
+```md
+01. First track
+02. Second track
+```
+
+This is still an ordinary Markdown ordered list. A renderer SHOULD keep the
+marker width and display `01`, `02`, …; a plain Markdown fallback MAY show
+ordinary decimal markers. A converter MUST NOT replace explicit source numbers
+with repeated `1.` markers, and MUST NOT invent padding the source does not have.
+
+### 3.5 Quotations and compact secondary blocks
 
 Use a Markdown block quote for a genuine quotation. Keep attribution in the final quoted paragraph.
 
@@ -210,6 +222,13 @@ Use a Markdown block quote for a genuine quotation. Keep attribution in the fina
 ```
 
 Do not turn titles, scare quotes, ordinary dialogue fragments, or every pair of quotation marks into a block quote.
+
+A block quote MAY also carry a coherent commentary, annotation, or source-credit
+block that the source deliberately subordinates to the main prose — shown by
+combined evidence such as a consistently smaller font *plus* deeper indentation
+or separate alignment, never by font size alone. A renderer SHOULD present such a
+block as visibly subordinate and MAY set it slightly smaller. Do not apply this
+to an outer `<blockquote>` used only as the legacy page's global margin.
 
 ### 3.6 Links
 
@@ -318,10 +337,10 @@ Rules:
 | `image` inside `images` | `src` | `alt`, `caption`, `link`, `frame` | none |
 | `images` | `columns` | `frame` | two or more `image` children |
 | `document` | `src`, `title`, `mode` | — | none |
-| `columns` | two or three `column` children | `divider` | `column` children only |
+| `columns` | at least two `column` children | `columns`, `divider` | `column` children only |
 | `column` | — | — | Markdown and leaf media directives |
 | `nav` | one or more Markdown links | `title`, `active` | Markdown link list |
-| `frame` | — | `variant`, `title` | Markdown and leaf media directives |
+| `frame` | — | `frame`, `title` | Markdown and leaf media directives |
 | `signature` | — | — | short Markdown paragraphs |
 
 Nesting constraints:
@@ -332,7 +351,12 @@ Nesting constraints:
 - a `frame` MUST NOT contain another `frame` or a `nav`;
 - a `signature` SHOULD contain only text, links, and hard line breaks;
 - an `align` block MUST NOT contain a `columns` block and MUST NOT wrap a `nav`;
+  it MAY appear inside `lead`, `column`, or `frame`;
 - nesting deeper than the relationships above is invalid.
+
+A directive that appears where it is not allowed MUST NOT delete its content: the
+renderer emits a warning and renders the offending block's readable body in place,
+without its own layout (section 17).
 
 ---
 
@@ -537,16 +561,80 @@ Good uses:
 - album description beside its cover;
 - two source columns of grouped works;
 - parallel short biographies or facts;
+- a compact multi-column catalogue or record grid;
 - a layout whose visible vertical divider is meaningful.
 
 Bad uses:
 
 - recreating page margins;
 - forcing a narrow text measure;
+- centering or narrowing one continuous list or prose block;
 - placing unrelated consecutive sections side by side;
 - reproducing an entire desktop page shell.
 
 On narrow screens columns stack in source order. A vertical divider is removed or becomes a horizontal separator.
+
+### 9.1 Explicit track count
+
+`columns` accepts an optional `columns` property — `2`, `3`, or `4` — exactly as
+`::: images` does. It states how many tracks the grid has, so **one** block can
+hold a whole multi-row record grid instead of being repeated once per row.
+
+```md
+::: columns
+columns: 2
+divider: true
+
+::: column
+**Сюита № 1**
+:::
+
+::: column
+1957
+:::
+
+::: column
+**Сюита № 2**
+:::
+
+::: column
+1961
+:::
+
+:::
+```
+
+- when `columns` is present the block MAY contain any number of `column`
+  children; they fill the grid in source order, left to right, and a new row
+  begins after every *n*-th child;
+- when `columns` is absent the grid has as many tracks as there are `column`
+  children (two or three) — the behaviour of every document written before 1.5;
+- `2` and `3` suit prose; use `4` only for short cells;
+- leave a trailing incomplete row ragged; do not pad it with empty columns;
+- `divider: true` draws the vertical rule between the tracks of every row;
+- on narrow screens every cell stacks in source order, exactly as before.
+
+A record grid is still not a data table: when the cells form a real header/row
+matrix, use a Markdown table (section 3.8).
+
+### 9.2 Parallel source lanes
+
+Do not assume that a continuous number range makes two source cells fungible.
+Collapse a split into one Markdown list only when the split is a one-off
+presentational wrap with no independent source-lane evidence. Keep `columns` for a
+numbered grid when the source proves both cells are intentional parallel lanes:
+they share a row, have stable geometry, each holds a non-empty numbered range, and
+the pattern recurs.
+
+For a repeated multi-column catalogue, keep every cover, title, and track list as
+one indivisible group, and preserve the source item numbers so the visual order
+stays explicit. Two mappings are available; choose by what matters more:
+
+- **persistent lanes** — items `1, 3, 5, …` in the first `column` and `2, 4, 6, …`
+  in the second, when the source's vertical lanes are the relationship;
+- **row-major reading** — one `column` per item with an explicit track count
+  (section 9.1), or one paired `columns` block per source row, when narrow-screen
+  reading order matters more than the lanes.
 
 ---
 
@@ -586,8 +674,11 @@ active: А – Бартоли
 
 Rules:
 
-- the body is a Markdown bullet list containing one link per item;
-- `active` matches the rendered plain-text label exactly and makes that item current/non-clickable;
+- the body is a Markdown bullet list containing one link per item, except that a
+  source-backed current item MAY be plain text instead of a link — the renderer
+  presents it as the current item, exactly as `active` would;
+- `active` matches the rendered plain-text label of exactly one item and makes
+  that item current/non-clickable;
 - duplicate labels are invalid when `active` is used;
 - merge adjacent source anchors that form one visual label and share one target;
 - a prominent side menu that applies to the whole page normally moves directly below the title or lead;
@@ -597,7 +688,7 @@ Rules:
 - `nav` items SHOULD target another catalogue entry (`*.bio.md`, `<slug>.md`, or `#/{slug}` — see §3.6), a fragment, or an absolute URL. Media targets (audio, images, tablature) are not navigation and are rendered as plain links, without media widgets;
 - a nav that spans a multi-part work (a discography split across five pages, an alphabetical map) SHOULD point at entries marked `type: "hidden"` in `pages/index.json`, so the continuation pages stay reachable and linkable without each appearing as a separate card in the catalogue grid.
 
-The renderer presents a nav as a single **centered horizontal bar** of links. On narrow screens it wraps or scrolls within its own container and MUST NOT create page-level overflow.
+The renderer presents a nav as a single **centered horizontal bar** of links. On narrow screens it wraps or scrolls within its own container and MUST NOT create page-level overflow. Authored source line breaks do not shape its rows — the bar reflows on available width alone.
 
 Nav items are links, not controls: a conforming renderer emits real anchors, marks the `active` item with `aria-current`, and MUST NOT present the bar as tabs that switch a panel in place.
 
@@ -609,7 +700,7 @@ Use a frame when the source intentionally encloses an article-specific notice or
 
 ```md
 ::: frame
-variant: memorial
+frame: black
 
 **14 августа 2020 года** в возрасте 87 лет скончался выдающийся британский гитарист и лютнист.
 
@@ -620,16 +711,28 @@ variant: memorial
 
 Properties:
 
-- `variant` — `note` (default), `memorial`, or `highlight`;
+- `frame` — `gold` (default), `black`, `red` or `white`;
 - `title` — optional internal heading.
 
-Typical mappings:
+Typical frame values:
 
-- bordered informational note → `note`;
-- obituary or in-memoriam box → `memorial`;
-- congratulation or emphasized announcement → `highlight`.
+- dark obituary, funeral, or in-memoriam region → `black`;
+- congratulation or source accent region → `red`;
+- ceremonial or prominent source border → `gold`;
+- another source-backed semantic border → `white`.
 
-The body may contain paragraphs, emphasis, lists, links, and leaf media directives. A frame is semantic; it MUST NOT reproduce the article's outer border, background panel, or spacer cells. Border thickness, color, and background remain theme decisions.
+The body may contain paragraphs, emphasis, lists, links, an `align` block, and leaf media directives. A frame is semantic; it MUST NOT reproduce the article's outer border, background panel, or spacer cells. Border thickness, color, and background remain theme decisions.
+
+A frame MUST enclose the **complete** source-bounded region, not a fragment of it.
+When the source border encloses a picture together with its announcement, that
+`::: image` stays inside the same frame. A renderer SHOULD distinguish the tokens
+by mood — `black` restrained and funereal, `red` celebratory — rather than by
+border colour alone.
+
+`frame` here and the identically named image property (6.5) share their palette
+tokens but not their scope: this one encloses a whole semantic region, the other
+decorates one picture or image group. Use both when the source has both
+relationships.
 
 ---
 
@@ -677,6 +780,7 @@ Rules:
 - a child directive's own layout rule wins: `image.position` remains the authoritative placement rule for a standalone image;
 - the renderer treats the block as a new block that ends an earlier left/right image wrap (the same rule as 6.2);
 - a missing or unrecognized `position` MUST produce a warning and render the body at the document's default alignment — never delete content;
+- an `align` block MAY appear inside `lead`, `column`, or `frame`; it MUST NOT wrap `columns` or `nav`, and two `align` blocks MUST NOT be used to imitate columns;
 - `left` and `right` are physical values, consistent with `image.position`. Logical `start`/`end` values MAY be considered in a later revision if right-to-left content is introduced;
 - for a genuine closing author/place/credit block use `::: signature`, not `align`;
 - do not use `align` to recreate margins, columns, indentation, or spacing.
@@ -691,6 +795,7 @@ A conforming renderer MUST:
 - keep all content within the article viewport;
 - make left/right images ordinary centered or edge-aligned blocks when wrapping would make text too narrow;
 - preserve image aspect ratio and keep captions attached;
+- preserve bounded text alignment without changing reading or focus order;
 - reduce or stack image groups when necessary;
 - stack columns in source order;
 - adapt or contain wide tables without page-level horizontal overflow;
@@ -746,6 +851,13 @@ Missing local assets MUST remain recorded under their intended target and in the
 
 ## 16. HTML migration rules
 
+Before discarding a source's CSS, inventory its class usage and the declarations
+that affect hierarchy or grouping — font size, indentation, alignment, borders,
+backgrounds. The values themselves are never preserved, but a *repeated*
+difference is evidence: it may establish a subtitle, a secondary note, a source
+credit, a frame, a caption, or another semantic relationship that would otherwise
+be lost.
+
 ### 16.1 Element mapping
 
 | HTML source pattern | BioMD |
@@ -757,6 +869,7 @@ Missing local assets MUST remain recorded under their intended target and in the
 | `<em>`, `<i>` | `*text*` when semantically emphasized |
 | `<ul>`, `<ol>`, or repeated bullet + `<br>` | Markdown list |
 | genuine quotation | Markdown `>` |
+| coherent smaller/indented commentary or source credit | Markdown `>` as a secondary block (3.5) |
 | `<a>` | Markdown link |
 | linked `<img>` | `image` with `link` |
 | floated portrait | standalone `image` with `left`/`right` |
@@ -797,6 +910,11 @@ Safe cleanup:
 - discard source line wrapping;
 - reconstruct a decorative first-letter image when the missing letter is certain;
 - remove empty paragraphs and spacer breaks.
+
+In manually wrapped legacy prose, classify every line break before touching it:
+wrapping, paragraph boundary, meaningful lineation, or spacing. Join only text that
+is contextually continuous within one paragraph or sentence; never join verse, song
+lyrics, addresses, or programme lines.
 
 Editorial change:
 
@@ -844,6 +962,9 @@ Before accepting a document, verify:
 - logical source/mobile order;
 - balanced directive fences and valid nesting;
 - required directive properties and allowed values;
+- every `align` bounded, with a valid `position`, and not used as layout or spacing;
+- every picture frame and semantic frame naming an allowed theme token;
+- every `nav` containing navigation items only, relying on responsive wrapping;
 - meaningful `alt` text or a documented reason it is absent;
 - captions remain attached to their images;
 - every meaningful source image, link, and file target is preserved or explicitly audited;
@@ -859,6 +980,21 @@ The source remains authoritative for factual text. BioMD controls structure and 
 ---
 
 # Changelog
+
+## v1.5
+
+- Added an optional `columns` property to `::: columns` (`2`, `3`, or `4`), mirroring `::: images`: one block can now hold a whole multi-row record grid whose cells flow row by row, instead of the block being repeated once per row (section 9.1).
+- Documented the parallel-lane rules for repeated multi-column catalogues, and named "centering or narrowing one continuous list" as a misuse of `columns` (section 9.2).
+- Added source-faithful leading-zero ordered-list markers (`01.`, `02.`; section 3.4).
+- Allowed a block quote to carry a deliberately subordinate commentary or source-credit block, on combined evidence rather than font size alone (section 3.5).
+- Allowed a `nav`'s current item to be plain text instead of a link, and stated that authored line breaks do not shape the bar's rows (section 10).
+- Required a `::: frame` to enclose its complete source-bounded region, including an image that the source border encloses with the announcement; permitted `align` in its body (section 11).
+- Stated where an `align` block may appear (`lead`, `column`, `frame`) and that two of them must not imitate columns (sections 4.1, 13).
+- Required a misplaced directive to be rendered as readable content with a warning rather than dropped (section 4.1).
+- Added the CSS-evidence inventory and legacy line-break classification to the migration rules, plus a mapping row for subordinate commentary (sections 16, 16.1, 16.3).
+- Added bounded-alignment preservation to the responsive contract and three items to the validation checklist (sections 14, 18).
+- Merged the parallel 1.3–1.6 fork of this specification; that document is retired. Its stricter re-definitions were **not** adopted, because they break documents that are valid under 1.4: `divider: false` stays legal, and `::: frame`'s `frame` token stays optional with a `gold` default.
+- No change to existing documents: every addition is a new optional property, a new permission, or renderer guidance.
 
 ## v1.4
 

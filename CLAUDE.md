@@ -38,7 +38,7 @@ Each entry combines:
 - `Catalog-Index.md` — **the catalogue index format (v2)**: `index.json`
   (identity, classification, paths) + `index-<lang>.json`
   (localized names & search aliases). Read this before touching `pages/`.
-- `Biography-Markup.md` — the **BioMD Lite** format spec (v1.3) + HTML migration rules.
+- `Biography-Markup.md` — the **BioMD Lite** format spec (v1.5) + HTML migration rules.
 - `Biography-Markup-Appendix-1.3.md` — authoring guide for the 1.3 additions
   (`::: align`, image `frame:`, `::: nav`, `alt:`/`link:`): usage, examples,
   anti-patterns, diagnostics.
@@ -95,9 +95,11 @@ Each entry combines:
   is the join key to `index-<lang>.json`, not a position and not a route. The
   route is `#/{slug}`, where slug = the `md` basename minus `.bio.md`/`.md`.
 - BioMD blocks use `::: name … :::` fences: `lead`, `align`, `image`, `images`,
-  `document`, `columns`, `column`, `nav`. Prefer plain Markdown; use blocks only
-  for layout/media. Image properties: `src`, `position`, `size`, `alt`,
-  `caption`, `link`, `frame` (theme tokens only — never a literal colour).
+  `document`, `columns`, `column`, `nav`, `frame`, `signature`. Prefer plain
+  Markdown; use blocks only for layout/media. Image properties: `src`,
+  `position`, `size`, `alt`, `caption`, `link`, `frame` (theme tokens only —
+  never a literal colour). `::: columns` takes an optional `columns: 2|3|4`
+  (v1.5): one block then holds a whole record grid, cells wrapping row by row.
 - **No raw HTML / CSS / JS** in BioMD Lite. No layout-by-whitespace.
 - Dates are **`DD.MM.YYYY`** everywhere — do **not** feed them straight to JS
   `Date`. They live **only** in `*.bio.json` `dates`, never in `index.json`.

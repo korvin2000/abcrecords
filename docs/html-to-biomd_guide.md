@@ -189,7 +189,7 @@ properties.
 | `columns` | exactly 2 or 3 `column` children | `divider: true\|false` | `column`s only; meaningful parallel groups |
 | `column` | — | — | Markdown plus leaf `image`/`document`; no nested `columns` |
 | `nav` | at least one Markdown bullet containing one link | `title`, `active` | local/page-series navigation only |
-| `frame` | — | `variant: note\|memorial\|highlight`, `title` | Markdown plus leaf `image`/`document`; semantic notice/aside |
+| `frame` | — | `frame: gold\|black\|red\|white`, `title` | Markdown plus leaf `image`/`document`; semantic notice/aside |
 | `signature` | — | — | short closing text, links, and meaningful hard breaks |
 
 Only the listed nesting is valid. `images` contains only child images;

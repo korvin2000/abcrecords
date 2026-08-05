@@ -25,7 +25,7 @@ App.tsx   ─ single orchestrator: catalog load, search criteria, facts crawl ga
   ├─ Search + i18n        search/{fold,docs,scoring,criteria,predicates,engine} · i18n.tsx · messages/* · languages.ts
   ├─ Dossier facts        dossier/{facts.ts, factsStore.ts, useFacts.ts}  (cross-entry *.bio.json metadata)
   ├─ Herald               herald/{types, today, anniversary, quotes, playlist, useHerald}
-  ├─ BioMD render         biomd/{parse.ts, remarkHighlight.ts, BioArticle.tsx}
+  ├─ BioMD render         biomd/{parse.ts, remarkHighlight.ts, remarkZeroPaddedLists.ts, BioArticle.tsx}
   ├─ Audio                audio.ts · playback.ts · midi.ts · asciiTabPlayback.ts · AudioPlayer.tsx
   ├─ Overlays (viewers)   imageViewer.tsx+ImageViewer.tsx · asciiTabViewer.tsx+AsciiTabViewer.tsx · asciiTab.ts
   ├─ Browse UI            CharacterGrid · CharacterCard · AnimatedTitle · Background · SiteFooter · LanguageMenu
@@ -84,9 +84,10 @@ App.tsx   ─ single orchestrator: catalog load, search criteria, facts crawl ga
 ### BioMD parser / renderer
 | File | Role |
 |---|---|
-| `src/lib/biomd/parse.ts` | Recursive-descent `::: block` fence parser over line-segmented text → `BioDoc {title,nodes,warnings}`. Tolerant: unknown/stray/unclosed → preserved + warned. Node kinds: `markdown·lead·align·image·images·document·columns·nav·unknown`; `splitPropsAndBody` serves the blocks that own both properties and a body (`align`,`nav`); image `alt`/`link`(safe-scheme-checked)/`frame` per spec 1.3. |
+| `src/lib/biomd/parse.ts` | Recursive-descent `::: block` fence parser over line-segmented text → `BioDoc {title,nodes,warnings}` (spec v1.5). **The whole grammar is one table, `BLOCKS`**: per directive — documented `props`, `leaf?`, `rejects?` (child kinds refused, spec §4.1) and `build(ctx)`; adding a directive = adding one entry. Node kinds: `markdown·lead·align·image·images·document·columns·nav·frame·signature·unknown`. Tolerant by construction: unknown block/property, stray child, unclosed fence and **misplaced** directive all keep their readable content (`readableContent` unwraps it) + warn — only a `key: value` line whose key the block *declares* is eaten as a property, so prose can never be swallowed. |
 | `src/lib/biomd/remarkHighlight.ts` | remark plugin: `==text==` → `<mark>` via mdast `data.hName`. Can't span lines / contain `=`. |
-| `src/lib/biomd/BioArticle.tsx` | react-markdown (GFM + highlight) renderer + **link-rewiring hub** — in-app entry (`entryTargetSlug`: `#/slug`, `x.bio.md`, `x.md`) → `onNavigateEntry(slug)`, audio→player, .txt→tab viewer, image→zoom viewer, external→new tab, else archival. Renders `Figure`/`images`/`DocumentCard`/`BioNav`. Wraps images in `CurlFrame` (optional `frame` variant). `Md`'s optional `nav` prop = nav mode: suppresses media widgets and renders the `active` label as `aria-current`. |
+| `src/lib/biomd/remarkZeroPaddedLists.ts` | remark plugin (spec 3.4): an ordered list whose *source* marker is `01.` gets `class="bio-ol-zero"` → CSS `decimal-leading-zero`. remark normalises `01`→1, so the padding is read back from the first item's source offset. |
+| `src/lib/biomd/BioArticle.tsx` | react-markdown (GFM + highlight) renderer + **link-rewiring hub** — in-app entry (`entryTargetSlug`: `#/slug`, `x.bio.md`, `x.md`) → `onNavigateEntry(slug)`, audio→player, .txt→tab viewer, image→zoom viewer, external→new tab, else archival. Renders `Figure`/`images`/`DocumentCard`/`BioNav`. Wraps images in `CurlFrame` (optional `frame` variant). `Md`'s optional `nav` prop = nav mode: suppresses media widgets, renders the `active` label — or a plain-text item (spec 1.5) — as `aria-current`. Also renders `frame`/`signature`/`columns` (`.bio-columns` + `bio-cols-N` + `--divided`, grid owned by CSS — no grid utilities on it) and `mode: embed` (lazy PDF `<iframe>` + the link card as fallback). |
 
 ### Search & i18n
 | File | Role |

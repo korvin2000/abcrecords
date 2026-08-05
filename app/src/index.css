@@ -922,17 +922,29 @@ body {
   vertical-align: top;
 }
 
+/* Tailwind's preflight resets `list-style` to none, which would silently strip
+   the markers off every article list (spec 3.4) — restore them here. `.bio-nav`
+   opts out again with its own rule. */
 .bio-article ol,
 .bio-article ul {
   padding-left: 1.4em;
   margin: 0 0 0em;
+  list-style-position: outside;
 }
+.bio-article ul { list-style-type: disc; }
+.bio-article ol { list-style-type: decimal; }
 .bio-article li {
   margin-bottom: 0.15em;
 }
 .bio-article li::marker {
   color: var(--color-gold-700);
   font-weight: 600;
+}
+/* Source-faithful zero-padded ordered markers — `01.`, `02.`, … (spec 3.4).
+   The padding is a marker style, so copy, `start` and screen readers keep the
+   plain numbers (see remarkZeroPaddedLists). */
+.bio-article ol.bio-ol-zero {
+  list-style-type: decimal-leading-zero;
 }
 
 /* Red drop capital for lead paragraphs (design brief) */
@@ -1135,7 +1147,11 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.14em;
   text-decoration: none;
-  white-space: nowrap;
+  /* No `nowrap`: flex wraps whole items between rows first and only breaks the
+     text of an item that cannot fit the bar at all — which is what keeps a long
+     label (or a plain-text current item, spec 10) inside its own container
+     instead of overflowing the page. */
+  text-align: center;
   color: var(--color-sepia-600);
   transition: background-color 0.2s, color 0.2s;
 }
@@ -1152,6 +1168,137 @@ body {
   color: var(--color-paper-50);
   box-shadow: 0 2px 10px rgba(122, 31, 43, 0.35);
   cursor: default;
+}
+
+/* ============================================================
+   Columns (::: columns, spec 9) — one grid, `bio-cols-N` tracks wide. Cells
+   follow source order and wrap into a new row after every N, so a whole record
+   grid fits in a single block (spec 9.1). Below `md` they stack, and a
+   meaningful vertical divider becomes a horizontal separator.
+   This element owns its grid: never put `grid-*` utilities on it as well.
+   ============================================================ */
+.bio-article .bio-columns {
+  clear: both;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.5rem 2rem;
+  align-items: start;
+  margin: 1.2em 0;
+}
+.bio-article .bio-columns > * {
+  min-width: 0;
+}
+@media (min-width: 48rem) {
+  .bio-article .bio-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .bio-article .bio-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .bio-article .bio-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  /* The rule sits on each cell's leading edge; its own padding matches the
+     column gap, so the line lands midway between the two texts. */
+  .bio-article .bio-cols-2.bio-columns--divided > *:not(:nth-child(2n + 1)),
+  .bio-article .bio-cols-3.bio-columns--divided > *:not(:nth-child(3n + 1)),
+  .bio-article .bio-cols-4.bio-columns--divided > *:not(:nth-child(4n + 1)) {
+    border-inline-start: 1px solid rgba(184, 144, 42, 0.45);
+    padding-inline-start: 2rem;
+  }
+}
+@media (max-width: 47.999rem) {
+  .bio-article .bio-columns--divided > * + * {
+    border-block-start: 1px solid rgba(184, 144, 42, 0.4);
+    padding-block-start: 0.8em;
+  }
+}
+
+/* ============================================================
+   Bordered notice / callout (::: frame, spec 11) — a region the source
+   deliberately enclosed: obituary, congratulation, ceremonial notice. The
+   palette token names the intent; thickness, shade and background are ours.
+   `black` stays restrained, `red` reads celebratory (spec 11). The block
+   starts a new flow, so it ends an earlier left/right image wrap (spec 6.2).
+   ============================================================ */
+.bio-article .bio-frame {
+  clear: both;
+  margin: 1.6em 0;
+  padding: 1.1rem 1.4rem 1.2rem;
+  border: 2px solid rgba(184, 144, 42, 0.7);
+  border-radius: 2px;
+}
+.bio-article .bio-frame > :first-child { margin-top: 0; }
+.bio-article .bio-frame > :last-child { margin-bottom: 0; }
+/* A heading inside a notice announces it — no section rule above the article. */
+.bio-article .bio-frame :is(h2, h3, h4) {
+  border-bottom: none;
+  padding-bottom: 0;
+  margin: 0.1em 0 0.5em;
+  text-align: center;
+}
+.bio-article .bio-frame-title {
+  font-family: var(--font-heading);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 0.8rem;
+  text-align: center;
+  color: var(--color-sepia-600);
+  margin: 0 0 0.7em;
+}
+/* Ceremonial: an antique double rule. */
+.bio-article .bio-frame--gold {
+  border: 4px double var(--color-gold-600);
+  background: rgba(251, 243, 210, 0.45);
+}
+/* In memoriam: one heavy ink rule, no ornament. */
+.bio-article .bio-frame--black {
+  border: 3px solid var(--color-ink-900);
+  background: rgba(42, 24, 16, 0.05);
+}
+/* Congratulation: burgundy rule with a gold band inside it. */
+.bio-article .bio-frame--red {
+  border: 2px solid var(--color-burgundy-600);
+  background: rgba(122, 31, 43, 0.05);
+  box-shadow: inset 0 0 0 3px rgba(212, 175, 55, 0.25);
+}
+/* A raised ivory card for any other source-backed border. */
+.bio-article .bio-frame--white {
+  border: 1px solid rgba(184, 144, 42, 0.35);
+  background: var(--color-paper-50);
+  box-shadow: 0 1px 6px rgba(51, 34, 15, 0.12);
+}
+
+/* ============================================================
+   Closing signature (::: signature, spec 12) — a compact credit block aligned
+   toward the reading-end edge on wide screens, ordinary prose on narrow ones.
+   ============================================================ */
+.bio-article .bio-signature {
+  clear: both;
+  margin: 2em 0 0.5em;
+  font-style: italic;
+  line-height: 1.5;
+  color: var(--color-sepia-600);
+}
+.bio-article .bio-signature p {
+  margin-bottom: 0.3em;
+}
+@media (min-width: 40rem) {
+  .bio-article .bio-signature {
+    text-align: right;
+  }
+}
+
+/* An embedded document (::: document with `mode: embed`, spec 8) keeps its link
+   card directly below as the accessible fallback. */
+.bio-article .bio-doc-embed {
+  clear: both;
+  margin: 1.4em 0;
+}
+.bio-article .bio-doc-embed iframe {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  max-height: 70vh;
+  border: 1px solid rgba(184, 144, 42, 0.5);
+  background: var(--color-paper-100);
+}
+.bio-article .bio-doc-embed .bio-doc {
+  border-top: none;
 }
 
 /* A linked figure (::: image with `link:`) is an anchor around the picture;
