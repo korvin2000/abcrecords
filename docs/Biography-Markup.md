@@ -161,7 +161,27 @@ First paragraph.
 Second paragraph.
 ```
 
-A Markdown hard break (two trailing spaces) MAY preserve lineation in a postal address, short signature, verse, or similar content. Do not use hard breaks to imitate legacy line wrapping.
+A Markdown hard break MAY preserve lineation in a postal address, short signature, verse, programme, or similar content. Do not use hard breaks to imitate legacy line wrapping.
+
+Two spellings are equivalent — a trailing backslash and two trailing spaces:
+
+```md
+**Ядвига Ричардовна**\
+**КОВАЛЕВСКАЯ**
+```
+
+Prefer the backslash: trailing spaces are invisible in an editor and are silently
+eaten by many tools. A hard break only joins two lines **inside one block**, so it
+is meaningless — and per CommonMark renders as a *visible* `\` — at the end of a
+paragraph, a heading, or a list item:
+
+```md
+- Том I Клубника со сливками (1984–1993)\   ← wrong: shows a stray backslash
+- Том II Рок-н-ролл (1986–1994)             ← each item is already its own block
+```
+
+A renderer MUST NOT rewrite the author's Markdown here, but SHOULD warn when a
+trailing backslash sits at the end of a block, where it can only be a mistake.
 
 ### 3.2 Headings
 

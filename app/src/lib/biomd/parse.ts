@@ -403,6 +403,7 @@ const BLOCKS = new Map<string, BlockSpec>(
           c.warn.push("::: nav without a link list — skipped.");
           return null;
         }
+        checkHardBreaks(c.body, c.warn);
         return {
           kind: "nav",
           title: c.props.title || undefined,
@@ -538,12 +539,117 @@ function nodesOf(built: BioNode | BioNode[] | null): BioNode[] {
   return built ? (Array.isArray(built) ? built : [built]) : [];
 }
 
+/* ------------------------------------------------------------------ *
+ * Hard-break diagnostics (spec 3.1)
+ *
+ * The scanners below read past the end of the string deliberately: charCodeAt
+ * returns NaN there and NaN fails every comparison, so no length guard is
+ * needed and no substring or match array is ever allocated.
+ * ------------------------------------------------------------------ */
+
+const SPACE = 32;
+const TAB = 9;
+const BACKSLASH = 92;
+const BACKTICK = 96;
+const TILDE = 126;
+
+/** A construct that begins a new block, so it cannot continue a paragraph. */
+const BLOCK_START =
+  /^[ \t]{0,3}(?:[-*+][ \t]|\d{1,9}[.)][ \t]|#{1,6}[ \t]|>|:::|```|~~~|(?:[-*_][ \t]*){3,}$)/;
+
+/** Index of the first character after at most three spaces of indentation. */
+function indentEnd(line: string): number {
+  let i = 0;
+  while (i < 3) {
+    const code = line.charCodeAt(i);
+    if (code !== SPACE && code !== TAB) break;
+    i++;
+  }
+  return i;
+}
+
+/**
+ * Length of a code fence's `marker` run — three or more markers after at most
+ * three spaces of indent, else 0. A *closing* fence carries no info string, so
+ * ` ```js ` cannot close what ` ``` ` opened and a `~~~` block is not closed by
+ * backticks; a naive toggle gets both wrong and silences the rest of the file.
+ */
+function fenceRun(line: string, marker: number, closing: boolean): number {
+  const start = indentEnd(line);
+  if (line.charCodeAt(start) !== marker) return 0;
+  let end = start + 1;
+  while (line.charCodeAt(end) === marker) end++;
+  if (end - start < 3) return 0;
+  if (closing) {
+    for (let i = end; i < line.length; i++) {
+      const code = line.charCodeAt(i);
+      if (code !== SPACE && code !== TAB) return 0;
+    }
+  }
+  return end - start;
+}
+
+/** How many backslashes end the line; an even run is one escaped literal `\`. */
+function trailingBackslashes(line: string): number {
+  let i = line.length - 1;
+  while (line.charCodeAt(i) === BACKSLASH) i--;
+  return line.length - 1 - i;
+}
+
+/** A CommonMark blank line holds spaces and tabs only — an NBSP is content. */
+function isBlank(line: string): boolean {
+  for (let i = 0; i < line.length; i++) {
+    const code = line.charCodeAt(i);
+    if (code !== SPACE && code !== TAB) return false;
+  }
+  return true;
+}
+
+/**
+ * A trailing `\` is a Markdown hard break — but only *inside* a block. At the end
+ * of a paragraph, heading or list item it has nothing to join, and CommonMark
+ * renders it as a visible backslash (spec 3.1), which is never what an author
+ * meant. Diagnose it; never rewrite it — the text stays plain Markdown.
+ *
+ * One pass, allocation-free: a line costs one charCodeAt for the fence probe and
+ * one for the break probe, and the regex runs only for a line ending in `\`.
+ */
+function checkHardBreaks(lines: readonly string[], warn: Warn): void {
+  let marker = 0; // the fence we are inside; 0 = prose
+  let fence = 0; // length of the run that opened it
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (marker) {
+      if (fenceRun(line, marker, true) >= fence) marker = 0;
+      continue; // inside a code block a backslash is data
+    }
+    // Only a ` or ~ — after at most three spaces — can open a fence.
+    let head = line.charCodeAt(0);
+    if (head === SPACE || head === TAB) head = line.charCodeAt(indentEnd(line));
+    if (head === BACKTICK || head === TILDE) {
+      const run = fenceRun(line, head, false);
+      if (run) {
+        marker = head;
+        fence = run;
+        continue;
+      }
+    }
+    if (line.charCodeAt(line.length - 1) !== BACKSLASH) continue; // the common case
+    if ((trailingBackslashes(line) & 1) === 0) continue;
+    const next = lines[i + 1];
+    if (next !== undefined && !isBlank(next) && !BLOCK_START.test(next)) continue;
+    warn.push(`Trailing "\\" ends a block, so it renders as a visible backslash: "${line.trim()}"`);
+  }
+}
+
 function parseNodes(lines: string[], warn: Warn): BioNode[] {
   const nodes: BioNode[] = [];
   for (const seg of segment(lines, warn)) {
     if ("md" in seg) {
       const text = seg.md.join("\n").trim();
-      if (text) nodes.push({ kind: "markdown", text });
+      if (!text) continue;
+      checkHardBreaks(seg.md, warn);
+      nodes.push({ kind: "markdown", text });
     } else {
       nodes.push(...nodesOf(buildBlock(seg, warn)));
     }
