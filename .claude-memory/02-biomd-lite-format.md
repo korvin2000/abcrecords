@@ -1,6 +1,6 @@
 # 02 · BioMD Lite Format
 
-**Source of truth:** [`docs/Biography-Markup.md`](../docs/Biography-Markup.md) (v1.5).
+**Source of truth:** [`docs/Biography-Markup.md`](../docs/Biography-Markup.md) (v1.6).
 Working name `BioMD Lite`, file extension **`.bio.md`**. Stores **article content
 and layout only** — metadata belongs in `MetaData.json`.
 
@@ -11,6 +11,13 @@ and layout only** — metadata belongs in `MetaData.json`.
 - `==highlight==` = semantic highlight (theme picks the color).
 - `---` = visual separator.
 - `[text](url)` links; relative links to other entries end in `.bio.md`.
+- `[text](#name)` = **jump inside this document**, to an `::: anchor` of that
+  name (1.6 §19). Not `#/slug` — that is another entry's route.
+- **Triple-backtick fence with no language = verse** (1.6 §3.9): poem, song
+  text, address, programme. Line breaks are content, blank line = new stanza,
+  consecutive fences = consecutive stanzas. Rendered as wrapped italic quoted
+  matter, **never** monospaced code, never overflowing the page. A fence *with*
+  a language (```` ```json ````) stays real code in its own scroll box.
 - **Never** encode layout with spaces, repeated line breaks, or invisible chars.
 
 ## Custom blocks — `::: name … :::`
@@ -166,6 +173,21 @@ share tokens but not scope.
 Right-aligned (reading-end) and compact on wide screens, ordinary prose on
 narrow ones. Not for arbitrary right-aligned text — that is `::: align`.
 
+### `anchor` — a named place to jump to (1.6)
+```md
+:: anchor{#platinum}      ← one line, no closing fence (:: or :::)
+::: anchor
+id: platinum
+:::
+```
+Both spellings are normative; the one-liner is what migrated documents use.
+Reached by `[…](#platinum)` (also from an image's `link:`). Names match
+case-insensitively, `#` and whitespace ignored, inner spaces read as `-`; must be
+unique per document, and must not *contain* a space — a Markdown link
+destination ends at the first one. A **marker with no box**: directly inside `::: images` it
+names the picture that follows, directly inside `::: columns` the column that
+follows, so the grid keeps its shape. Never a spacer or a styling hook.
+
 ## Quotations, lists & tables
 
 - Quotations use standard Markdown `>` blocks (with `— Author` line). A `>` block
@@ -197,6 +219,9 @@ to the browser. Prefer `^`: it is independent of how deep the base is.
   same applies to an undeclared property (kept as text / ignored, warned) and to
   a **misplaced** directive: `columns`/`nav` in `align`, `frame`/`nav` in
   `frame`, `columns` in `column` are unwrapped in place, never dropped.
+- **A `#name` link must not navigate** (1.6 §19.1): the app routes on the hash
+  (`#/slug`), so following one would close the codex. It moves the reading
+  position and leaves the address alone.
 - Raw HTML / CSS / JS are **not** part of BioMD Lite.
 
 ## Authoring checklist

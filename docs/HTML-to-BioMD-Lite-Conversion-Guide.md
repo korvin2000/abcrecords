@@ -217,6 +217,28 @@ Example:
 
 This was used for the Andres Segovia quotation in the Jovan Jovicic biography.
 
+### Verse and song text
+
+A poem, a song text, an address, or a concert programme is **not** a quotation and
+**not** a paragraph: its line breaks are content. Convert `<pre>`, and any block
+whose lines are separated by `<br>` for that reason, into a fence with no info
+string ([`Biography-Markup.md`](Biography-Markup.md) §3.9):
+
+````md
+```
+Когда умру,
+Схороните меня с гитарой
+В речном песке.
+```
+````
+
+Never join those lines into a paragraph (§16.3 of the format spec). A blank line
+inside the fence separates stanzas; consecutive fences are consecutive stanzas.
+
+Documents converted before 1.6 sometimes hold a whole poem on **one** line inside
+a fence — its lineation was lost, not intentional. It renders as wrapped verse,
+and the lines can only be restored from the source, never guessed.
+
 ---
 
 ## 8. Layout Tables
@@ -311,6 +333,23 @@ HTML links became standard Markdown links:
 Decorative linked icons were removed, but their target link was preserved as readable text.
 
 Relative paths were retained when they represented actual article resources.
+
+### In-page anchors
+
+A legacy `<a name="x">` (or an `id` used as a jump target) becomes an `::: anchor`,
+and every `<a href="#x">` pointing at it stays a Markdown link to `#x`
+([`Biography-Markup.md`](Biography-Markup.md) §19):
+
+```md
+- [1.000.000 Platinum](#platinum)
+
+:: anchor{#platinum}
+
+## 1.000.000 Platinum
+```
+
+An in-page table of contents built this way is a `nav` whose items are `#name`
+links. Do not rewrite `#x` as `#/x`: the second is another entry's route.
 
 ---
 

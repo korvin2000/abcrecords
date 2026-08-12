@@ -2,7 +2,7 @@
 
 **Working name:** `BioMD Lite`  
 **File extension:** `.bio.md`  
-**Version:** 1.5  
+**Version:** 1.6  
 **Status:** normative format specification
 
 BioMD Lite is a deliberately small Markdown extension for biographies and closely related encyclopedia pages. It stores article content, semantic grouping, and a limited amount of responsive layout intent. Metadata belongs in a separate file.
@@ -262,9 +262,15 @@ Use ordinary Markdown links for websites, email addresses, related articles, and
 [Related biography](other-musician.bio.md)
 
 [guitar@example.org](mailto:guitar@example.org)
+
+[1.000.000 Platinum](#1)
 ```
 
 Link text MUST remain meaningful without surrounding layout or a decorative arrow icon.
+
+A link whose target is a bare fragment (`#name`) is a **jump inside this
+article**, resolved against an `::: anchor` of the same name — see section 19.
+It is not a link to another entry: the entry route is `#/{slug}`, with a slash.
 
 #### Linking to another catalogue entry
 
@@ -325,6 +331,52 @@ Rules:
 
 The renderer MUST keep a wide table usable on a narrow screen, for example through contained horizontal scrolling or a labeled stacked-row view. It MUST NOT force the entire page to scroll horizontally.
 
+### 3.9 Verse, song text, and programme lines
+
+Text whose **line breaks are part of the content** — a poem, a song text, an
+address, a concert programme — goes in a fence with **no info string**:
+
+````md
+```
+Когда умру,
+Схороните меня с гитарой
+В речном песке.
+
+Когда умру...
+В апельсиновой роще старой,
+В любом цветке.
+```
+````
+
+The fence is the only construct that keeps lineation without inventing markup:
+plain paragraph lines are folded into one line by Markdown, and a trailing `\`
+on every line is layout noise that breaks as soon as the text is edited.
+
+Rules:
+
+- a blank line inside the fence separates **stanzas**; every other line break is
+  a line of verse;
+- a fence carries **verse, not code**: a renderer MUST NOT present it in a
+  monospaced face, MUST wrap long lines within the reading column, and MUST NOT
+  make the page scroll horizontally (same contract as a wide table, 3.8);
+- a renderer SHOULD present it as visibly subordinate quoted matter — the
+  register of a block quote (3.5), typically italic — and MUST keep the
+  lineation and the stanza breaks;
+- consecutive fences are consecutive stanzas of the same piece, and SHOULD sit
+  closer to one another than to the prose around them;
+- indentation inside a fence is a source artefact and is not preserved (1, 16.3);
+- an empty fence carries nothing and is removed (16.3);
+- a fence that **names a language** (` ```json `) is genuine code: it keeps a
+  monospaced face and scrolls inside its own box. Article prose has no reason to
+  contain code, so this is for specification and format examples only.
+
+A one-line "poem" is a document whose lineation was lost in migration, not a
+prose paragraph: it MUST still render as wrapped verse. Recovering the original
+lines requires the source (16.3) — do not guess them.
+
+Do not use a fence for a genuine quotation of prose (use `>`, 3.5), and do not
+use it to obtain italics.
+
 ---
 
 ## 4. Directive syntax
@@ -365,11 +417,15 @@ Rules:
 | `nav` | one or more Markdown links | `title`, `active` | Markdown link list |
 | `frame` | — | `frame`, `title` | Markdown and leaf media directives |
 | `signature` | — | — | short Markdown paragraphs |
+| `anchor` | `id` | — | none (section 19) |
 
 Nesting constraints:
 
 - `images` contains only `image` children;
 - `columns` contains only `column` children;
+- an `anchor` MAY appear anywhere, including directly inside `images` or
+  `columns`: it is a marker with no box, so it binds to the picture or the
+  column it introduces instead of becoming one (section 19);
 - a `column` MUST NOT contain another `columns` block;
 - a `frame` MUST NOT contain another `frame` or a `nav`;
 - a `signature` SHOULD contain only text, links, and hard line breaks;
@@ -457,6 +513,10 @@ alt: Заметка о проекте в альманахе «Ренессанс
 caption: Один из первых печатных отзывов о проекте
 :::
 ```
+
+`link` MAY also be `#name`: the picture then jumps to that anchor within the same
+article (section 19), which is how a legacy cover thumbnail linking to its own
+album section is preserved.
 
 Do not add a duplicate “open image” link unless a separate visible fallback is required by the product.
 
@@ -894,6 +954,9 @@ be lost.
 | genuine quotation | Markdown `>` |
 | coherent smaller/indented commentary or source credit | Markdown `>` as a secondary block (3.5) |
 | `<a>` | Markdown link |
+| `<a name="x">` / `id="x"` used as a jump target | `anchor` with `id` (section 19) |
+| `<a href="#x">` within the same page | Markdown link to `#x` (sections 3.6, 19) |
+| `<pre>`, or `<br>`-per-line poem, song text, or programme | fence with no info string (3.9) |
 | linked `<img>` | `image` with `link` |
 | floated portrait | standalone `image` with `left`/`right` |
 | adjacent image row | `images` |
@@ -995,6 +1058,10 @@ Before accepting a document, verify:
 - no raw HTML, CSS, JavaScript, or whitespace-based positioning remains;
 - layout tables are not mistaken for data tables, and real tables have headers;
 - footnote references and definitions match;
+- every `#name` link resolves to an `::: anchor` in the same document, and every
+  anchor name is unique within it;
+- verse and song text keep their lineation, and no fence is used for a prose
+  quotation or merely to obtain italics;
 - no silent placeholder substitutions or unverified `.htm` → `.bio.md` retargeting;
 - desktop and narrow-screen rendering remain readable and complete.
 
@@ -1002,7 +1069,86 @@ The source remains authoritative for factual text. BioMD controls structure and 
 
 ---
 
+## 19. In-document anchors (`::: anchor`)
+
+> Added in 1.6 and numbered after section 18 so that every existing reference to
+> a section number stays valid.
+
+A long article — a discography, a roster, a multi-album page — needs a table of
+contents that jumps to a place **inside** the same document. `::: anchor` marks
+such a place; a Markdown link to `#name` reaches it (3.6).
+
+```md
+::: nav
+title: ИЗБРАННАЯ ДИСКОГРАФИЯ
+
+- [1.000.000 Platinum](#platinum)
+- [Latin Romance](#latin-romance)
+:::
+
+:: anchor{#platinum}
+
+## 1.000.000 Platinum
+```
+
+Two spellings are equivalent, and a document MAY mix them:
+
+```md
+:: anchor{#platinum}      ← one line, no closing fence
+::: anchor
+id: platinum
+:::
+```
+
+The one-line form is written with two or three colons, because migrated
+documents use `::`. It has no body, so it needs no closing fence.
+
+Rules:
+
+- an anchor name is matched **case-insensitively**, with a leading `#` and
+  surrounding whitespace ignored, and inner whitespace read as `-`, so
+  `#Platinum`, `platinum` and `#platinum` name the same anchor;
+- prefer short, stable, descriptive names; a bare ordinal (`#1`) is legacy;
+- a name SHOULD NOT contain spaces: a Markdown link destination ends at the
+  first one, so `[…](#disc 1)` does not reach `#disc 1`. Write `#disc-1`;
+- a name MUST be unique within its document;
+- an anchor is a **marker, not content**: it occupies no space, shows nothing,
+  and MUST NOT change the layout of what surrounds it. Directly inside an
+  `::: images` group it names the picture that follows it; directly inside
+  `::: columns` it names the column that follows it (4.1);
+- `#name` MUST NOT be confused with `#/slug`: the second is another entry's
+  route (3.6);
+- a `link:` property on an `::: image` MAY also be `#name` — the picture then
+  jumps within the article (6.4);
+- an anchor with no name is skipped with a warning; a link to a name the
+  document does not declare stays visible and inert (17).
+
+An anchor MUST NOT be used as a spacer, a page break, or a way to smuggle an
+`id` onto a paragraph for styling.
+
+### 19.1 Rendering contract
+
+An application whose reader is itself addressed by the URL fragment — the codex
+uses `#/{slug}` as its route — MUST resolve a `#name` link **without navigating**:
+following it as an ordinary fragment link would rewrite the route and close the
+entry. Moving the reading position is the whole behaviour, and the address of the
+page MUST NOT change.
+
+The target MUST come to rest clear of any control that floats over the top of the
+reading area.
+
+---
+
 # Changelog
+
+## v1.6
+
+- Added the `::: anchor` directive and the `#name` link form: a table of contents can now jump inside one document (sections 3.6, 4.1, 19). Both the one-line `:: anchor{#name}` spelling used by migrated documents and the fenced `id:` spelling are normative.
+- Stated that resolving a `#name` link MUST NOT change the page address in an application that routes on the fragment (section 19.1).
+- Defined a fence with no info string as **verse, song text or programme lines**: lineation and stanza breaks are content, the text wraps within the reading column, and it is never presented as monospaced code (section 3.9).
+- Reserved a fence **with** an info string for genuine code, contained in its own horizontal scroll (section 3.9).
+- Added mapping rows for `<a name>` / `<a href="#x">` and for `<pre>`-or-`<br>`-per-line verse (section 16.1), and two items to the validation checklist (section 18).
+- No change to existing documents: an anchor is a new directive, and a fenced block already meant verse in every document that contains one.
 
 ## v1.5
 

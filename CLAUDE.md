@@ -95,11 +95,17 @@ Each entry combines:
   is the join key to `index-<lang>.json`, not a position and not a route. The
   route is `#/{slug}`, where slug = the `md` basename minus `.bio.md`/`.md`.
 - BioMD blocks use `::: name … :::` fences: `lead`, `align`, `image`, `images`,
-  `document`, `columns`, `column`, `nav`, `frame`, `signature`. Prefer plain
-  Markdown; use blocks only for layout/media. Image properties: `src`,
+  `document`, `columns`, `column`, `nav`, `frame`, `signature`, `anchor`. Prefer
+  plain Markdown; use blocks only for layout/media. Image properties: `src`,
   `position`, `size`, `alt`, `caption`, `link`, `frame` (theme tokens only —
   never a literal colour). `::: columns` takes an optional `columns: 2|3|4`
   (v1.5): one block then holds a whole record grid, cells wrapping row by row.
+- **`::: anchor` + `[…](#name)` = a jump inside one document** (v1.6). Also
+  written on one line as `:: anchor{#name}`. Not `#/slug` — that is another
+  entry's route, and a `#name` link must never change the address.
+- **A triple-backtick fence with no language is verse**, not code (v1.6 §3.9):
+  a poem, song text, address or programme whose line breaks are content. A fence
+  *with* a language stays real code.
 - **No raw HTML / CSS / JS** in BioMD Lite. No layout-by-whitespace.
 - Dates are **`DD.MM.YYYY`** everywhere — do **not** feed them straight to JS
   `Date`. They live **only** in `*.bio.json` `dates`, never in `index.json`.

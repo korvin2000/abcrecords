@@ -866,15 +866,31 @@ body {
   clear: both;
 }
 
-.bio-article a {
+/* `.bio-jump` is an in-document jump (spec 19). It is a <button>, because the
+   hash is the router — see lib/biomd/anchors.ts — so it has to be told to look
+   and sit exactly like the prose link it stands for. */
+.bio-article a,
+.bio-article .bio-jump {
   color: var(--color-burgundy-600);
   text-decoration: underline;
   text-decoration-style: dotted;
   text-underline-offset: 3px;
   transition: color 0.2s;
 }
-.bio-article a:hover {
+.bio-article a:hover,
+.bio-article .bio-jump:hover {
   color: var(--color-burgundy-400);
+}
+.bio-article .bio-jump {
+  font: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  /* A button's own defaults for these two differ per engine; a jump has to read
+     as running text, and a long label inside a ::: nav pill has to wrap. */
+  text-align: inherit;
+  white-space: normal;
+  cursor: pointer;
 }
 
 .bio-article blockquote {
@@ -884,6 +900,70 @@ body {
   font-style: italic;
   color: var(--color-sepia-700);
   font-size: 1.1em;
+}
+
+/* Verse, song text, programme lines (spec 3.9) — a fence with no language.
+   Read as a quotation's quieter cousin: the same gold rule, one weight lighter,
+   italic serif instead of the browser's monospace, and lines that wrap instead
+   of running off the page. A stanza is a paragraph; `<br>` holds the lineation.
+   Consecutive fences are the stanzas of one poem, so they sit closer together
+   than a fence sits to the prose around it. */
+.bio-article .bio-verse {
+  clear: both;
+  margin: 1.2em 0;
+  padding: 0.1em 0 0.1em 1.1em;
+  border-left: 2px solid rgba(184, 144, 42, 0.45);
+  font-family: var(--font-body);
+  font-style: italic;
+  color: var(--color-sepia-700);
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+.bio-article .bio-verse + .bio-verse {
+  margin-top: -0.5em;
+}
+.bio-article .bio-verse p {
+  margin: 0 0 0.6em;
+}
+.bio-article .bio-verse p:last-child {
+  margin-bottom: 0;
+}
+
+/* A fence that names a language really is code: keep it monospaced and let it
+   scroll inside its own box — never the page (same contract as a wide table,
+   spec 3.8). */
+.bio-article pre {
+  clear: both;
+  overflow-x: auto;
+  margin: 1.2em 0;
+  padding: 0.7em 0.9em;
+  border-left: 2px solid rgba(184, 144, 42, 0.45);
+  background: rgba(226, 209, 168, 0.35);
+  font-size: 0.82em;
+  line-height: 1.5;
+}
+.bio-article code {
+  font-size: 0.86em;
+  background: rgba(226, 209, 168, 0.45);
+  padding: 0.05em 0.3em;
+  border-radius: 2px;
+}
+.bio-article pre code {
+  font-size: inherit;
+  background: none;
+  padding: 0;
+}
+
+/* An in-document anchor (::: anchor, spec 19): a named place, not content. It
+   holds no box of its own; the offset keeps the line it introduces clear of the
+   codex controls floating over the top of the reading pane. */
+.bio-article .bio-anchor {
+  display: block;
+  height: 0;
+}
+.bio-article .bio-anchor,
+.bio-article .bio-anchor-target {
+  scroll-margin-top: 4rem;
 }
 
 .bio-article mark {
@@ -1138,6 +1218,7 @@ body {
   margin: 0;
 }
 .bio-article .bio-nav a,
+.bio-article .bio-nav .bio-jump,
 .bio-article .bio-nav .bio-nav-current {
   display: block;
   padding: 0.35rem 0.9rem;
@@ -1155,11 +1236,13 @@ body {
   color: var(--color-sepia-600);
   transition: background-color 0.2s, color 0.2s;
 }
-.bio-article .bio-nav a:hover {
+.bio-article .bio-nav a:hover,
+.bio-article .bio-nav .bio-jump:hover {
   background: rgba(236, 223, 192, 0.8);
   color: var(--color-ink-800);
 }
-.bio-article .bio-nav a:focus-visible {
+.bio-article .bio-nav a:focus-visible,
+.bio-article .bio-nav .bio-jump:focus-visible {
   outline: 2px solid var(--color-gold-600);
   outline-offset: 2px;
 }

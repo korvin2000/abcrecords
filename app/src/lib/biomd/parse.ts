@@ -1,8 +1,9 @@
 /**
- * BioMD Lite parser (docs/Biography-Markup.md, v1.5).
+ * BioMD Lite parser (docs/Biography-Markup.md, v1.6).
  *
  * BioMD = plain Markdown + `::: name … :::` layout/media blocks:
- *   lead · align · image · images · document · columns · column · nav · frame · signature
+ *   lead · align · image · images · document · columns · column · nav · frame ·
+ *   signature · anchor
  *
  * The whole grammar lives in one table (`BLOCKS`). Each directive declares the
  * properties it documents, whether it is a leaf, which child kinds it refuses
@@ -16,6 +17,8 @@
  *  - a missing closing fence is tolerated (the block runs to EOF, warned);
  *  - metadata never comes from the article — this parses layout/text only.
  */
+
+import { anchorName } from "./anchors";
 
 export type ImagePosition = "left" | "right" | "center" | "full";
 export type ImageSize = "small" | "medium" | "large" | "full";
@@ -40,6 +43,10 @@ export interface ImageNode {
   link?: string;
   /** Frame treatment; undefined = the theme default (Lifted Curl). */
   frame?: ImageFrame;
+  /** Name of an `::: anchor` that introduces this picture inside an
+   *  `::: images` group. The group is a grid, so the marker binds to the cell
+   *  instead of claiming one of its own (spec 19). */
+  anchor?: string;
 }
 
 export interface MarkdownNode {
@@ -104,6 +111,13 @@ export interface SignatureNode {
   children: BioNode[];
 }
 
+/** A named place in the article that a link can jump to (spec 19). */
+export interface AnchorNode {
+  kind: "anchor";
+  /** Canonical name (see anchors.ts); the renderer turns it into an element id. */
+  name: string;
+}
+
 export interface UnknownNode {
   kind: "unknown";
   name: string;
@@ -121,6 +135,7 @@ export type BioNode =
   | NavNode
   | FrameNode
   | SignatureNode
+  | AnchorNode
   | UnknownNode;
 
 export interface BioDoc {
@@ -133,6 +148,23 @@ export interface BioDoc {
 /** One fence line: `::: name` opens (group 1 set), a bare `:::` closes. */
 const FENCE = /^:::[ \t]*([A-Za-z][\w-]*)?[ \t]*$/;
 const PROP_LINE = /^([A-Za-z][\w-]*):[ \t]*(.*)$/;
+
+/**
+ * The one-line spelling of an anchor — `:: anchor{#name}` (spec 19). A marker
+ * has no body, so it needs no closing fence, and the legacy `::` form is
+ * accepted beside `:::` because migrated documents are written that way.
+ */
+const ANCHOR_LINE = /^:{2,3}[ \t]*anchor[ \t]*\{([^}]*)\}[ \t]*$/i;
+
+/**
+ * The one-line anchor as an ordinary block segment, or null for any other line.
+ * Desugaring it into a property line is what keeps the directive table the only
+ * description of the grammar — `anchor` needs no branch of its own anywhere.
+ */
+function anchorSegment(line: string): RawBlock | null {
+  const marker = ANCHOR_LINE.exec(line);
+  return marker ? { name: "anchor", lines: [`id: ${marker[1].trim()}`] } : null;
+}
 
 type Warn = string[];
 
@@ -156,6 +188,12 @@ function segment(lines: string[], warn: Warn): Segment[] {
   };
 
   for (let i = 0; i < lines.length; i++) {
+    const marker = anchorSegment(lines[i]);
+    if (marker) {
+      flush();
+      out.push(marker);
+      continue;
+    }
     const name = FENCE.exec(lines[i])?.[1];
     if (!name) {
       run.push(lines[i]);
@@ -314,9 +352,24 @@ const BLOCKS = new Map<string, BlockSpec>(
     images: {
       props: ["columns", "frame"],
       build: (c) => {
-        const nodes = children(c);
-        const images = nodes.filter((n): n is ImageNode => n.kind === "image");
-        const strays = nodes.filter((n) => n.kind !== "image");
+        const images: ImageNode[] = [];
+        const strays: BioNode[] = [];
+        // A group is a grid, so an anchor between two pictures cannot stand as a
+        // node of its own — it would claim a whole cell. It names the picture it
+        // introduces instead (spec 19); one with no picture left stays a stray.
+        let marker: AnchorNode | undefined;
+        for (const node of children(c)) {
+          if (node.kind === "anchor") {
+            if (marker) strays.push(marker);
+            marker = node;
+          } else if (node.kind === "image") {
+            images.push(marker ? { ...node, anchor: marker.name } : node);
+            marker = undefined;
+          } else {
+            strays.push(node);
+          }
+        }
+        if (marker) strays.push(marker);
         if (strays.length) {
           c.warn.push("::: images accepts only ::: image children — other content follows the group.");
         }
@@ -356,36 +409,47 @@ const BLOCKS = new Map<string, BlockSpec>(
       props: ["columns", "divider"],
       build: (c) => {
         const cells: BioNode[][] = [];
+        // An anchor directly inside the grid would claim a whole track, so it
+        // opens the next cell rather than becoming one (spec 19).
+        let markers: BioNode[] = [];
+        const openCell = (nodes: BioNode[]) => {
+          cells.push(markers.length ? [...markers, ...nodes] : nodes);
+          markers = [];
+        };
         for (const seg of segment(c.body, c.warn)) {
           if ("md" in seg) {
             // Stray markdown directly inside ::: columns → its own cell.
             const nodes = parseNodes(seg.md, c.warn);
             if (!nodes.length) continue;
             c.warn.push("Content directly inside ::: columns — wrapped as one column.");
-            cells.push(nodes);
+            openCell(nodes);
           } else if (seg.name === "column") {
-            cells.push(childrenOf("column", seg.lines, c.warn));
+            openCell(childrenOf("column", seg.lines, c.warn));
+          } else if (seg.name === "anchor") {
+            markers.push(...nodesOf(buildBlock(seg, c.warn)));
           } else {
             // Any other block: keep the block itself, not its raw property lines.
             c.warn.push(`::: ${seg.name} directly inside ::: columns — wrapped as one column.`);
             const cell = nodesOf(buildBlock(seg, c.warn));
-            if (cell.length) cells.push(cell);
+            if (cell.length) openCell(cell);
           }
         }
         if (!cells.length) {
           c.warn.push("::: columns without any ::: column child — skipped.");
-          return null;
+          return markers.length ? markers : null;
         }
         const explicit = tracks(c.props.columns, c.warn, "columns");
         if (!explicit && cells.length > 3) {
           c.warn.push("More than three columns without `columns:` — the grid wraps at three.");
         }
-        return {
+        const grid: ColumnsNode = {
           kind: "columns",
           tracks: explicit ?? (clamp(cells.length, 1, 3) as Tracks),
           divider: flag(c.props.divider, c.warn, "divider"),
           cells,
         };
+        // A marker with no cell left to open keeps its place after the grid.
+        return markers.length ? [grid, ...markers] : grid;
       },
     },
 
@@ -398,18 +462,29 @@ const BLOCKS = new Map<string, BlockSpec>(
     nav: {
       props: ["title", "active"],
       build: (c) => {
-        repairHardBreaks(c.body, c.warn);
-        const markdown = c.body.join("\n").trim();
+        // A nav keeps its body as raw Markdown, so it is the one container that
+        // never re-segments: lift any marker out by hand, or it would print as
+        // text in the bar. It then marks the bar's own place (spec 19).
+        const markers: BioNode[] = [];
+        const body = c.body.filter((line) => {
+          const marker = anchorSegment(line);
+          if (!marker) return true;
+          markers.push(...nodesOf(buildBlock(marker, c.warn)));
+          return false;
+        });
+        repairHardBreaks(body, c.warn);
+        const markdown = body.join("\n").trim();
         if (!markdown) {
           c.warn.push("::: nav without a link list — skipped.");
-          return null;
+          return markers.length ? markers : null;
         }
-        return {
+        const bar: NavNode = {
           kind: "nav",
           title: c.props.title || undefined,
           active: c.props.active || undefined,
           markdown,
         };
+        return markers.length ? [...markers, bar] : bar;
       },
     },
 
@@ -426,6 +501,19 @@ const BLOCKS = new Map<string, BlockSpec>(
 
     signature: {
       build: (c) => ({ kind: "signature", children: children(c) }),
+    },
+
+    anchor: {
+      leaf: true,
+      props: ["id"],
+      build: ({ props, warn }) => {
+        const name = anchorName(props.id ?? "");
+        if (!name) {
+          warn.push("::: anchor without a name — skipped.");
+          return null;
+        }
+        return { kind: "anchor", name };
+      },
     },
   }),
 );

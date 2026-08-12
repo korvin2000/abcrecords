@@ -1,9 +1,11 @@
-import { memo, useMemo, type ReactNode } from "react";
+import { memo, useMemo, type MouseEventHandler, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import clsx from "clsx";
 import { remarkHighlight } from "./remarkHighlight";
 import { remarkZeroPaddedLists } from "./remarkZeroPaddedLists";
+import { remarkVerse } from "./remarkVerse";
+import { anchorElementId, anchorLinkTarget, scrollToAnchor } from "./anchors";
 import {
   parseBioMd,
   type BioNode,
@@ -25,11 +27,11 @@ import { InlineAudioPlayer } from "@/components/AudioPlayer";
 import { CurlFrame } from "@/components/CurlFrame";
 
 /**
- * BioMD Lite → React renderer (docs/Biography-Markup.md, v1.5).
+ * BioMD Lite → React renderer (docs/Biography-Markup.md, v1.6).
  * Plain-markdown runs go through react-markdown (GFM tables, quotes, footnotes)
- * plus the ==highlight== and zero-padded-list plugins; layout blocks render as
- * dedicated components. Everything stays readable in source order (mobile
- * stacks floats, grids and columns).
+ * plus the ==highlight==, zero-padded-list and verse plugins; layout blocks
+ * render as dedicated components. Everything stays readable in source order
+ * (mobile stacks floats, grids and columns).
  */
 
 interface ArticleProps {
@@ -41,7 +43,9 @@ interface ArticleProps {
   hideTitle?: boolean;
 }
 
-const REMARK_PLUGINS = [remarkGfm, remarkHighlight, remarkZeroPaddedLists];
+// remarkVerse runs last on purpose: by then the inline plugins have seen the
+// tree, so a fenced verse keeps the literal text it was fenced with (spec 3.9).
+const REMARK_PLUGINS = [remarkGfm, remarkHighlight, remarkZeroPaddedLists, remarkVerse];
 
 /**
  * Present when this Markdown island is the body of a `::: nav` menu. It keeps
@@ -84,6 +88,18 @@ function Md({
         >
           {children}
         </a>
+      );
+    }
+    // A jump inside this article (`[…](#name)`, spec 19). Deliberately not an
+    // anchor element: the hash is the router, so following `#name` would leave
+    // the entry and close the codex. A button moves the reading position and
+    // cannot touch the URL — and it works the same inside a ::: nav bar.
+    const jump = anchorLinkTarget(url);
+    if (jump) {
+      return (
+        <button type="button" className="bio-jump" onClick={(e) => jumpTo(jump, e.currentTarget)}>
+          {children}
+        </button>
       );
     }
     // Media widgets belong to prose, not to a navigation bar (spec 10).
@@ -137,6 +153,15 @@ function Md({
       {text}
     </ReactMarkdown>
   );
+}
+
+/** Move the reading position to a named anchor, resolved inside the article the
+ *  click came from. A name nothing declares stays inert rather than scrolling
+ *  somewhere arbitrary — the author hears about it instead. */
+function jumpTo(name: string, from: Element): void {
+  if (!scrollToAnchor(name, from) && import.meta.env.DEV) {
+    console.warn(`[BioMD] this article declares no ::: anchor named "${name}".`);
+  }
 }
 
 /** The current item of a nav bar: present, marked, not clickable. */
@@ -252,17 +277,21 @@ const FRAME_TONE_CLASS: Record<FrameTone, string> = {
 /**
  * Where a figure click leads (spec 6.4). Without `link` — and for a `link` that
  * points at an image — the image viewer opens; a *.bio.md link turns the page
- * inside the codex; any other target is an ordinary anchor around the picture.
+ * inside the codex; a `#name` link jumps within the article (spec 19); any
+ * other target is an ordinary anchor around the picture.
  */
 type FigureTarget =
   | { as: "viewer"; src: string }
   | { as: "entry"; md: string }
+  | { as: "jump"; anchor: string }
   | { as: "href"; href: string };
 
 function figureTarget(node: ImageNode, canNavigate: boolean): FigureTarget {
   const link = node.link;
   const resolve = (p: string) => (isExternalUrl(p) ? p : resolveResourcePath(p));
   if (!link || isImageUrl(link)) return { as: "viewer", src: resolve(link ?? node.src) };
+  const anchor = anchorLinkTarget(link);
+  if (anchor) return { as: "jump", anchor };
   if (/\.bio\.md$/i.test(link) && !isExternalUrl(link) && canNavigate) return { as: "entry", md: link };
   return { as: "href", href: resolve(link) };
 }
@@ -273,12 +302,14 @@ function Figure({ node, onNavigateEntry }: { node: ImageNode; onNavigateEntry?: 
   const alt = node.alt ?? node.caption ?? "";
   const target = figureTarget(node, Boolean(onNavigateEntry));
 
-  const onClick =
+  const onClick: MouseEventHandler<HTMLElement> | undefined =
     target.as === "viewer"
       ? () => openImage({ src: target.src, alt, caption: node.caption, download: filename(target.src) })
       : target.as === "entry"
         ? () => onNavigateEntry?.(target.md)
-        : undefined;
+        : target.as === "jump"
+          ? (e) => jumpTo(target.anchor, e.currentTarget)
+          : undefined;
 
   const picture = (
     <CurlFrame variant={node.frame}>
@@ -296,11 +327,17 @@ function Figure({ node, onNavigateEntry }: { node: ImageNode; onNavigateEntry?: 
 
   return (
     <figure
+      // An anchor that introduces a picture inside an ::: images group names the
+      // cell itself, because the grid has no room for a marker node (spec 19).
+      id={node.anchor && anchorElementId(node.anchor)}
       className={clsx(
         "bio-figure my-4 w-full",
         SIZE_CLASS[node.size],
         FLOAT_CLASS[node.position],
-        target.as === "viewer" ? "cursor-zoom-in" : target.as === "entry" && "cursor-pointer",
+        node.anchor && "bio-anchor-target",
+        target.as === "viewer"
+          ? "cursor-zoom-in"
+          : (target.as === "entry" || target.as === "jump") && "cursor-pointer",
       )}
       onClick={onClick}
     >
@@ -411,6 +448,11 @@ function renderNode(node: BioNode, key: number, onNavigateEntry?: (p: string) =>
           {kids(node.children)}
         </footer>
       );
+
+    case "anchor":
+      // A named place, not content: no box of its own, and offset so the codex
+      // controls never cover the line it introduces (see .bio-anchor).
+      return <span key={key} id={anchorElementId(node.name)} className="bio-anchor" aria-hidden />;
 
     case "unknown":
       // Spec: unknown block → render inner content, never delete it.
