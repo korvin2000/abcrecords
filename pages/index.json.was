@@ -14,7 +14,7 @@
     "id": "2",
     "title": "Agustin Barrios Mangore - Codex Render",
     "lang": "ru",
-    "type": "guitarist",
+    "type": "hidden",
     "md": "/barrios.bio.md",
     "json": "/agustin-barrios.bio.json"
   },
@@ -77,7 +77,7 @@
     "id": "8",
     "title": "Jovan Jovicic - Codex Render",
     "lang": "ru",
-    "type": "guitarist",
+    "type": "hidden",
     "md": "/jovicic.bio.md",
     "json": "/jovan-jovicic.bio.json"
   },
@@ -94,17 +94,17 @@
   },
   {
     "id": "10",
-    "title": "Fransis Goya",
+    "title": "John Williams Discography 5",
     "lang": "ru",
     "type": "guitarist",
-    "md": "/goya2.bio.md",
+    "md": "/goya2.right.md",
     "json": "/biomd-demo.bio.json"
   },
   {
     "id": "11",
     "title": "BioMD 1.5 Conformance",
     "lang": "ru",
-    "type": "guitarist",
+    "type": "hidden",
     "md": "/biomd-demo.bio.md",
     "json": "/biomd-demo.bio.json"
   },
@@ -112,28 +112,28 @@
     "id": "12",
     "title": "About the Project",
     "lang": "ru,en",
-    "type": "guitarist",
+    "type": "hidden",
     "md": "/about.md"
   },
   {
     "id": "13",
     "title": "Sources",
     "lang": "ru",
-    "type": "guitarist",
+    "type": "hidden",
     "md": "/sources.md"
   },
   {
     "id": "14",
     "title": "Links",
     "lang": "ru",
-    "type": "guitarist",
+    "type": "hidden",
     "md": "/links.md"
   },
   {
     "id": "15",
     "title": "News",
     "lang": "ru",
-    "type": "guitarist",
+    "type": "hidden",
     "md": "/news.md"
   },
   {
@@ -141,7 +141,7 @@
     "title": "Adamian",
     "lang": "ru",
     "gender": "m",
-    "country": "it",
+    "country": "ru",
     "type": "guitarist",
     "md": "/adamjan.bio.md",
     "json": "/adamjan.bio.json"

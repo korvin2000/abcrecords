@@ -321,6 +321,7 @@ Rules:
 - keep all meaningful resource links;
 - do not reproduce `rowspan`, `colspan`, spacer cells, or percentage widths;
 - do not use a table for page layout, paired images, or text beside a cover.
+- GFM alignment when it helps real data: `:---`, `---:`, `:---:`.
 
 The renderer MUST keep a wide table usable on a narrow screen, for example through contained horizontal scrolling or a labeled stacked-row view. It MUST NOT force the entire page to scroll horizontally.
 
