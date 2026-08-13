@@ -1,4 +1,4 @@
-import type { EntryBundle } from "@/lib/types";
+import type { BioDoc } from "@/lib/biomd/parse";
 import type { MsgKey } from "@/lib/messages";
 import { BioArticle } from "@/lib/biomd/BioArticle";
 import { useI18n } from "@/lib/i18n";
@@ -8,25 +8,31 @@ import { useI18n } from "@/lib/i18n";
  * tab and the entire body of a page. One renderer for both, because they are
  * the same thing; only the "not written yet" wording differs, so the caller
  * names the message.
+ *
+ * The document arrives parsed: the view above has already read its title lines
+ * to build the plate, and `titles` is whatever the plate left for the article
+ * to print itself (see lib/biomd/headings.ts).
  */
 export function CodexArticle({
-  bundle,
+  doc,
+  titles,
   missing,
   onNavigateEntry,
 }: {
-  bundle: EntryBundle;
+  doc: BioDoc | null;
+  titles?: readonly string[];
   missing: MsgKey;
   onNavigateEntry: (slug: string) => void;
 }) {
   const { t } = useI18n();
 
-  if (!bundle.md) {
+  if (!doc) {
     return <p className="text-center font-body italic text-sepia-600">{t(missing)}</p>;
   }
 
   return (
     <div className="mx-auto max-w-3xl">
-      <BioArticle source={bundle.md} onNavigateEntry={onNavigateEntry} />
+      <BioArticle doc={doc} titles={titles} onNavigateEntry={onNavigateEntry} />
     </div>
   );
 }

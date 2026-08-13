@@ -62,6 +62,14 @@ A side rail is not automatically chrome. A content-specific badge, image, captio
 
 Every document MUST have exactly one level-one heading.
 
+A renderer MUST tolerate a second one. Migrated documents often split a name
+over two `#` lines, so the second is read as the subtitle line rather than as a
+heading in the prose. Both are taken out of the article body and shown on the
+entry's title plate, so neither is printed twice; a `#` line that names
+something other than the entry is printed by the article instead. From the
+third `#` on, the lines are ordinary body content. This is tolerance, not
+licence: author one title.
+
 ```md
 # Laurindo Almeida
 

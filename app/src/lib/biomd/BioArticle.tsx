@@ -6,15 +6,15 @@ import { remarkHighlight } from "./remarkHighlight";
 import { remarkZeroPaddedLists } from "./remarkZeroPaddedLists";
 import { remarkVerse } from "./remarkVerse";
 import { anchorElementId, anchorLinkTarget, scrollToAnchor } from "./anchors";
-import {
-  parseBioMd,
-  type BioNode,
-  type ContentAlignment,
-  type DocumentNode,
-  type FrameTone,
-  type ImageNode,
-  type NavNode,
-  type Tracks,
+import type {
+  BioDoc,
+  BioNode,
+  ContentAlignment,
+  DocumentNode,
+  FrameTone,
+  ImageNode,
+  NavNode,
+  Tracks,
 } from "./parse";
 import { isExternalUrl, resolveResourcePath } from "../paths";
 import { entryTargetSlug } from "../entry";
@@ -35,12 +35,14 @@ import { CurlFrame } from "@/components/CurlFrame";
  */
 
 interface ArticleProps {
-  source: string;
+  /** Parsed once by the caller — the codex plate reads its titles too. */
+  doc: BioDoc;
   /** Called with the slug when a link to another catalogue entry is clicked
    *  (`#/slug`, `x.bio.md` or `x.md` — docs/Biography-Markup.md §3.6). */
   onNavigateEntry?: (slug: string) => void;
-  /** Hide the article's own `# title` (the codex header already shows it). */
-  hideTitle?: boolean;
+  /** The document's `# ` line(s) that the codex plate is *not* showing, so the
+   *  article prints them itself (see headings.ts). Normally empty. */
+  titles?: readonly string[];
 }
 
 // remarkVerse runs last on purpose: by then the inline plugins have seen the
@@ -519,23 +521,29 @@ function DocumentCard({ node }: { node: DocumentNode }) {
   return <div className="my-4">{card}</div>;
 }
 
-export const BioArticle = memo(function BioArticle({
-  source,
-  onNavigateEntry,
-  hideTitle = true,
-}: ArticleProps) {
-  const doc = useMemo(() => parseBioMd(source), [source]);
-
+export const BioArticle = memo(function BioArticle({ doc, onNavigateEntry, titles = [] }: ArticleProps) {
   if (import.meta.env.DEV && doc.warnings.length) {
     console.warn("[BioMD]", doc.warnings);
   }
 
   return (
     <article className="bio-article">
-      {!hideTitle && doc.title && (
-        <h1 className="font-display text-center text-3xl uppercase tracking-[0.14em] text-burgundy-600">
-          {doc.title}
-        </h1>
+      {titles.length > 0 && (
+        // A title the plate does not carry: printed the way the plate would
+        // have, not as a section heading — the article is what it names.
+        <header className="bio-titles">
+          {titles.map((line, i) =>
+            i === 0 ? (
+              <h2 key={i} className="bio-title">
+                {line}
+              </h2>
+            ) : (
+              <h3 key={i} className="bio-title bio-title--second">
+                {line}
+              </h3>
+            ),
+          )}
+        </header>
       )}
       {doc.nodes.map((n, i) => renderNode(n, i, onNavigateEntry))}
       <div className="clear-both" />

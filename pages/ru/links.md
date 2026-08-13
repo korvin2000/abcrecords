@@ -1,4 +1,10 @@
+::: align
+position: center
+
 # Ссылки
+# Бла-бла
+
+:::
 
 ::: nav
 title: Разделы проекта

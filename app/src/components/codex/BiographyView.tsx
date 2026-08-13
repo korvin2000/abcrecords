@@ -1,9 +1,12 @@
 import { useState } from "react";
 import type { EntryBundle } from "@/lib/types";
 import type { CatalogRecord } from "@/lib/catalog";
+import type { BioDoc } from "@/lib/biomd/parse";
 import { isListed } from "@/lib/entry";
 import { countryName, yearOf } from "@/lib/metadata";
 import { typeLabel, useI18n } from "@/lib/i18n";
+import { planHeadings } from "@/lib/biomd/headings";
+import { useBioDoc } from "@/lib/biomd/useBioDoc";
 import { CodexArticle } from "./CodexArticle";
 import { CodexHeader } from "./CodexHeader";
 import { CodexSkeleton } from "./CodexSkeleton";
@@ -27,6 +30,10 @@ interface Props {
  * the dossier lands the catalogue's localized name stands in on one line;
  * that reflow is normally invisible, because opening a card starts the fetch
  * before this ever mounts.
+ *
+ * When the dossier names nobody, the article's own `# ` line(s) name the
+ * entry instead, and either way a line the plate ends up carrying is not
+ * printed again below it — see lib/biomd/headings.ts for the whole rule.
  */
 export function BiographyView({ record, bundle, onNavigateEntry }: Props) {
   const { t, locale } = useI18n();
@@ -36,8 +43,13 @@ export function BiographyView({ record, bundle, onNavigateEntry }: Props) {
 
   const { entry, display } = record;
   const meta = bundle?.data?.metadata;
-  // comma-lists (the project-team roster) get breathing room to wrap
-  const forename = (meta?.forename ?? "").replace(/,\s*/g, ", ") || display;
+  const doc = useBioDoc(bundle?.md);
+  const heading = planHeadings(
+    doc?.titles ?? [],
+    // comma-lists (the project-team roster) get breathing room to wrap
+    { title: (meta?.forename ?? "").replace(/,\s*/g, ", "), secondary: meta?.surname },
+    display,
+  );
   const born = yearOf(meta?.dates?.born);
   const died = yearOf(meta?.dates?.died);
 
@@ -45,8 +57,8 @@ export function BiographyView({ record, bundle, onNavigateEntry }: Props) {
     <>
       <CodexHeader
         kicker={t("codex.entry")}
-        title={forename}
-        secondary={meta?.surname}
+        title={heading.title}
+        secondary={heading.secondary}
         subtitleParts={[
           isListed(entry) ? typeLabel(t, entry.type) : null,
           countryName(entry.country, locale),
@@ -61,7 +73,13 @@ export function BiographyView({ record, bundle, onNavigateEntry }: Props) {
         {bundle === null ? (
           <CodexSkeleton />
         ) : (
-          <TabBody tab={tab} record={record} bundle={bundle} onNavigateEntry={onNavigateEntry} />
+          <TabBody
+            tab={tab}
+            record={record}
+            bundle={bundle}
+            article={{ doc, titles: heading.articleTitles }}
+            onNavigateEntry={onNavigateEntry}
+          />
         )}
       </div>
     </>
@@ -72,11 +90,13 @@ function TabBody({
   tab,
   record,
   bundle,
+  article,
   onNavigateEntry,
 }: {
   tab: CodexTab;
   record: CatalogRecord;
   bundle: EntryBundle;
+  article: { doc: BioDoc | null; titles: readonly string[] };
   onNavigateEntry: (slug: string) => void;
 }) {
   switch (tab) {
@@ -87,6 +107,13 @@ function TabBody({
     case "lore":
       return <LoreTab entry={record.entry} bundle={bundle} />;
     default:
-      return <CodexArticle bundle={bundle} missing="bio.missing" onNavigateEntry={onNavigateEntry} />;
+      return (
+        <CodexArticle
+          doc={article.doc}
+          titles={article.titles}
+          missing="bio.missing"
+          onNavigateEntry={onNavigateEntry}
+        />
+      );
   }
 }

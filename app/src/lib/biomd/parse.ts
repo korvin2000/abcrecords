@@ -139,8 +139,11 @@ export type BioNode =
   | UnknownNode;
 
 export interface BioDoc {
-  /** Text of the first top-level `# ` heading, if any (removed from body). */
-  title: string | null;
+  /** The document's top-level `# ` title line(s), removed from the body.
+   *  At most two: the spec asks for exactly one (§2), but a migrated document
+   *  often splits a name over two lines, and the codex reads the second as the
+   *  subtitle line rather than as a heading in the prose. */
+  titles: string[];
   nodes: BioNode[];
   warnings: string[];
 }
@@ -757,22 +760,109 @@ function clamp(value: number, min: number, max: number): number {
   return value < min ? min : value > max ? max : value;
 }
 
-/** Extract the article title (`# …`) from the first markdown node. */
-function extractTitle(nodes: BioNode[]): string | null {
-  const first = nodes[0];
-  if (!first || first.kind !== "markdown") return null;
-  const m = /^#\s+(.+?)\s*$/m.exec(first.text);
-  if (!m || first.text.indexOf(m[0]) !== 0) return null;
-  const rest = first.text.slice(m[0].length).trim();
-  if (rest) first.text = rest;
-  else nodes.shift();
-  return m[1];
+/* ------------------------------------------------------------------ *
+ * Title lines
+ * ------------------------------------------------------------------ */
+
+/** How many `# ` lines are read as the document's title. Spec §2 asks for one;
+ *  the second is tolerated as its subtitle line. A third stays body text — at
+ *  that point the `#`s are section headings, not a name. */
+const TITLE_LIMIT = 2;
+
+/** A level-one ATX heading, with CommonMark's optional closing run of `#`. */
+const H1 = /^ {0,3}#(?!#)[ \t]+(.*?)(?:[ \t]+#+)?[ \t]*$/;
+
+/**
+ * Take the title line(s) out of one Markdown island.
+ *
+ * Fenced content is skipped: inside a code fence — or a verse fence (§3.9) — a
+ * leading `#` is the text itself, not a heading. The fence bookkeeping is the
+ * same as `repairHardBreaks`', for the same reason.
+ */
+function takeHeadings(text: string, titles: string[]): string {
+  if (!text.includes("#")) return text;
+  const kept: string[] = [];
+  let marker = 0; // the fence we are inside; 0 = prose
+  let fence = 0; // length of the run that opened it
+
+  for (const line of text.split("\n")) {
+    if (marker) {
+      if (fenceRun(line, marker, true) >= fence) marker = 0;
+    } else {
+      let head = line.charCodeAt(0);
+      if (head === SPACE || head === TAB) head = line.charCodeAt(indentEnd(line));
+      const run = head === BACKTICK || head === TILDE ? fenceRun(line, head, false) : 0;
+      if (run) {
+        marker = head;
+        fence = run;
+      } else if (titles.length < TITLE_LIMIT) {
+        const name = H1.exec(line)?.[1].trim();
+        if (name) {
+          titles.push(name);
+          continue;
+        }
+      }
+    }
+    kept.push(line);
+  }
+  return kept.join("\n").trim();
+}
+
+/**
+ * Lift the document's title line(s) out of the body, wherever they sit.
+ *
+ * Not necessarily at the top: a migrated document commonly centres its name
+ * inside an `::: align`, and a name split over two `# ` lines is exactly what
+ * the codex plate wants as title and subtitle. Whatever is left empty behind
+ * them is pruned, so a wrapper that held nothing else does not render as a
+ * blank box. `::: nav` is skipped — a `#` in a link bar is not a title.
+ */
+function extractTitles(nodes: BioNode[], titles: string[] = []): string[] {
+  for (let i = 0; i < nodes.length && titles.length < TITLE_LIMIT; i++) {
+    const node = nodes[i];
+    switch (node.kind) {
+      case "markdown":
+        node.text = takeHeadings(node.text, titles);
+        break;
+      case "lead":
+      case "align":
+      case "frame":
+      case "signature":
+      case "unknown":
+        extractTitles(node.children, titles);
+        break;
+      case "columns":
+        for (const cell of node.cells) extractTitles(cell, titles);
+        break;
+      default:
+        continue; // no prose of its own: image, images, document, nav, anchor
+    }
+    if (isEmpty(node)) nodes.splice(i--, 1);
+  }
+  return titles;
+}
+
+/** Has this node been left with nothing to render? */
+function isEmpty(node: BioNode): boolean {
+  switch (node.kind) {
+    case "markdown":
+      return !node.text;
+    case "lead":
+    case "align":
+    case "frame":
+    case "signature":
+    case "unknown":
+      return !node.children.length;
+    case "columns":
+      return node.cells.every((cell) => !cell.length);
+    default:
+      return false;
+  }
 }
 
 export function parseBioMd(source: string): BioDoc {
   const warnings: Warn = [];
   const lines = source.replace(/\r\n?/g, "\n").split("\n");
   const nodes = parseNodes(lines, warnings);
-  const title = extractTitle(nodes);
-  return { title, nodes, warnings };
+  return { titles: extractTitles(nodes), nodes, warnings };
 }

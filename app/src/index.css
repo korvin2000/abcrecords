@@ -319,9 +319,19 @@ body {
   pointer-events: none;
 }
 
-/* Segmented one-of-few strip. */
+/* Segmented one-of-few strip.
+
+   The strip sits in a `flex flex-col` field, where a child stretches to the
+   full column width by default — `inline-flex` does not stop that. It would
+   then be wider than its own buttons, so the pill's rounded right end floated
+   away from the last segment while the segment itself ended square: the exact
+   left/right asymmetry the plaque is meant not to have. It hugs its buttons
+   instead, and the end segments carry the pill's radius themselves, so the
+   selected fill is rounded at whichever end it sits. */
 .form-segments {
   display: inline-flex;
+  align-self: flex-start;
+  max-width: 100%;
   overflow: hidden;
   border: 1px solid rgba(184, 144, 42, 0.45);
   border-radius: 999px;
@@ -341,8 +351,16 @@ body {
   cursor: pointer;
   transition: color 0.2s, background 0.2s;
 }
+/* The extra padding is the curve's own room: without it the first and last
+   labels sit against the bend instead of inside it. */
 .form-segment:first-child {
+  padding-left: 1rem;
   border-left: none;
+  border-radius: 999px 0 0 999px;
+}
+.form-segment:last-child {
+  padding-right: 1rem;
+  border-radius: 0 999px 999px 0;
 }
 .form-segment:hover {
   color: var(--color-ink-800);
@@ -849,6 +867,28 @@ body {
 }
 .bio-article h2 { font-size: 1.35rem; }
 .bio-article h3 { font-size: 1.15rem; }
+
+/* The article's own title line(s), printed only when the codex plate above is
+   naming something else (lib/biomd/headings.ts). It is a title, not a section
+   heading: centered, at the plate's scale, and without the rule that separates
+   one section from the next. */
+.bio-titles {
+  margin: 0 0 1.4rem;
+}
+.bio-article .bio-title {
+  margin: 0;
+  padding: 0;
+  border: none;
+  font-size: 2rem;
+  letter-spacing: 0.14em;
+  text-align: center;
+  text-wrap: balance;
+}
+.bio-article .bio-title--second {
+  margin-top: 0.15em;
+  font-size: 1.6rem;
+  color: var(--color-burgundy-700);
+}
 
 /* Spec 6.2: a following heading or separator ends an earlier left/right image
    wrap. Without this a heading keeps its full-width box but its LINE boxes are

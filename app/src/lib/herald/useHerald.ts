@@ -36,14 +36,18 @@ export function useHerald(facts: FactsBySlug, lang: Lang, enabled: boolean): Her
   const [quotes, setQuotes] = useState<readonly QuoteMessage[]>(EMPTY_QUOTES);
   const [index, setIndex] = useState<number | null>(null);
 
-  // All three are fixed for the visit, and lazily initialized (a `useState`
+  // All four are fixed for the visit, and lazily initialized (a `useState`
   // initializer runs once; `useRef(expr)` would re-evaluate `expr` every
   // render and throw the result away). The day must not shift under a
   // long-open tab's memo, and the reveal deadline must not restart as facts
-  // stream in — hence an absolute timestamp rather than a delay.
+  // stream in — hence an absolute timestamp rather than a delay. The two
+  // random draws are per visit for the same reason: they decide which saying
+  // and which of today's anniversaries open the rotation, and re-drawing them
+  // as dossiers arrive would reshuffle the block under the reader.
   const [today] = useState(todayDmy);
   const [revealAt] = useState(() => Date.now() + revealDelay());
   const [quoteOffset] = useState(() => Math.floor(Math.random() * 1000));
+  const [anniversarySeed] = useState(() => (Math.random() * 0x100000000) >>> 0);
 
   useEffect(() => {
     if (!enabled || !HERALD.quotes) return;
@@ -57,8 +61,11 @@ export function useHerald(facts: FactsBySlug, lang: Lang, enabled: boolean): Her
   }, [enabled, lang]);
 
   const anniversaries = useMemo(
-    () => (enabled && HERALD.anniversaries ? findAnniversaries(facts.values(), today) : EMPTY_ANNIVERSARIES),
-    [enabled, facts, today],
+    () =>
+      enabled && HERALD.anniversaries
+        ? findAnniversaries(facts.values(), today, anniversarySeed)
+        : EMPTY_ANNIVERSARIES,
+    [enabled, facts, today, anniversarySeed],
   );
 
   const playlist = useMemo(
