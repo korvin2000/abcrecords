@@ -39,7 +39,11 @@ export function CodexModal({ record, onClose, onTurn, onNavigateEntry }: Props) 
       onClose={onClose}
       onTurn={onTurn}
     >
-      <View record={record} bundle={bundle} onNavigateEntry={onNavigateEntry} />
+      {/* The shell survives a ← → turn; the page inside it does not. Keying
+          here is what puts the new entry on its Biography tab and replays the
+          leaf-through, without dragging the backdrop and the panel through a
+          remount as well. */}
+      <View key={record.slug} record={record} bundle={bundle} onNavigateEntry={onNavigateEntry} />
     </CodexShell>
   );
 }

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
-import { m } from "framer-motion";
+import { m, useReducedMotion } from "framer-motion";
 import clsx from "clsx";
 import type { Lang } from "@/lib/languages";
 import { audio } from "@/lib/audio";
@@ -34,7 +34,27 @@ interface Props {
  * - The close/nav buttons sit at left-9/right-9, clear of the 44px corner
  *   filigree, so neither covers the other.
  * - The body scroll-lock belongs to App (single owner); do not add one here.
+ *
+ * **One shell, many entries.** App deliberately does *not* key this component
+ * on the slug: ← → changes `slug` in place. Remounting instead put two of
+ * these on screen at once for the length of the crossfade, and two stacked
+ * translucent backdrops do not add up to one — `1-(1-0.55a)(1-0.55b)` dips to
+ * ~0.47 mid-turn, which is the page visibly showing through — while the
+ * incoming panel replayed the whole 0.85 s opening turn and a second
+ * full-viewport `backdrop-filter` was composited over the first.
+ *
+ * **Closing is one movement, not two.** The dismissal used to run the panel's
+ * CSS turn (450 ms) and *then* let App's `AnimatePresence` fade the backdrop
+ * (250 ms) — 700 ms to put a book down that took ~500 ms to open, with the
+ * dimmed backdrop hanging on after the panel had gone. Both now run together
+ * on one `CLOSE_MS` clock, and the exit is instant because there is nothing
+ * left to fade by the time this unmounts.
  */
+
+/** Panel turn and backdrop fade share this; it must match `.page-turn-close`
+ *  in index.css. Zero under reduced motion — with the animations clamped to
+ *  nothing there is no movement to wait for, only a delay. */
+const CLOSE_MS = 320;
 export function CodexShell({
   slug,
   ariaLabel,
@@ -46,8 +66,11 @@ export function CodexShell({
   children,
 }: Props) {
   const { t } = useI18n();
+  const reduced = useReducedMotion();
+  const closeMs = reduced ? 0 : CLOSE_MS;
   const [closing, setClosing] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const closeTimer = useRef(0);
 
   const scrollToTop = useCallback(() => {
     scrollRef.current?.scrollTo({ top: 0 });
@@ -58,39 +81,57 @@ export function CodexShell({
 
   useEffect(() => {
     audio.open();
+    return () => window.clearTimeout(closeTimer.current);
   }, []);
 
-  // The panel plays its closing animation before App unmounts it.
+  // The panel turns shut and the backdrop lifts on the same clock; App unmounts
+  // the shell when both have finished.
   const handleClose = useCallback(() => {
     setClosing((was) => {
       if (!was) {
         audio.close();
-        window.setTimeout(onClose, 420);
+        closeTimer.current = window.setTimeout(onClose, closeMs);
       }
       return true;
     });
-  }, [onClose]);
+  }, [onClose, closeMs]);
+
+  // A page already on its way out does not turn — the incoming entry would be
+  // rendered into a panel that is mid-dismissal and about to unmount.
+  const handleTurn = useCallback(
+    (dir: -1 | 1) => {
+      if (!closing) onTurn(dir);
+    },
+    [closing, onTurn],
+  );
 
   // ESC to close · ← → to leaf between entries. Overlays above the codex
   // (LanguageMenu, ImageViewer) capture Escape first and stop it — keep that
   // ordering when adding nested overlays.
+  //
+  // The handlers travel through a ref so the listener is bound once per open
+  // codex: `onTurn` is rebuilt by App whenever the result order changes, which
+  // is every keystroke in the search box behind the modal.
+  const keys = useRef({ handleClose, handleTurn });
+  keys.current = { handleClose, handleTurn };
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") handleClose();
-      else if (e.key === "ArrowLeft") onTurn(-1);
-      else if (e.key === "ArrowRight") onTurn(1);
+      if (e.key === "Escape") keys.current.handleClose();
+      else if (e.key === "ArrowLeft") keys.current.handleTurn(-1);
+      else if (e.key === "ArrowRight") keys.current.handleTurn(1);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [handleClose, onTurn]);
+  }, []);
 
   return (
     <m.div
       className="fixed inset-0 z-40 flex items-center justify-center p-2 sm:p-6"
       initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.25 }}
+      animate={{ opacity: closing ? 0 : 1 }}
+      // Nothing is left to fade: `closing` has already taken this to zero.
+      exit={{ opacity: 0, transition: { duration: 0 } }}
+      transition={{ duration: closing ? closeMs / 1000 : 0.25 }}
       role="dialog"
       aria-modal="true"
       aria-label={ariaLabel}
@@ -137,10 +178,10 @@ export function CodexShell({
 
           {/* Prev / next page turns — inset past the corner filigree */}
           <div className="absolute right-9 top-4 z-20 flex gap-2">
-            <button onClick={() => onTurn(-1)} className="btn-rpg !px-3" aria-label={t("codex.prev")} title={t("codex.prev")}>
+            <button onClick={() => handleTurn(-1)} className="btn-rpg !px-3" aria-label={t("codex.prev")} title={t("codex.prev")}>
               ←
             </button>
-            <button onClick={() => onTurn(1)} className="btn-rpg !px-3" aria-label={t("codex.next")} title={t("codex.next")}>
+            <button onClick={() => handleTurn(1)} className="btn-rpg !px-3" aria-label={t("codex.next")} title={t("codex.next")}>
               →
             </button>
           </div>

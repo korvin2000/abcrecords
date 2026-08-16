@@ -11,6 +11,8 @@
  * who has not read the code around it.
  */
 
+import type { PerfTier } from "@/lib/fx/tier";
+
 interface Features {
   /** The refinement panel behind the search bar (lib/search + components/search). */
   advancedSearch: boolean;
@@ -21,6 +23,41 @@ interface Features {
 export const FEATURES: Features = {
   advancedSearch: true,
   herald: true,
+};
+
+interface EffectsConfig {
+  /** Master switch. Off removes both ornaments, the capability probe and the
+   *  header button that toggles them. */
+  enabled: boolean;
+  /** The turning clef in the search box (components/fx/ClefSpinner). */
+  clef: boolean;
+  /** The rising musical glyphs behind the page (components/fx/MusicalDrift). */
+  drift: boolean;
+  /** Glyphs on a wide screen at the top grade. Weaker grades and narrower
+   *  viewports scale this down; `low` drops it to none. */
+  driftCount: number;
+  /** `"auto"` measures the machine once per tab (lib/fx/tier.ts). Pin a grade
+   *  to see what a weaker device gets without owning one. */
+  tier: PerfTier | "auto";
+  /** Start with the ornaments off when the machine asks for reduced motion.
+   *  This only picks the **default**; the reader's own switch always wins, and
+   *  a great many corporate Windows images set that hint without their users
+   *  ever knowing. Set `false` to make the ornaments opt-*out* everywhere. */
+  respectReducedMotion: boolean;
+}
+
+/**
+ * Decorative effects (lib/fx + components/fx). Everything here is ornament: it
+ * is budgeted against a measured capability grade, switchable by the reader at
+ * any moment, and nothing the catalogue does depends on it.
+ */
+export const EFFECTS: EffectsConfig = {
+  enabled: true,
+  clef: true,
+  drift: true,
+  driftCount: 18,
+  tier: "auto",
+  respectReducedMotion: true,
 };
 
 interface DossierConfig {

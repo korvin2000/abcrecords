@@ -177,6 +177,8 @@ export const en: Record<MsgKey, Message> = {
   "sound.off": "Sound: off",
   "ambient.on": "Ambience: on",
   "ambient.off": "Ambience: off",
+  "fx.on": "Effects: on",
+  "fx.off": "Effects: off",
 
   "lang.menu": "Language",
   "lang.title": "Languages of the Codex",

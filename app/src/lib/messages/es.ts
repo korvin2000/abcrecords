@@ -177,6 +177,8 @@ export const es: Record<MsgKey, Message> = {
   "sound.off": "Sonido: desactivado",
   "ambient.on": "Ambiente: activado",
   "ambient.off": "Ambiente: desactivado",
+  "fx.on": "Efectos: activados",
+  "fx.off": "Efectos: desactivados",
 
   "lang.menu": "Idioma",
   "lang.title": "Lenguas del códice",

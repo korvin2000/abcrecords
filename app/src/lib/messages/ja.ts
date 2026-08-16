@@ -175,6 +175,8 @@ export const ja: Record<MsgKey, Message> = {
   "sound.off": "効果音:オフ",
   "ambient.on": "環境音:オン",
   "ambient.off": "環境音:オフ",
+  "fx.on": "演出:オン",
+  "fx.off": "演出:オフ",
 
   "lang.menu": "言語",
   "lang.title": "写本の言語",

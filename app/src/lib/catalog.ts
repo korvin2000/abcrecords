@@ -198,7 +198,20 @@ function normalizeNames(raw: unknown): NameIndex {
 
 /* ------------------------------------------------------------ entry editions */
 
+/**
+ * How many article editions stay in memory. Dossiers are small and the search
+ * index reads every one of them, so `jsonCache` is deliberately unbounded;
+ * article Markdown is the bulky half (tens of KB each) and at catalogue scale
+ * an unbounded map would grow to the whole corpus over a long session. A
+ * Map preserves insertion order, so evicting `keys().next()` is a plain LRU
+ * once a re-read moves the key to the back.
+ */
+const ARTICLE_CACHE_LIMIT = 48;
+
 const bundleCache = new Map<string, Promise<EntryBundle>>();
+/** Resolved bundles, for the synchronous `peekEntry` below. Same keys and the
+ *  same eviction as `bundleCache` — one must never outlive the other. */
+const bundleReady = new Map<string, EntryBundle>();
 const jsonCache = new Map<string, Promise<EntryData | null>>();
 const textCache = new Map<string, Promise<string | null>>();
 
@@ -214,6 +227,23 @@ function cached<T>(
     store.set(path, request);
   }
   return request;
+}
+
+/** Drop the least recently read entries until the store is back inside its cap. */
+function evict(store: Map<string, unknown>, limit: number): void {
+  while (store.size > limit) {
+    const oldest = store.keys().next();
+    if (oldest.done) return;
+    store.delete(oldest.value);
+  }
+}
+
+/** Move a key to the back of a Map's insertion order — the "recently used" end. */
+function touch<T>(store: Map<string, T>, key: string): void {
+  const value = store.get(key);
+  if (value === undefined) return;
+  store.delete(key);
+  store.set(key, value);
 }
 
 function fetchJson(path: string): Promise<EntryData | null> {
@@ -254,12 +284,43 @@ export function loadEntryData(entry: IndexEntry, lang: Lang): Promise<EntryData 
 export function loadEntry(entry: IndexEntry, lang: Lang): Promise<EntryBundle> {
   const key = `${slugOf(entry)}::${lang}`;
   let request = bundleCache.get(key);
-  if (!request) {
-    request = Promise.all([
-      loadEntryData(entry, lang),
-      fetchText(localizeContentPath(entry.md, lang)),
-    ]).then(([data, md]) => ({ data, md }));
-    bundleCache.set(key, request);
+  if (request) {
+    touch(bundleCache, key);
+    touch(bundleReady, key);
+    return request;
   }
+
+  request = Promise.all([
+    loadEntryData(entry, lang),
+    fetchText(localizeContentPath(entry.md, lang)),
+  ]).then(([data, md]) => {
+    const bundle: EntryBundle = { data, md };
+    // Only remember the edition if its request is still the cached one —
+    // an eviction while the fetch was in flight must not resurrect it.
+    if (bundleCache.get(key) === request) {
+      bundleReady.set(key, bundle);
+      evict(bundleReady, ARTICLE_CACHE_LIMIT);
+    }
+    return bundle;
+  });
+
+  bundleCache.set(key, request);
+  evict(bundleCache, ARTICLE_CACHE_LIMIT);
+  evict(textCache, ARTICLE_CACHE_LIMIT);
   return request;
+}
+
+/**
+ * The already-loaded edition, or null. Lets an open codex render a cached
+ * entry in its first frame instead of mounting a skeleton and repainting a
+ * tick later — which is what turning pages between visited entries does.
+ */
+export function peekEntry(entry: IndexEntry, lang: Lang): EntryBundle | null {
+  return bundleReady.get(`${slugOf(entry)}::${lang}`) ?? null;
+}
+
+/** Warm an edition without caring about the result — used to fetch the pages
+ *  either side of an open codex, so ← → resolves from memory. */
+export function prefetchEntry(entry: IndexEntry, lang: Lang): void {
+  void loadEntry(entry, lang);
 }

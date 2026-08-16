@@ -175,6 +175,8 @@ export const ko: Record<MsgKey, Message> = {
   "sound.off": "효과음: 끔",
   "ambient.on": "분위기: 켬",
   "ambient.off": "분위기: 끔",
+  "fx.on": "효과: 켬",
+  "fx.off": "효과: 끔",
 
   "lang.menu": "언어",
   "lang.title": "코덱스의 언어",

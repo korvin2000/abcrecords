@@ -30,10 +30,6 @@ export function CornerOrnament({
         strokeWidth="1.35"
         strokeLinecap="round"
       />
-      <g opacity="0.82">
-        <ellipse cx="15.2" cy="18" rx="2.8" ry="1.9" transform="rotate(-18 15.2 18)" fill={accent} />
-        <path d="M17.7 17.4 V10.2" stroke={accent} strokeWidth="1.15" strokeLinecap="round" />
-      </g>
     </svg>
   );
 }

@@ -7,6 +7,7 @@ import { typeLabel, useI18n } from "@/lib/i18n";
 import { countryName } from "@/lib/metadata";
 import { refinementCount, toggleValue, type SearchCriteria } from "@/lib/search";
 import { ChipGroup } from "@/components/form";
+import { ClefSpinner } from "@/components/fx";
 import { AdvancedSearchPanel } from "./AdvancedSearchPanel";
 import { AdvancedToggle } from "./AdvancedToggle";
 import type { DossierStatus } from "./DossierProgress";
@@ -26,8 +27,8 @@ interface Props {
 }
 
 /**
- * The search bar: the loupe and the name box, the quick facet chips, and the
- * handle to the refinement panel.
+ * The search bar: the turning clef and the name box, the quick facet chips,
+ * and the handle to the refinement panel.
  *
  * The bar owns exactly one piece of state — whether the panel is open. Every
  * *criterion* lives above it in `App`, so the chips here and the controls in
@@ -67,18 +68,7 @@ export function SearchBar({
           {/* gold glow ring on focus */}
           <div className="pointer-events-none absolute -inset-px rounded-2xl bg-gradient-to-r from-gold-500/0 via-gold-500/45 to-burgundy-500/20 opacity-0 blur transition-opacity duration-500 group-focus-within:opacity-100" />
           <div className="relative flex items-center gap-3 rounded-2xl border border-gold-600/50 bg-paper-50/85 px-4 py-3 shadow-[0_2px_12px_rgba(84,56,30,0.15)] backdrop-blur-sm transition-colors focus-within:border-gold-600">
-            <svg
-              className="h-5 w-5 shrink-0 text-gold-700"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              aria-hidden
-            >
-              <circle cx="11" cy="11" r="7" />
-              <path d="m21 21-4.3-4.3" />
-            </svg>
+            <ClefSpinner />
             <input
               value={criteria.query}
               onChange={(e) => {

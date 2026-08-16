@@ -68,12 +68,22 @@ interface Backend {
 
 class NativeBackend implements Backend {
   private el: HTMLAudioElement;
+  /** Kept so `dispose` can unbind them: an `HTMLAudioElement` with listeners
+   *  still attached is reachable from the event system, and the closures hold
+   *  the host — the element, its buffer and this backend all stay alive. */
+  private off: Array<() => void> = [];
+
   constructor(src: string, host: BackendHost, onEnded: () => void) {
     this.el = new Audio(src);
     this.el.preload = "metadata";
-    this.el.addEventListener("loadedmetadata", () => host.onMeta(this.el.duration || 0));
-    this.el.addEventListener("ended", onEnded);
-    this.el.addEventListener("error", host.onError);
+    this.on("loadedmetadata", () => host.onMeta(this.el.duration || 0));
+    this.on("ended", onEnded);
+    this.on("error", host.onError);
+  }
+
+  private on(type: string, handler: EventListener) {
+    this.el.addEventListener(type, handler);
+    this.off.push(() => this.el.removeEventListener(type, handler));
   }
   get currentTime() {
     return this.el.currentTime;
@@ -95,13 +105,19 @@ class NativeBackend implements Backend {
     this.el.currentTime = seconds;
   }
   dispose() {
+    for (const off of this.off) off();
+    this.off = [];
     this.el.pause();
     this.el.removeAttribute("src");
+    // Without a reload the element keeps the connection open and goes on
+    // buffering the file it no longer has a src for.
+    this.el.load();
   }
 }
 
 class MidiBackend implements Backend {
   private player: MidiPlayer | null = null;
+  private disposed = false;
   constructor(
     private src: string,
     private host: BackendHost,
@@ -118,6 +134,12 @@ class MidiBackend implements Backend {
       return;
     }
     void loadMidi(this.src).then((clip) => {
+      // The fetch outlives the backend whenever the source changes or the
+      // player unmounts mid-load. Without this guard the clip arrives to a
+      // dead backend, builds a `MidiPlayer` nobody holds and starts its
+      // look-ahead interval — a leaked timer scheduling oscillators into a
+      // context nobody can stop. That is the ghost-audio bug.
+      if (this.disposed) return;
       if (!clip) return this.host.onError();
       this.player = new MidiPlayer(clip);
       this.host.onMeta(clip.duration);
@@ -134,6 +156,7 @@ class MidiBackend implements Backend {
     this.player?.seek(seconds);
   }
   dispose() {
+    this.disposed = true;
     this.player?.dispose();
     this.player = null;
   }
@@ -147,6 +170,8 @@ export function useAudioPlayback(src: string, kind: AudioKind): Playback {
 
   const backendRef = useRef<Backend | null>(null);
   const rafRef = useRef(0);
+  /** Last time pushed into React state — see `tick`. */
+  const shownRef = useRef(0);
 
   const stopRaf = useCallback(() => cancelAnimationFrame(rafRef.current), []);
 
@@ -161,15 +186,26 @@ export function useAudioPlayback(src: string, kind: AudioKind): Playback {
     stopRaf();
     releasePlayback(pauseSelf);
     setStatus("ended");
-    setCurrentTime(backendRef.current?.duration ?? 0);
+    shownRef.current = backendRef.current?.duration ?? 0;
+    setCurrentTime(shownRef.current);
   }, [stopRaf, pauseSelf]);
 
   // MIDI has no "ended" event — the ticker watches the clock instead.
+  //
+  // The *watching* is per frame; the **publishing** is not. Pushing
+  // `currentTime` into state every frame re-rendered the player sixty times a
+  // second for a readout that counts in tenths — a whole track's worth of
+  // React work for a bar the reader cannot see move that finely. The end
+  // check stays on the frame clock, where its 50 ms tolerance belongs.
   const tick = useCallback(() => {
     const b = backendRef.current;
     if (!b) return;
-    setCurrentTime(b.currentTime);
-    if (kind === "midi" && b.duration && b.currentTime >= b.duration - 0.05) {
+    const now = b.currentTime;
+    if (Math.abs(now - shownRef.current) >= 0.1) {
+      shownRef.current = now;
+      setCurrentTime(now);
+    }
+    if (kind === "midi" && b.duration && now >= b.duration - 0.05) {
       finish();
       return;
     }
@@ -212,6 +248,7 @@ export function useAudioPlayback(src: string, kind: AudioKind): Playback {
       const b = backendRef.current;
       if (!b) return;
       b.seek(seconds);
+      shownRef.current = seconds;
       setCurrentTime(seconds);
       setStatus((s) => (s === "ended" ? "paused" : s));
     },
@@ -221,6 +258,7 @@ export function useAudioPlayback(src: string, kind: AudioKind): Playback {
   // Rebuild + reset when the source changes; tear down on unmount.
   useEffect(() => {
     setStatus("idle");
+    shownRef.current = 0;
     setCurrentTime(0);
     setDuration(0);
     return () => {

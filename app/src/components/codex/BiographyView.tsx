@@ -37,8 +37,9 @@ interface Props {
  */
 export function BiographyView({ record, bundle, onNavigateEntry }: Props) {
   const { t, locale } = useI18n();
-  // Reset is by remount: App keys the modal on the slug, so turning the page
-  // mounts a fresh view already on the Biography tab.
+  // Reset is by remount: CodexModal keys this view on the slug, so turning the
+  // page mounts a fresh view already on the Biography tab. (The shell around
+  // it deliberately survives the turn — see CodexShell.)
   const [tab, setTab] = useState<CodexTab>("biography");
 
   const { entry, display } = record;

@@ -191,6 +191,8 @@ export const ru = {
   "sound.off": "Звуки: выкл",
   "ambient.on": "Атмосфера: вкл",
   "ambient.off": "Атмосфера: выкл",
+  "fx.on": "Эффекты: вкл",
+  "fx.off": "Эффекты: выкл",
 
   "lang.menu": "Язык",
   "lang.title": "Языки кодекса",

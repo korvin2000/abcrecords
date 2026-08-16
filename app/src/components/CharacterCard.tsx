@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { memo, useState } from "react";
 import {
   m,
   useMotionTemplate,
@@ -33,8 +33,21 @@ interface Props {
  * Catalogue card — CodexLegends' pointer-tilt 3D card with cursor glare and
  * shine sweep, re-themed to the light manuscript palette. The 3D tilt only
  * engages on fine pointers; touch devices get the cheap path.
+ *
+ * Memoized, because a card is not cheap to build: five motion values, two
+ * springs and a motion template each, and the grid renders one per result.
+ * Every one of App's renders — a keystroke in the search box, a toggle in the
+ * header, a batch of dossiers landing — used to rebuild all of them even when
+ * the result list had not moved. `record` is identity-stable per slug
+ * (`buildCatalog` makes it once) and `onSelect` is a stable callback, so the
+ * comparison actually holds.
  */
-export function CharacterCard({ record, foreign = false, eager = false, onSelect }: Props) {
+export const CharacterCard = memo(function CharacterCard({
+  record,
+  foreign = false,
+  eager = false,
+  onSelect,
+}: Props) {
   const { entry, slug, langs, display } = record;
   const { t, locale, lang } = useI18n();
   const accent = foreign ? "#8b2635" : accentFor(slug);
@@ -209,4 +222,4 @@ export function CharacterCard({ record, foreign = false, eager = false, onSelect
       </OrnateFrame>
     </m.button>
   );
-}
+});

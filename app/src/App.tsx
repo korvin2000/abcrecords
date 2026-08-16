@@ -1,9 +1,9 @@
 import { Suspense, useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import clsx from "clsx";
-import { DOSSIER, FEATURES, HERALD } from "@/config";
-import { LANG_CODES } from "@/lib/languages";
-import { EMPTY_CATALOG } from "@/lib/catalog";
+import { DOSSIER, EFFECTS, FEATURES, HERALD } from "@/config";
+import { LANG_CODES, pickContentLang } from "@/lib/languages";
+import { EMPTY_CATALOG, prefetchEntry } from "@/lib/catalog";
 import { countryName } from "@/lib/metadata";
 import { NO_FACTS, useFacts } from "@/lib/dossier";
 import {
@@ -15,9 +15,11 @@ import {
   type SearchCriteria,
 } from "@/lib/search";
 import { audio } from "@/lib/audio";
+import { setEffectsEnabled, useFx } from "@/lib/fx";
 import { typeLabel, useI18n } from "@/lib/i18n";
 import { useAudioUnlock, useCatalog, useHashRoute } from "@/lib/hooks";
 import { Background } from "@/components/Background";
+import { MusicalDrift } from "@/components/fx";
 import { AnimatedTitle } from "@/components/AnimatedTitle";
 import { HeraldBanner } from "@/components/herald";
 import { LanguageMenu } from "@/components/LanguageMenu";
@@ -37,6 +39,7 @@ export default function App() {
   const deferredCriteria = useDeferredValue(criteria);
   const [sound, setSound] = useState(true);
   const [ambient, setAmbient] = useState(false);
+  const fx = useFx();
 
   // Hidden entries stay out of the grid, the search and the facets, but keep
   // their route — so `listed` drives the browse UI and `bySlug` covers all.
@@ -114,17 +117,20 @@ export default function App() {
     setCriteria(withoutRefinements);
   }, []);
 
+  // What ← → leafs through, and what the neighbour prefetch below reads: the
+  // current result order, or the whole catalogue when nothing is filtered.
+  const turnOrder = results.length ? results : catalog.listed;
+
   // ← → leaf between entries while the codex is open (wraps around)
   const turnPage = useCallback(
     (dir: -1 | 1) => {
-      if (!selectedSlug) return;
-      const list = results.length ? results : catalog.listed;
-      const i = list.findIndex((r) => r.slug === selectedSlug);
-      if (i === -1 || list.length < 2) return;
+      if (!selectedSlug || turnOrder.length < 2) return;
+      const i = turnOrder.findIndex((r) => r.slug === selectedSlug);
+      if (i === -1) return;
       audio.pageTurn();
-      openEntry(list[(i + dir + list.length) % list.length].slug);
+      openEntry(turnOrder[(i + dir + turnOrder.length) % turnOrder.length].slug);
     },
-    [selectedSlug, results, catalog, openEntry],
+    [selectedSlug, turnOrder, openEntry],
   );
 
   // Cross-links inside articles, already classified to a slug by BioArticle.
@@ -151,22 +157,62 @@ export default function App() {
     audio.setAmbient(next);
   };
 
+  const toggleEffects = () => {
+    audio.click();
+    setEffectsEnabled(!fx.on);
+  };
+
+  // The reader's switch has to reach CSS as well as React: it is what lets the
+  // ornaments run on a machine that asks for reduced motion (index.css, foot).
+  useEffect(() => {
+    document.documentElement.dataset.fx = fx.on ? "on" : "off";
+  }, [fx.on]);
+
   const selectedRecord = selectedSlug ? (catalog.bySlug.get(selectedSlug) ?? null) : null;
 
-  // Single owner of the body scroll lock — per-modal locking miscounts when
-  // AnimatePresence overlaps an exiting and an entering codex during ← → turns.
+  // Single owner of the body scroll lock. Keyed on *whether* a codex is open,
+  // never on which one: depending on the record would unlock and re-lock the
+  // body on every ← →, and letting the page scrollbar back for even one commit
+  // reflows the whole grid underneath the modal for nothing.
+  const codexOpen = selectedRecord !== null;
   useEffect(() => {
-    if (!selectedRecord) return;
+    if (!codexOpen) return;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = previousOverflow;
     };
-  }, [selectedRecord]);
+  }, [codexOpen]);
+
+  // With a codex open, ← → is one keypress away, so read the pages either side
+  // of it while the machine is idle. Two small requests buy a turn that
+  // resolves from memory instead of from the network (see catalog.peekEntry).
+  useEffect(() => {
+    if (!selectedSlug || turnOrder.length < 2) return;
+    const i = turnOrder.findIndex((r) => r.slug === selectedSlug);
+    if (i === -1) return;
+    const warm = () => {
+      for (const dir of [-1, 1]) {
+        const neighbour = turnOrder[(i + dir + turnOrder.length) % turnOrder.length];
+        if (neighbour.slug !== selectedSlug) prefetchEntry(neighbour.entry, pickContentLang(neighbour.langs, lang));
+      }
+    };
+    // Safari still has no requestIdleCallback; a short timer is close enough
+    // for two prefetches, and the two handle spaces must not be crossed.
+    if (typeof window.requestIdleCallback === "function") {
+      const id = window.requestIdleCallback(warm, { timeout: 1500 });
+      return () => window.cancelIdleCallback(id);
+    }
+    const id = window.setTimeout(warm, 400);
+    return () => window.clearTimeout(id);
+  }, [selectedSlug, turnOrder, lang]);
 
   return (
     <div className="relative min-h-screen">
       <Background />
+      {/* Paints over the static backdrop (same layer, later in the DOM) and
+          under everything else. Idle while a codex covers it. */}
+      <MusicalDrift paused={!!selectedRecord} />
 
       {/* fixed top control bar */}
       <header className="fixed inset-x-0 top-0 z-30 flex items-center justify-between border-b border-gold-600/25 bg-paper-100/70 px-4 py-2 backdrop-blur-sm">
@@ -185,6 +231,13 @@ export default function App() {
             title={t("lang.menu")}
             heading={t("lang.title")}
           />
+          {EFFECTS.enabled && (
+            <CtrlButton active={fx.on} onClick={toggleEffects} title={fx.on ? t("fx.on") : t("fx.off")}>
+              <span className="text-sm" aria-hidden>
+                ✨
+              </span>
+            </CtrlButton>
+          )}
           <CtrlButton active={ambient} onClick={toggleAmbient} title={ambient ? t("ambient.on") : t("ambient.off")}>
             <span className="text-sm" aria-hidden>
               {ambient ? "🎼" : "🎵"}
@@ -256,10 +309,16 @@ export default function App() {
         fallback={selectedRecord ? <CodexError onClose={() => openEntry(null)} /> : null}
       >
         <Suspense fallback={selectedRecord ? <CodexFallback /> : null}>
+          {/* Deliberately unkeyed. Keying on the slug made every ← → a full
+              teardown and rebuild — two modals alive at once through the
+              crossfade, two full-viewport backdrop blurs, the 0.85 s opening
+              turn replayed, the article refetched from scratch. The shell now
+              persists and only its contents change; CodexModal keys the *view*
+              so the reader still lands on the Biography tab of the new entry.
+              See CodexShell's header comment. */}
           <AnimatePresence>
             {selectedRecord && (
               <LazyCodexModal
-                key={selectedRecord.slug}
                 record={selectedRecord}
                 onClose={() => openEntry(null)}
                 onTurn={turnPage}

@@ -66,3 +66,4 @@ typings/
 .idea/navEditor.xml
 app/.idea/
 .orca/
+prototypes/tetris/

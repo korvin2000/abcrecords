@@ -177,6 +177,8 @@ export const it: Record<MsgKey, Message> = {
   "sound.off": "Suoni: spenti",
   "ambient.on": "Atmosfera: attiva",
   "ambient.off": "Atmosfera: spenta",
+  "fx.on": "Effetti: attivi",
+  "fx.off": "Effetti: spenti",
 
   "lang.menu": "Lingua",
   "lang.title": "Lingue del codice",

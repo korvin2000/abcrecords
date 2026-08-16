@@ -175,6 +175,8 @@ export const zh: Record<MsgKey, Message> = {
   "sound.off": "音效:关",
   "ambient.on": "氛围:开",
   "ambient.off": "氛围:关",
+  "fx.on": "特效:开",
+  "fx.off": "特效:关",
 
   "lang.menu": "语言",
   "lang.title": "法典的语言",
