@@ -104,6 +104,7 @@ export const zh: Record<MsgKey, Message> = {
   "audio.play": "播放",
   "audio.pause": "暂停",
   "audio.download": "下载",
+  "audio.noCodec": "浏览器无法播放此格式 — 请下载后收听",
 
   "viewer.zoomIn": "放大",
   "viewer.zoomOut": "缩小",
@@ -131,6 +132,7 @@ export const zh: Record<MsgKey, Message> = {
   "tab.tuning.drop-d": "Drop D",
   "tab.tuning.unknown": "未注明",
   "tab.tuning.conflicting": "信息冲突",
+  "tab.encodingGuessed": "文件未声明编码，此编码由字节推断得出。",
 
   "docs.source": "原始文献",
   "docs.external": "外部来源",

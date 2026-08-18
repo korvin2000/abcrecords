@@ -106,6 +106,7 @@ export const es: Record<MsgKey, Message> = {
   "audio.play": "Reproducir",
   "audio.pause": "Pausar",
   "audio.download": "Descargar",
+  "audio.noCodec": "el navegador no puede reproducir este formato — descárgalo para escucharlo",
 
   "viewer.zoomIn": "Acercar",
   "viewer.zoomOut": "Alejar",
@@ -133,6 +134,7 @@ export const es: Record<MsgKey, Message> = {
   "tab.tuning.drop-d": "Drop D",
   "tab.tuning.unknown": "No indicada",
   "tab.tuning.conflicting": "Datos contradictorios",
+  "tab.encodingGuessed": "El archivo no declara codificación; esta se dedujo de los bytes.",
 
   "docs.source": "Fuente primaria",
   "docs.external": "fuente externa",

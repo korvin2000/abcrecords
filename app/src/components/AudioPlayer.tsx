@@ -5,8 +5,15 @@ import { useAudioPlayback, type AudioKind } from "@/lib/playback";
 /**
  * Built-in audio player, styled in the manuscript theme. `AudioPlayer` is the
  * full block control (Gallery, document cards); `InlineAudioPlayer` is a
- * compact pill for audio links inside prose/tables. Both play mp3 & MIDI via
- * useAudioPlayback and always offer a download alongside playback.
+ * compact pill for audio links inside prose/tables. Both play every container
+ * the browser has a decoder for (mp3, m4a/AAC, wav, ogg/opus, flac, aiff, …)
+ * plus MIDI through the built-in synth, and always offer a download alongside
+ * playback.
+ *
+ * `AudioDownload` / `InlineAudioDownload` are the same two shapes for a
+ * recording the browser *cannot* decode — the archive's WMA and RealAudio
+ * files. They are still recordings and still worth offering, so they get the
+ * card and the download without a play button that could only ever fail.
  */
 
 interface Props {
@@ -103,6 +110,55 @@ export function InlineAudioPlayer({ src, label, kind }: Props) {
       {playing && (
         <span className="font-body text-[0.72em] tabular-nums text-sepia-600">{formatTime(currentTime)}</span>
       )}
+      <DownloadLink
+        src={src}
+        label={label}
+        className="inline-grid h-4 w-4 place-items-center text-sepia-500 transition-colors hover:text-burgundy-600"
+      >
+        <DownloadIcon small />
+      </DownloadLink>
+    </span>
+  );
+}
+
+/** A recording in a format this browser cannot decode: everything the player
+ *  gives except playback. */
+export function AudioDownload({ src, label, kind }: { src: string; label: string; kind: AudioKind }) {
+  const { t } = useI18n();
+  return (
+    <div className="flex items-center gap-3 border border-gold-600/40 bg-paper-100/70 px-4 py-2.5">
+      <span
+        aria-hidden
+        className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-gold-600/40 text-lg text-sepia-500"
+      >
+        ♪
+      </span>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center justify-between gap-2">
+          <span className="truncate font-heading text-sm text-ink-800">{label}</span>
+          <FormatBadge kind={kind} src={src} />
+        </div>
+        <div className="mt-1 text-xs italic text-sepia-600">{t("audio.noCodec")}</div>
+      </div>
+      <DownloadLink src={src} label={label} className="btn-rpg shrink-0 !px-3 !py-1 !text-[0.65rem]">
+        {t("audio.download")}
+      </DownloadLink>
+    </div>
+  );
+}
+
+/** The inline pill for the same case. */
+export function InlineAudioDownload({ src, label }: { src: string; label: string }) {
+  const { t } = useI18n();
+  return (
+    <span
+      className="mx-0.5 inline-flex items-center gap-1 rounded border border-gold-600/40 bg-paper-100/70 px-1.5 py-0.5 align-baseline leading-none"
+      title={t("audio.noCodec")}
+    >
+      <span aria-hidden className="text-[0.85em] text-sepia-500">
+        ♪
+      </span>
+      <span className="font-heading text-[0.85em] tracking-wide text-ink-800">{label}</span>
       <DownloadLink
         src={src}
         label={label}

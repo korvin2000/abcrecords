@@ -105,11 +105,21 @@ The row prefix is not consistent:
 E-|...      labeled string, hyphen, bar
 E|...       labeled string and bar
 e:...       labeled string and colon
+E*...       labeled string and star
+E ---...    labeled string, space, staff
+E 3---...   labeled string, space, opening fret
 ||...       unlabeled double bar
-|*...       unlabeled repeat bar
+|*... *|... unlabeled repeat bar
 |...        unlabeled single bar
 ----...     continuation row with no opening bar or label
+-3---...    continuation row that opens on a fret rather than a rule
 ```
+
+The last two are the same case, and they are why a continuation row cannot be
+recognised by counting opening hyphens: whether a system's first sounding note
+falls in column 1 is a matter of the music, not of the notation. Recognise a
+continuation row by *shape* instead — it opens on a hyphen or a digit and its
+body is at least half staff characters (`-`, `|`, `=`).
 
 Other differences include:
 
@@ -216,6 +226,8 @@ where the examples vary (`p`/`P`) but retain the original spelling for display.
 | vertically alternating `(` and `)` | Arpeggiate chord | Draw a vertical arpeggio mark | High only in the `abmcat2z` legend |
 | `C7`, `C5`, etc. above a system | Barre at that fret | Aligned annotation with horizontal extent | High in this corpus; `abmcat2z` defines the convention |
 | digits `1`–`4` below six rows | Left-hand fingering | Annotation, not fret events | High in `alvv1tat` |
+| `t` before a fret (`t12`) | Tremolo voice marker | Fold it into the fret token; the fret is real and must be read | High in the tremolo scores, which define it in their own headers |
+| digits run together (`1412109`) | Fast notes with no room between them | Split greedily: two digits when they make a fret ≤ 24, else one | Medium — inherently ambiguous, but the alternative is one impossible fret |
 | `r(5`, `r(1`, etc. | File-specific pizzicato instruction | Use the local legend; display specially but do not generalize to other files | High only in `mletda` |
 | `%`, `$`, `To Coda`, `D.S.`, `Fine` | Navigation | Structural marker attached to nearest measure | High in `rbaubad` |
 | `>1`, `>2`, `>3`, `FIRST/SECOND ENDING` | Alternate ending / pass marker | Section annotation; do not treat `>` as harmonic syntax | Medium to high from context |
@@ -412,11 +424,34 @@ flowchart LR
 1. Fetch as `ArrayBuffer`, not immediately as text, so encoding evidence and BOM
    are available.
 2. Enforce a reasonable size limit and check HTTP status.
-3. Detect UTF-8 BOM, UTF-16 BOMs, and strict UTF-8.
-4. The current corpus decodes as UTF-8/ASCII. If a future file is invalid UTF-8,
-   require an explicit configured legacy encoding or report a fatal diagnostic;
-   do not silently replace bytes with U+FFFD.
-5. Record newline style before normalizing a parser copy to `\n`.
+3. Detect UTF-8 BOM and UTF-16 BOMs; a mark is proof and is obeyed. Detect
+   BOM-less UTF-16 from the NUL parity *before* trimming any padding, or the
+   trim eats the last character.
+4. Then, in order: a charset the transport declared, then strict UTF-8.
+5. **Legacy code pages.** The seven files in `pages/tabs/` are 7-bit ASCII, but
+   the wider archive is not: many of the tablatures linked from the catalogue
+   carry Latin-1 accents (`Agustín`, `Mangoré`, `Dirk´s`, `1°`, `Ø`), and one
+   such byte was enough to make a strict UTF-8 reader reject an entire score.
+   So when the bytes cannot be Unicode, read them through every plausible
+   legacy page (windows-1252, windows-1251, koi8-r, ibm866, iso-8859-2) and
+   keep the reading that looks most like language:
+
+   - a word mixing two alphabets (`Dirk` + a lone Cyrillic letter) is nobody's
+     writing — heavy penalty;
+   - a run of three or more accented Latin letters is Cyrillic read through a
+     Western page — penalty proportional to its length;
+   - a run of Cyrillic letters is a word — bonus;
+   - C1 controls and box-drawing pieces are punctuation read through the wrong
+     page — penalty.
+
+   Ties break toward the likelier page, windows-1252 first. Nothing is ever
+   decoded with U+FFFD replacement — the rule below still holds: a candidate
+   either reads cleanly under a real codec or is not used. Record that the
+   encoding was *inferred* and say so in a diagnostic, because a reader is
+   entitled to the difference between what a file declared and what the parser
+   concluded.
+6. Record newline style before normalizing a parser copy to `\n`. Strip a trailing
+   DOS `^Z` and any NUL padding first — both occur in this archive.
 
 ### 8.2 Phase 2: classify source regions
 
@@ -446,10 +481,15 @@ schema that these files do not have.
 Scan linearly for windows of six adjacent row candidates. A candidate row
 normally:
 
-- begins with a supported label/prefix, `|`, `||`, `|*`, or `-`;
+- begins with a supported label/prefix, `|`, `||`, `|*`, `*|`, `-`, or a fret;
 - contains several string-line characters (`-`, `|`, `:`);
 - contains only a modest amount of alphabetic text; and
 - has a width reasonably close to its five neighbors.
+
+A label or a bar is evidence in itself. A row that opens on a bare hyphen or
+digit has none, so it must additionally *look* like a staff: at least half its
+body made of `-`, `|` and `=`. That test is what lets the opening-hyphen count
+be relaxed to one without prose joining a system.
 
 Score a six-row window rather than accepting/rejecting on one regex:
 

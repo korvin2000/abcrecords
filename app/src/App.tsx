@@ -251,7 +251,13 @@ export default function App() {
         </div>
       </header>
 
-      <main className="relative z-10 px-1 pb-16 pt-20 sm:px-2">
+      {/* Above the footer, not merely before it: the refinement panel hangs out
+          of the search bar on `position: absolute`, so with no results the short
+          page puts it straight over the colophon. Equal z-indexes would let the
+          later element — the footer — take the clicks meant for "Clear
+          refinements". Layers, low to high: backdrop -10 · footer 10 · main 20 ·
+          header 30 · codex 40+. */}
+      <main className="relative z-20 px-1 pb-16 pt-20 sm:px-2">
         <AnimatedTitle />
         <HeraldBanner facts={facts.bySlug} onOpenEntry={openEntry} />
 

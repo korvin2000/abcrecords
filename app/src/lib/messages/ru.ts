@@ -120,6 +120,7 @@ export const ru = {
   "audio.play": "Слушать",
   "audio.pause": "Пауза",
   "audio.download": "Скачать",
+  "audio.noCodec": "браузер не может воспроизвести этот формат — скачайте, чтобы послушать",
 
   "viewer.zoomIn": "Приблизить",
   "viewer.zoomOut": "Отдалить",
@@ -147,6 +148,7 @@ export const ru = {
   "tab.tuning.drop-d": "Drop D",
   "tab.tuning.unknown": "Не указан",
   "tab.tuning.conflicting": "Противоречивые данные",
+  "tab.encodingGuessed": "Кодировка в файле не указана — она определена по байтам.",
 
   "docs.source": "Первоисточник",
   "docs.external": "внешний источник",

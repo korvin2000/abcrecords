@@ -106,6 +106,7 @@ export const en: Record<MsgKey, Message> = {
   "audio.play": "Play",
   "audio.pause": "Pause",
   "audio.download": "Download",
+  "audio.noCodec": "this format cannot be played in the browser — download it to listen",
 
   "viewer.zoomIn": "Zoom in",
   "viewer.zoomOut": "Zoom out",
@@ -133,6 +134,7 @@ export const en: Record<MsgKey, Message> = {
   "tab.tuning.drop-d": "Drop D",
   "tab.tuning.unknown": "Not declared",
   "tab.tuning.conflicting": "Conflicting evidence",
+  "tab.encodingGuessed": "The file declares no encoding; this one was read out of the bytes.",
 
   "docs.source": "Primary source",
   "docs.external": "external source",

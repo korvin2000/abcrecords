@@ -3,12 +3,12 @@ import type { EntryBundle, MediaItem } from "@/lib/types";
 import type { CatalogRecord } from "@/lib/catalog";
 import { resolveContentPath, resolveResourcePath } from "@/lib/paths";
 import { audio, themeFromSeed } from "@/lib/audio";
-import { audioKind, stopAllPlayback } from "@/lib/playback";
+import { audioKind, isUnplayableAudioUrl, stopAllPlayback } from "@/lib/playback";
 import { useI18n } from "@/lib/i18n";
 import { useImageViewer } from "@/lib/imageViewer";
 import { isAsciiTabUrl } from "@/lib/asciiTab";
 import { useAsciiTabViewer } from "@/lib/asciiTabViewer";
-import { AudioPlayer } from "@/components/AudioPlayer";
+import { AudioDownload, AudioPlayer } from "@/components/AudioPlayer";
 import { Divider } from "@/components/OrnateFrame";
 import { CurlFrame } from "@/components/CurlFrame";
 
@@ -85,6 +85,10 @@ export function GalleryTab({ record, bundle }: Props) {
               <span className="rounded-sm border border-gold-600/50 bg-paper-200/70 px-1.5 py-0.5 font-heading text-[0.6rem] font-bold tracking-wider text-gold-800">TAB</span>
               <span className="btn-rpg !px-3 !py-1 !text-[0.65rem]">{t("docs.open")}</span>
             </button>
+          ) : isUnplayableAudioUrl(track.target) ? (
+            // A recording this browser has no decoder for (the archive's WMA
+            // and RealAudio). Offering it beats a play button that only errors.
+            <AudioDownload key={track.target} src={src} label={track.label} kind="native" />
           ) : (
             <AudioPlayer key={track.target} src={src} label={track.label} kind={audioKind(track.target) ?? "native"} />
           );

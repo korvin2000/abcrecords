@@ -158,15 +158,23 @@ export function AsciiTabViewer({ tab, onClose }: Props) {
 async function fetchTab(src: string, sourceName: string, signal: AbortSignal): Promise<TabDocument> {
   const response = await fetch(src, { signal });
   if (!response.ok) throw new Error(`HTTP ${response.status} ${response.statusText}`.trim());
-  const decoded = decodeAsciiTab(await response.arrayBuffer());
-  if (response.headers.get("content-type")?.includes("text/html") && /^\s*(?:<!doctype|<html)/i.test(decoded.text)) {
+  const contentType = response.headers.get("content-type") ?? "";
+  // A charset on the response is a hint, not a verdict: these files are older
+  // than the servers that carry them, and the header is often just a default.
+  const decoded = decodeAsciiTab(await response.arrayBuffer(), charsetOf(contentType));
+  if (contentType.includes("text/html") && /^\s*(?:<!doctype|<html)/i.test(decoded.text)) {
     throw new Error("The server returned an HTML page instead of the requested text file.");
   }
   return parseAsciiTab(decoded.text, {
     sourceName,
     encoding: decoded.encoding,
+    encodingInferred: decoded.inferred,
     newline: decoded.newline,
   });
+}
+
+function charsetOf(contentType: string): string | undefined {
+  return /;\s*charset\s*=\s*([^;]+)/i.exec(contentType)?.[1].trim();
 }
 
 function TabToolbar({
@@ -240,7 +248,10 @@ function TabToolbar({
         <span>{t("tab.systemCount", { count: document.systems.length })}</span>
         {document.meter && <span>· {t("tab.meter")}: {document.meter}</span>}
         <span>· {t("tab.tuning")}: {t(`tab.tuning.${document.tuning.kind}`)}</span>
-        <span>· {document.encoding.toUpperCase()}</span>
+        <span title={document.encodingInferred ? t("tab.encodingGuessed") : undefined}>
+          · {document.encoding.toUpperCase()}
+          {document.encodingInferred && <span aria-hidden> ?</span>}
+        </span>
       </div>
 
       <div className="mx-auto mt-2 max-w-3xl">

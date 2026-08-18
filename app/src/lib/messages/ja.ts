@@ -104,6 +104,7 @@ export const ja: Record<MsgKey, Message> = {
   "audio.play": "再生",
   "audio.pause": "一時停止",
   "audio.download": "ダウンロード",
+  "audio.noCodec": "この形式はブラウザーで再生できません — ダウンロードしてお聴きください",
 
   "viewer.zoomIn": "拡大",
   "viewer.zoomOut": "縮小",
@@ -131,6 +132,7 @@ export const ja: Record<MsgKey, Message> = {
   "tab.tuning.drop-d": "ドロップD",
   "tab.tuning.unknown": "記載なし",
   "tab.tuning.conflicting": "記載が矛盾",
+  "tab.encodingGuessed": "文字コードの宣言がないため、バイト列から推定しました。",
 
   "docs.source": "一次資料",
   "docs.external": "外部資料",

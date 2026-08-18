@@ -104,6 +104,7 @@ export const ko: Record<MsgKey, Message> = {
   "audio.play": "재생",
   "audio.pause": "일시정지",
   "audio.download": "다운로드",
+  "audio.noCodec": "브라우저에서 재생할 수 없는 형식입니다 — 내려받아 들어 주세요",
 
   "viewer.zoomIn": "확대",
   "viewer.zoomOut": "축소",
@@ -131,6 +132,7 @@ export const ko: Record<MsgKey, Message> = {
   "tab.tuning.drop-d": "드롭 D",
   "tab.tuning.unknown": "표시 없음",
   "tab.tuning.conflicting": "상충하는 정보",
+  "tab.encodingGuessed": "파일에 인코딩 선언이 없어 바이트에서 추정했습니다.",
 
   "docs.source": "원사료",
   "docs.external": "외부 출처",

@@ -12,15 +12,97 @@ import { audio } from "./audio";
 
 export type AudioKind = "native" | "midi";
 
-const MIDI_RE = /\.(mid|midi)$/i;
-const NATIVE_RE = /\.(mp3|wav|ogg|oga|m4a|aac|flac)$/i;
+const MIDI_RE = /\.(mid|midi|rmi|kar)$/i;
 
-/** Which built-in backend can play this URL, if any (query/hash ignored). */
-export function audioKind(url: string): AudioKind | null {
+/**
+ * Every audio container the archive links to, mapped to the MIME types worth
+ * asking the browser about. Several spellings per format on purpose: engines
+ * disagree about which name they answer to (`audio/mp4` vs `audio/x-m4a`,
+ * `audio/flac` vs `audio/x-flac`), and one "maybe" is enough to play.
+ *
+ * The list is deliberately wider than what any one browser can decode — the
+ * archive holds WMA and RealAudio from the 1990s site, and knowing that a file
+ * *is* a recording, even an unplayable one, is what lets the interface offer it
+ * as a download instead of a play button that only ever errors.
+ */
+const AUDIO_MIME: Readonly<Record<string, readonly string[]>> = {
+  mp3: ["audio/mpeg", "audio/mp3"],
+  m4a: ["audio/mp4", "audio/x-m4a", "audio/aac"],
+  m4b: ["audio/mp4", "audio/x-m4a"],
+  mp4: ["audio/mp4"],
+  aac: ["audio/aac", "audio/aacp", "audio/mp4"],
+  adts: ["audio/aac"],
+  wav: ["audio/wav", "audio/wave", "audio/x-wav"],
+  wave: ["audio/wav", "audio/x-wav"],
+  ogg: ["audio/ogg", "audio/ogg; codecs=vorbis"],
+  oga: ["audio/ogg", "audio/ogg; codecs=vorbis"],
+  opus: ["audio/ogg; codecs=opus", "audio/opus"],
+  weba: ["audio/webm"],
+  webm: ["audio/webm"],
+  flac: ["audio/flac", "audio/x-flac"],
+  aif: ["audio/aiff", "audio/x-aiff"],
+  aiff: ["audio/aiff", "audio/x-aiff"],
+  aifc: ["audio/aiff", "audio/x-aiff"],
+  caf: ["audio/x-caf"],
+  amr: ["audio/amr"],
+  mka: ["audio/x-matroska"],
+  wma: ["audio/x-ms-wma"],
+  asf: ["audio/x-ms-asf"],
+  ra: ["audio/vnd.rn-realaudio", "audio/x-pn-realaudio"],
+  ram: ["audio/x-pn-realaudio"],
+  au: ["audio/basic"],
+  snd: ["audio/basic"],
+};
+
+/** The file extension, lowercased, with query and hash ignored. */
+function extensionOf(url: string): string {
   const path = url.split(/[?#]/, 1)[0];
-  if (MIDI_RE.test(path)) return "midi";
-  if (NATIVE_RE.test(path)) return "native";
-  return null;
+  const dot = path.lastIndexOf(".");
+  return dot < 0 ? "" : path.slice(dot + 1).toLowerCase();
+}
+
+/** True for any recording, whether or not this browser owns a decoder for it. */
+export function isAudioUrl(url: string): boolean {
+  const extension = extensionOf(url);
+  return extension in AUDIO_MIME || MIDI_RE.test(`.${extension}`);
+}
+
+// One `<audio>` element answers for the whole session, and each answer is kept:
+// `canPlayType` is cheap but it is called once per track per render.
+const codecCache = new Map<string, boolean>();
+
+/** Does this browser claim a decoder for the format? Unknown formats get the
+ *  benefit of the doubt — the element may still recognise them by content. */
+function browserCanPlay(extension: string): boolean {
+  const types = AUDIO_MIME[extension];
+  if (!types) return true;
+  const cached = codecCache.get(extension);
+  if (cached !== undefined) return cached;
+  let playable = true; // no DOM to ask (SSR/tests): assume the player can try
+  if (typeof document !== "undefined") {
+    const probe = document.createElement("audio");
+    playable = types.some((type) => probe.canPlayType(type) !== "");
+  }
+  codecCache.set(extension, playable);
+  return playable;
+}
+
+/**
+ * Which built-in backend can play this URL, if any (query/hash ignored).
+ * `null` means the interface must not offer playback: either it is not a
+ * recording at all, or it is one in a format this browser cannot decode —
+ * WMA and RealAudio being the archive's two standing examples.
+ */
+export function audioKind(url: string): AudioKind | null {
+  const extension = extensionOf(url);
+  if (MIDI_RE.test(`.${extension}`)) return "midi";
+  if (!(extension in AUDIO_MIME)) return null;
+  return browserCanPlay(extension) ? "native" : null;
+}
+
+/** A recording this browser owns no decoder for — offer it, do not play it. */
+export function isUnplayableAudioUrl(url: string): boolean {
+  return isAudioUrl(url) && audioKind(url) === null;
 }
 
 export type PlaybackStatus = "idle" | "playing" | "paused" | "ended" | "error";

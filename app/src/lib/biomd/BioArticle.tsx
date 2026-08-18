@@ -18,12 +18,12 @@ import type {
 } from "./parse";
 import { isExternalUrl, resolveResourcePath } from "../paths";
 import { entryTargetSlug } from "../entry";
-import { audioKind } from "../playback";
+import { audioKind, isUnplayableAudioUrl } from "../playback";
 import { isImageUrl, useImageViewer } from "../imageViewer";
 import { isAsciiTabUrl } from "../asciiTab";
 import { useAsciiTabViewer } from "../asciiTabViewer";
 import { useI18n } from "../i18n";
-import { InlineAudioPlayer } from "@/components/AudioPlayer";
+import { InlineAudioDownload, InlineAudioPlayer } from "@/components/AudioPlayer";
 import { CurlFrame } from "@/components/CurlFrame";
 
 /**
@@ -109,6 +109,10 @@ function Md({
       const src = isExternalUrl(url) ? url : resolveResourcePath(url);
       const kind = audioKind(url);
       if (kind) return <InlineAudioPlayer src={src} label={linkText(children) || filename(url)} kind={kind} />;
+      // Still a recording, just not one this browser can decode (WMA, RealAudio).
+      if (isUnplayableAudioUrl(url)) {
+        return <InlineAudioDownload src={src} label={linkText(children) || filename(url)} />;
+      }
       if (isAsciiTabUrl(url)) {
         const label = tabLabel(linkText(children), url);
         return (

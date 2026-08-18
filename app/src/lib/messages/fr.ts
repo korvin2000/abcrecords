@@ -106,6 +106,7 @@ export const fr: Record<MsgKey, Message> = {
   "audio.play": "Lire",
   "audio.pause": "Pause",
   "audio.download": "Télécharger",
+  "audio.noCodec": "ce format n’est pas lisible dans le navigateur — téléchargez-le pour l’écouter",
 
   "viewer.zoomIn": "Agrandir",
   "viewer.zoomOut": "Réduire",
@@ -133,6 +134,7 @@ export const fr: Record<MsgKey, Message> = {
   "tab.tuning.drop-d": "Drop D",
   "tab.tuning.unknown": "Non indiqué",
   "tab.tuning.conflicting": "Indications contradictoires",
+  "tab.encodingGuessed": "Le fichier ne déclare aucun encodage ; celui-ci a été déduit des octets.",
 
   "docs.source": "Source première",
   "docs.external": "source externe",
