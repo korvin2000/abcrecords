@@ -4,6 +4,7 @@ import { typeLabel, useI18n } from "@/lib/i18n";
 import { countryName } from "@/lib/metadata";
 import { toggleValue, type GenderFilter, type LangScope, type SearchCriteria } from "@/lib/search";
 import { ChipGroup, Field, SegmentedControl, TextField, TokenSelect, YearRangeField } from "@/components/form";
+import { CountryFlag, hasCountryFlag } from "@/components/CountryFlag";
 import { Divider } from "@/components/OrnateFrame";
 import { DossierProgress, type DossierStatus } from "./DossierProgress";
 
@@ -105,6 +106,9 @@ export function AdvancedSearchPanel({
             values={countries}
             onToggle={(value) => onPatch({ countries: toggleValue(criteria.countries, value) })}
             label={(value) => countryName(value, locale) ?? value}
+            icon={(value) =>
+              hasCountryFlag(value) ? <CountryFlag code={value} className="h-3 w-[1.15rem]" /> : null
+            }
             labelledBy={labelId("country")}
             placeholder={t("search.country.any")}
           />

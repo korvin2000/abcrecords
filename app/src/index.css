@@ -149,6 +149,45 @@ body {
 }
 
 /* ============================================================
+   Catalogue grid cell — off-screen work the browser may skip
+   ============================================================ */
+
+/* Layout containment costs nothing and applies everywhere: a card's internals
+   are all positioned against the card, so nothing outside it ever needed to
+   take part in their layout. With hundreds of cells on a page this is what
+   keeps one reflow from walking the whole grid. */
+.grid-cell {
+  contain: layout style;
+}
+
+/*
+ * Native windowing, on the devices that need it.
+ *
+ * `content-visibility: auto` lets the browser skip layout and paint for cells
+ * that are off screen and restore them as they scroll in — the behaviour a
+ * virtualized list emulates, without having to pretend every row is the same
+ * height (an ornate frame around a portrait plus a name plate is never quite
+ * the same height twice).
+ *
+ * It implies paint containment, which clips to the cell: the hover lift, the
+ * 4.5% grow and the 34 px glow ring would all be cut off. So it is scoped to
+ * `(hover: none)` — phones and tablets, where those effects never run and
+ * where the memory it saves is worth the most. A fine pointer keeps the full
+ * ornament and relies on the page cap in CharacterGrid instead.
+ *
+ * `auto` before the length: the browser substitutes each cell's own last
+ * rendered size once it has one, so the scrollbar stops guessing after the
+ * first pass. The 26rem is only the opening estimate for a card that has
+ * never been on screen.
+ */
+@media (hover: none) {
+  .grid-cell {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 26rem;
+  }
+}
+
+/* ============================================================
    Parchment panel (codex modal) — light re-theme of Copendum
    ============================================================ */
 .parchment {

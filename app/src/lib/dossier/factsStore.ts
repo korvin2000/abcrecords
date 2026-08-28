@@ -1,6 +1,7 @@
 import { loadEntryData, type CatalogRecord } from "../catalog";
 import { pickContentLang, type Lang } from "../languages";
 import { DOSSIER } from "@/config";
+import { loadDigest, factsFromRow } from "./digest";
 import { factsFrom, type EntryFacts, type FactsBySlug } from "./facts";
 
 /**
@@ -14,7 +15,13 @@ import { factsFrom, type EntryFacts, type FactsBySlug } from "./facts";
  * while React re-renders around it. So it lives at module scope and is read
  * through `useSyncExternalStore` (see useFacts.ts).
  *
- * How it stays cheap on weak hardware:
+ * **The digest comes first.** `facts-<lang>.json` (see digest.ts) answers the
+ * whole catalogue in one request; the crawl below is what happens when there
+ * is no digest for a language. At 736 entries that is one 53 KB response
+ * instead of 736 requests — the difference between the index being ready
+ * before the reader's first keystroke and it trickling in for a minute.
+ *
+ * How the fallback crawl stays cheap on weak hardware:
  *   • it never starts unless something asks for it (`start()` is idempotent);
  *   • at most `DOSSIER.concurrency` requests are in flight;
  *   • each worker yields to the browser between fetches, so the crawl fills
@@ -82,7 +89,7 @@ export class FactsIndex {
   start(): void {
     if (this.started || this.disposed || !this.records.length) return;
     this.started = true;
-    void this.crawl();
+    void this.fill();
   }
 
   /** Stop a superseded index; in-flight requests still resolve into the
@@ -92,6 +99,30 @@ export class FactsIndex {
     if (this.pendingNotify) clearTimeout(this.pendingNotify);
     this.pendingNotify = null;
     this.listeners.clear();
+  }
+
+  /**
+   * Fill the index: from the digest if this language has one, entry by entry
+   * if it does not. The two paths produce identical facts, so no consumer can
+   * tell which ran — only how long it took.
+   */
+  private async fill(): Promise<void> {
+    if (await this.fromDigest()) return;
+    await this.crawl();
+  }
+
+  /** One request for the whole catalogue. Returns false when there is no
+   *  digest to read, which is the signal to fall back to the crawl. */
+  private async fromDigest(): Promise<boolean> {
+    const digest = await loadDigest(this.lang);
+    if (this.disposed) return true; // superseded — do not start a crawl either
+    if (!digest) return false;
+
+    for (const record of this.records) {
+      this.facts.set(record.slug, factsFromRow(record, digest.entries.get(record.slug)));
+    }
+    this.commit(true);
+    return true;
   }
 
   private async crawl(): Promise<void> {

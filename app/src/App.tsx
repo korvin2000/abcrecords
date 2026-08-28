@@ -8,13 +8,16 @@ import { countryName } from "@/lib/metadata";
 import { NO_FACTS, useFacts } from "@/lib/dossier";
 import {
   buildSearchIndex,
+  capture,
   compile,
-  searchEntries,
+  defaultsFor,
+  restore,
+  searchIncremental,
   withoutRefinements,
-  EMPTY_CRITERIA,
   type SearchCriteria,
 } from "@/lib/search";
 import { audio } from "@/lib/audio";
+import { preferences, setPreference, usePreference } from "@/lib/settings";
 import { setEffectsEnabled, useFx } from "@/lib/fx";
 import { typeLabel, useI18n } from "@/lib/i18n";
 import { useAudioUnlock, useCatalog, useHashRoute } from "@/lib/hooks";
@@ -34,11 +37,14 @@ export default function App() {
   useAudioUnlock();
   const { state, retry } = useCatalog(lang);
   const { selectedSlug, openEntry } = useHashRoute();
-  const [criteria, setCriteria] = useState<SearchCriteria>(EMPTY_CRITERIA);
+  // The filter the reader left last time. The free-text query is deliberately
+  // not remembered (see search/persist.ts), so this opens on the same shelf
+  // without opening on someone else's half-typed name.
+  const [criteria, setCriteria] = useState<SearchCriteria>(() => restore(preferences().search));
   // Typing stays on the input's own frame; the grid re-ranks behind it.
   const deferredCriteria = useDeferredValue(criteria);
-  const [sound, setSound] = useState(true);
-  const [ambient, setAmbient] = useState(false);
+  const [sound, setSound] = usePreference("sound");
+  const [ambient, setAmbient] = usePreference("ambient");
   const fx = useFx();
 
   // Hidden entries stay out of the grid, the search and the facets, but keep
@@ -67,7 +73,7 @@ export default function App() {
   // language lead, the rest follow after a divider (dimmed, flagged in the
   // grid). Relevance order survives the split. ← → matches this visual order.
   const { results, nativeCount } = useMemo(() => {
-    const found = searchEntries(docs, compiled, { lang, facts: searchFacts });
+    const found = searchIncremental(docs, compiled, { lang, facts: searchFacts });
     const native = found.filter((d) => d.record.langs.includes(lang));
     const foreign = found.filter((d) => !d.record.langs.includes(lang));
     return {
@@ -95,17 +101,21 @@ export default function App() {
   // reader's locale — otherwise ISO codes order the country chips at random.
   const facets = useMemo(() => {
     const types = new Set<string>();
-    const countries = new Set<string>();
+    // Counted, not merely collected: the country facet is a row of flags, and
+    // with no labels to read alphabetically it orders itself by how much of
+    // the catalogue each nation actually accounts for.
+    const countries = new Map<string, number>();
     for (const { entry } of catalog.listed) {
       if (entry.type) types.add(entry.type);
-      if (entry.country) countries.add(entry.country);
+      if (entry.country) countries.set(entry.country, (countries.get(entry.country) ?? 0) + 1);
     }
     const collator = new Intl.Collator(locale);
     const by = (label: (v: string) => string) => (a: string, b: string) =>
       collator.compare(label(a), label(b));
     return {
       types: [...types].sort(by((ty) => typeLabel(t, ty))),
-      countries: [...countries].sort(by((c) => countryName(c, locale) ?? c)),
+      countries: [...countries.keys()].sort(by((c) => countryName(c, locale) ?? c)),
+      countryCounts: countries as ReadonlyMap<string, number>,
     };
   }, [catalog, locale, t]);
 
@@ -116,6 +126,55 @@ export default function App() {
   const resetRefinements = useCallback(() => {
     setCriteria(withoutRefinements);
   }, []);
+
+  /**
+   * First visit: open on the reader's own shelf.
+   *
+   * With nothing remembered, a German reader is shown German entries rather
+   * than 736 of everything — the language they chose is the strongest signal
+   * the app has about what they came for. It is a *suggestion*: one click
+   * clears it, and the moment they touch the filter their choice is what gets
+   * stored, so this branch never runs again.
+   *
+   * It waits for the catalogue because the seed is refused when it would
+   * empty the grid (a Korean reader with no Korean entries keeps all of
+   * them), and that is only knowable once the facets exist.
+   */
+  const [seeded, setSeeded] = useState(false);
+  useEffect(() => {
+    if (seeded || state.kind !== "ready") return;
+    if (preferences().search === null) {
+      const suggested = defaultsFor(lang, new Set(facets.countries));
+      if (suggested.countries.size) setCriteria(suggested);
+    }
+    setSeeded(true);
+  }, [seeded, state.kind, lang, facets.countries]);
+
+  /**
+   * Remember the filter as it is used. Debounced inside the settings store, so
+   * this may run on every keystroke; `capture` drops the free-text query, so
+   * typing a name does not actually change what gets written.
+   *
+   * It waits for `seeded` rather than merely for the catalogue, and that order
+   * is the whole point: persisting the (empty) starting filter the moment the
+   * index lands would write `search: {}` before the seed above ever looked,
+   * and `{}` is not `null` — the reader would be recorded as having chosen an
+   * empty filter on a visit where they chose nothing, and never see their
+   * language's shelf again.
+   */
+  useEffect(() => {
+    if (!seeded) return;
+    setPreference("search", capture(deferredCriteria));
+  }, [deferredCriteria, seeded]);
+
+  // The engine is muted by default until told otherwise, so a remembered
+  // choice has to reach it — once, on mount, and on every later toggle.
+  useEffect(() => {
+    audio.setEnabled(sound);
+  }, [sound]);
+  useEffect(() => {
+    audio.setAmbient(sound && ambient);
+  }, [sound, ambient]);
 
   // What ← → leafs through, and what the neighbour prefetch below reads: the
   // current result order, or the whole catalogue when nothing is filtered.
@@ -142,19 +201,16 @@ export default function App() {
     [catalog, openEntry],
   );
 
+  // Both toggles only move the remembered value; the effects above are what
+  // carry it to the engine, so mount and toggle take exactly the same path.
   const toggleSound = () => {
     audio.unlock();
-    const next = !sound;
-    setSound(next);
-    audio.setEnabled(next);
-    if (!next) setAmbient(false);
+    setSound(!sound);
   };
 
   const toggleAmbient = () => {
     audio.unlock();
-    const next = !ambient;
-    setAmbient(next);
-    audio.setAmbient(next);
+    setAmbient(!ambient);
   };
 
   const toggleEffects = () => {
@@ -238,9 +294,16 @@ export default function App() {
               </span>
             </CtrlButton>
           )}
-          <CtrlButton active={ambient} onClick={toggleAmbient} title={ambient ? t("ambient.on") : t("ambient.off")}>
+          {/* Muting silences the ambience without forgetting that it was
+              asked for, so the indicator follows what is audible, not what is
+              remembered. */}
+          <CtrlButton
+            active={ambient && sound}
+            onClick={toggleAmbient}
+            title={ambient ? t("ambient.on") : t("ambient.off")}
+          >
             <span className="text-sm" aria-hidden>
-              {ambient ? "🎼" : "🎵"}
+              {ambient && sound ? "🎼" : "🎵"}
             </span>
           </CtrlButton>
           <CtrlButton active={sound} onClick={toggleSound} title={sound ? t("sound.on") : t("sound.off")}>
@@ -280,6 +343,7 @@ export default function App() {
               onReset={resetRefinements}
               types={facets.types}
               countries={facets.countries}
+              countryCounts={facets.countryCounts}
               resultCount={results.length}
               totalCount={catalog.listed.length}
               dossier={{

@@ -199,14 +199,23 @@ function normalizeNames(raw: unknown): NameIndex {
 /* ------------------------------------------------------------ entry editions */
 
 /**
- * How many article editions stay in memory. Dossiers are small and the search
- * index reads every one of them, so `jsonCache` is deliberately unbounded;
- * article Markdown is the bulky half (tens of KB each) and at catalogue scale
- * an unbounded map would grow to the whole corpus over a long session. A
- * Map preserves insertion order, so evicting `keys().next()` is a plain LRU
- * once a re-read moves the key to the back.
+ * How many entry editions stay in memory.
+ *
+ * `jsonCache` used to be deliberately unbounded, because the facts index read
+ * every dossier in the catalogue and evicting them would have meant fetching
+ * them twice. That stopped being true when the index moved to a precomputed
+ * digest (lib/dossier/digest.ts): nothing now reads a dossier except a codex
+ * the reader has actually opened, so an unbounded map is simply a session-long
+ * leak — at ~1 KB each it is the whole catalogue's metadata held for one
+ * afternoon of browsing.
+ *
+ * A Map preserves insertion order, so evicting `keys().next()` is a plain LRU
+ * once a re-read moves the key to the back. The dossier cap is the looser of
+ * the two because dossiers are ~1 KB against an article's tens of KB, and the
+ * Lore and Gallery tabs re-read them as the reader leafs back and forth.
  */
 const ARTICLE_CACHE_LIMIT = 48;
+const DOSSIER_CACHE_LIMIT = 120;
 
 const bundleCache = new Map<string, Promise<EntryBundle>>();
 /** Resolved bundles, for the synchronous `peekEntry` below. Same keys and the
@@ -247,7 +256,7 @@ function touch<T>(store: Map<string, T>, key: string): void {
 }
 
 function fetchJson(path: string): Promise<EntryData | null> {
-  return cached(jsonCache, path, (p) =>
+  const request = cached(jsonCache, path, (p) =>
     fetch(resolveContentPath(p))
       .then(async (res) => {
         if (!res.ok) return null;
@@ -256,6 +265,9 @@ function fetchJson(path: string): Promise<EntryData | null> {
       })
       .catch(() => null),
   );
+  touch(jsonCache, path);
+  evict(jsonCache, DOSSIER_CACHE_LIMIT);
+  return request;
 }
 
 function fetchText(path: string): Promise<string | null> {

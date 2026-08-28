@@ -37,6 +37,9 @@ export const zh: Record<MsgKey, Message> = {
   "search.empty.title": "无名回应此召唤。",
   "search.empty.hint": "法典中没有此名的记录。请换个名字,或解除筛选。",
   "search.otherLangs": "于其他语言中寻得",
+  "grid.more": "显示更多",
+  "grid.shown": "已显示 {n} / {total}",
+  "facet.country.group": "按国家筛选",
 
   "search.advanced": "细化检索",
   "search.advanced.hide": "收起细化条件",

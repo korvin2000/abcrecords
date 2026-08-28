@@ -39,6 +39,9 @@ export const it: Record<MsgKey, Message> = {
   "search.empty.title": "Nessun nome risponde al richiamo.",
   "search.empty.hint": "Il codice non serba alcuna voce con questo nome. Prova diversamente o togli i filtri.",
   "search.otherLangs": "Trovato in altre lingue",
+  "grid.more": "Mostra altri",
+  "grid.shown": "Mostrati {n} di {total}",
+  "facet.country.group": "Filtra per paese",
 
   "search.advanced": "Affina la ricerca",
   "search.advanced.hide": "Nascondi le precisazioni",

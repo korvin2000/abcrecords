@@ -1,5 +1,5 @@
 import type { SearchDoc } from "./docs";
-import { CYRILLIC, fold, translitVariants } from "./fold";
+import { CYRILLIC, translitVariants } from "./fold";
 
 /**
  * Free-text relevance.
@@ -20,8 +20,9 @@ export interface Token {
 
 const NO_VARIANTS: readonly string[] = [];
 
-export function tokenize(query: string): Token[] {
-  return fold(query)
+/** Split an **already folded** query (see `compile`) into scoring tokens. */
+export function tokenize(foldedQuery: string): Token[] {
+  return foldedQuery
     .split(/\s+/)
     .filter(Boolean)
     .map((text) => ({

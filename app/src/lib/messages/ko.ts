@@ -37,6 +37,9 @@ export const ko: Record<MsgKey, Message> = {
   "search.empty.title": "그 이름에 응답하는 자가 없다.",
   "search.empty.hint": "코덱스에 그 이름의 기록이 없습니다. 다른 이름을 시도하거나 필터를 해제하세요.",
   "search.otherLangs": "다른 언어에서 발견됨",
+  "grid.more": "더 보기",
+  "grid.shown": "{total}건 중 {n}건 표시",
+  "facet.country.group": "국가로 거르기",
 
   "search.advanced": "검색 다듬기",
   "search.advanced.hide": "세부 조건 숨기기",

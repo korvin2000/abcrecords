@@ -7,6 +7,8 @@
  *   criteria.ts    the form state and its compiled form
  *   predicates.ts  the filters, split by index-only vs dossier-backed
  *   engine.ts      the one pass that puts them together
+ *   cache.ts       search-as-you-type, narrowed against the last keystroke
+ *   persist.ts     the filter written down, and its first-visit default
  *
  * Names are authored per language (`index-<lang>.json`) with search-only
  * aliases beside them, and `index.json` carries a Latin fallback title. On top
@@ -39,4 +41,12 @@ export {
   type YearRange,
 } from "./criteria";
 export { matchesDossier, matchesIndex } from "./predicates";
-export { searchEntries, type SearchContext } from "./engine";
+export { runSearch, searchEntries, type SearchContext, type SearchRun } from "./engine";
+export { resetSearchCache, searchIncremental } from "./cache";
+export {
+  capture,
+  countryOfLanguage,
+  defaultsFor,
+  restore,
+  type StoredSearch,
+} from "./persist";

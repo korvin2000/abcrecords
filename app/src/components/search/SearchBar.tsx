@@ -4,11 +4,11 @@ import { FEATURES } from "@/config";
 import { audio } from "@/lib/audio";
 import { useDismissOnOutside } from "@/lib/dismiss";
 import { typeLabel, useI18n } from "@/lib/i18n";
-import { countryName } from "@/lib/metadata";
 import { refinementCount, toggleValue, type SearchCriteria } from "@/lib/search";
 import { ChipGroup } from "@/components/form";
 import { ClefSpinner } from "@/components/fx";
 import { AdvancedSearchPanel } from "./AdvancedSearchPanel";
+import { CountryFilter } from "./CountryFilter";
 import { AdvancedToggle } from "./AdvancedToggle";
 import type { DossierStatus } from "./DossierProgress";
 
@@ -19,8 +19,10 @@ interface Props {
   /** Drop every refinement, keeping what is typed in the box. */
   onReset: () => void;
   readonly types: readonly string[];
-  /** ISO 3166-1 alpha-2 codes; chips show the localized country name. */
+  /** ISO 3166-1 alpha-2 codes present in the catalogue. */
   readonly countries: readonly string[];
+  /** code → how many listed entries carry it; orders the flag row. */
+  readonly countryCounts: ReadonlyMap<string, number>;
   resultCount: number;
   totalCount: number;
   dossier: DossierStatus;
@@ -41,11 +43,12 @@ export function SearchBar({
   onReset,
   types,
   countries,
+  countryCounts,
   resultCount,
   totalCount,
   dossier,
 }: Props) {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const panelId = useId();
 
@@ -124,7 +127,7 @@ export function SearchBar({
         )}
       </div>
 
-      {/* quick facets: craft & country */}
+      {/* quick facets: craft as words, country as flags */}
       <div className="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
         <ChipGroup
           values={types}
@@ -132,18 +135,18 @@ export function SearchBar({
           onToggle={(value) => onPatch({ types: toggleValue(criteria.types, value) })}
           label={(value) => typeLabel(t, value)}
         />
-        {countries.length > 1 && (
-          <>
-            <span className="hidden text-gold-600/40 sm:inline">|</span>
-            <ChipGroup
-              values={countries}
-              selected={criteria.countries}
-              onToggle={(value) => onPatch({ countries: toggleValue(criteria.countries, value) })}
-              label={(value) => countryName(value, locale) ?? value}
-            />
-          </>
-        )}
       </div>
+
+      {countries.length > 1 && (
+        <div className="mt-3">
+          <CountryFilter
+            values={countries}
+            counts={countryCounts}
+            selected={criteria.countries}
+            onToggle={(value) => onPatch({ countries: toggleValue(criteria.countries, value) })}
+          />
+        </div>
+      )}
 
       <p className="mt-3 text-center font-heading text-xs uppercase tracking-[0.3em] text-sepia-600/80" aria-live="polite">
         {resultCount === totalCount

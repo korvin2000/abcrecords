@@ -25,6 +25,38 @@ export const FEATURES: Features = {
   herald: true,
 };
 
+interface GridConfig {
+  /** Cards drawn on first paint and after every change to the result list. */
+  pageSize: number;
+  /** How many more each reveal adds. */
+  pageStep: number;
+  /**
+   * How many pages scrolling may reveal on its own before the reader has to
+   * ask. Endless scrolling and a hard cap are both wrong here: the first is
+   * how a phone ends up holding a thousand cards nobody looked at, the second
+   * makes browsing a chore. A few free pages, then a deliberate click.
+   */
+  autoPages: number;
+  /** How far below the fold the next page starts loading. */
+  revealMargin: string;
+}
+
+/**
+ * The catalogue grid (components/CharacterGrid).
+ *
+ * The numbers matter more than they look: every card is an ornate frame, a
+ * portrait, a hover glow and — on a fine pointer — five motion values with two
+ * springs. Drawing the whole result list was costing 15 s on the first
+ * keystroke at 736 entries, so what is on screen is now bounded here rather
+ * than by the size of the catalogue.
+ */
+export const GRID: GridConfig = {
+  pageSize: 40,
+  pageStep: 40,
+  autoPages: 1,
+  revealMargin: "800px",
+};
+
 interface EffectsConfig {
   /** Master switch. Off removes both ornaments, the capability probe and the
    *  header button that toggles them. */

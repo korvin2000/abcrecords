@@ -1,4 +1,4 @@
-import { memo, useState } from "react";
+import { memo, useState, type ReactNode } from "react";
 import {
   m,
   useMotionTemplate,
@@ -29,32 +29,30 @@ interface Props {
   onSelect: (slug: string) => void;
 }
 
-/**
- * Catalogue card — CodexLegends' pointer-tilt 3D card with cursor glare and
- * shine sweep, re-themed to the light manuscript palette. The 3D tilt only
- * engages on fine pointers; touch devices get the cheap path.
- *
- * Memoized, because a card is not cheap to build: five motion values, two
- * springs and a motion template each, and the grid renders one per result.
- * Every one of App's renders — a keystroke in the search box, a toggle in the
- * header, a batch of dossiers landing — used to rebuild all of them even when
- * the result list had not moved. `record` is identity-stable per slug
- * (`buildCatalog` makes it once) and `onSelect` is a stable callback, so the
- * comparison actually holds.
- */
-export const CharacterCard = memo(function CharacterCard({
-  record,
-  foreign = false,
-  eager = false,
-  onSelect,
-}: Props) {
-  const { entry, slug, langs, display } = record;
-  const { t, locale, lang } = useI18n();
-  const accent = foreign ? "#8b2635" : accentFor(slug);
-  const [imgFailed, setImgFailed] = useState(false);
-  const langNames = langs.map((c) => langInfo(c).native).join(" · ");
+interface ShellProps {
+  onActivate: () => void;
+  label: string;
+  children: ReactNode;
+}
 
-  // pointer-driven tilt
+/**
+ * Does this machine have a pointer that can hover? Read once, at module scope,
+ * because the answer decides *which component* a card is — and a hook order
+ * may not change under a component. A device that gains a mouse mid-session
+ * gets the cheap card until the next load, which is the right trade against
+ * rebuilding every card the first time someone plugs one in.
+ */
+const FINE_POINTER =
+  typeof window !== "undefined" &&
+  typeof window.matchMedia === "function" &&
+  window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+
+/**
+ * The pointer-tilt shell: a 3D tilt towards the cursor, a warm glare that
+ * follows it, and a lift on hover. Five motion values, two springs and a
+ * motion template — worth it for a mouse, wasted on a finger.
+ */
+function TiltShell({ onActivate, label, children }: ShellProps) {
   const px = useMotionValue(0);
   const py = useMotionValue(0);
   const spring = { stiffness: 95, damping: 18, mass: 0.7 };
@@ -71,10 +69,84 @@ export const CharacterCard = memo(function CharacterCard({
     px.set((e.clientX - r.left) / r.width - 0.5);
     py.set((e.clientY - r.top) / r.height - 0.5);
   }
-  function onLeave() {
-    px.set(0);
-    py.set(0);
-  }
+
+  return (
+    <m.button
+      type="button"
+      onMouseMove={onMove}
+      onMouseLeave={() => {
+        px.set(0);
+        py.set(0);
+      }}
+      onPointerEnter={preloadCodexModal}
+      onFocus={preloadCodexModal}
+      onMouseEnter={() => audio.hover()}
+      onClick={onActivate}
+      // The glare travels as a custom property so the card body can place it
+      // over the portrait — where it belongs — without this shell knowing
+      // where the portrait is, and without a second component to thread a
+      // motion value through. Touch cards never set it, and the body's
+      // `var(--card-glare, transparent)` fallback is what makes that fine.
+      style={{ rotateX, rotateY, transformPerspective: 720, ["--card-glare" as string]: glare }}
+      whileHover={{ y: -8, scale: 1.045 }}
+      transition={{ type: "spring", stiffness: 90, damping: 18, mass: 0.7 }}
+      whileTap={{ scale: 0.97 }}
+      className="group preserve-3d relative block w-full cursor-pointer text-left"
+      aria-label={label}
+    >
+      {children}
+    </m.button>
+  );
+}
+
+/**
+ * The touch shell: a plain button with a press response. No motion values, no
+ * springs, no per-frame subscriptions — on a phone with forty cards on screen
+ * that is two hundred spring animations that would never have been seen.
+ */
+function PlainShell({ onActivate, label, children }: ShellProps) {
+  return (
+    <button
+      type="button"
+      onPointerEnter={preloadCodexModal}
+      onFocus={preloadCodexModal}
+      onClick={onActivate}
+      className="group relative block w-full cursor-pointer text-left transition-transform duration-150 active:scale-[0.97]"
+      aria-label={label}
+    >
+      {children}
+    </button>
+  );
+}
+
+const Shell = FINE_POINTER ? TiltShell : PlainShell;
+
+/**
+ * Catalogue card — CodexLegends' pointer-tilt 3D card with cursor glare and
+ * shine sweep, re-themed to the light manuscript palette.
+ *
+ * The tilt lives in a separate shell chosen once per session (see
+ * `FINE_POINTER`), so a touch device never builds it at all rather than
+ * building it and never firing it.
+ *
+ * Memoized, because even the cheap shell is not free and the grid renders one
+ * per result. Every one of App's renders — a keystroke in the search box, a
+ * toggle in the header, the dossier index landing — used to rebuild all of
+ * them even when the result list had not moved. `record` is identity-stable
+ * per slug (`buildCatalog` makes it once) and `onSelect` is a stable callback,
+ * so the comparison actually holds.
+ */
+export const CharacterCard = memo(function CharacterCard({
+  record,
+  foreign = false,
+  eager = false,
+  onSelect,
+}: Props) {
+  const { entry, slug, langs, display } = record;
+  const { t, locale, lang } = useI18n();
+  const accent = foreign ? "#8b2635" : accentFor(slug);
+  const [imgFailed, setImgFailed] = useState(false);
+  const langNames = langs.map((c) => langInfo(c).native).join(" · ");
 
   const subtitle = [typeLabel(t, entry.type), countryName(entry.country, locale)]
     .filter(Boolean)
@@ -84,27 +156,15 @@ export const CharacterCard = memo(function CharacterCard({
     ? placeholderPortrait(slug, initialsFrom(display))
     : resolveContentPath(portraitPath(entry));
 
+  const open = () => {
+    audio.unlock();
+    preloadCodexModal();
+    void loadEntry(entry, pickContentLang(langs, lang));
+    onSelect(slug);
+  };
+
   return (
-    <m.button
-      type="button"
-      onMouseMove={onMove}
-      onMouseLeave={onLeave}
-      onPointerEnter={preloadCodexModal}
-      onFocus={preloadCodexModal}
-      onMouseEnter={() => audio.hover()}
-      onClick={() => {
-        audio.unlock();
-        preloadCodexModal();
-        void loadEntry(entry, pickContentLang(langs, lang));
-        onSelect(slug);
-      }}
-      style={{ rotateX, rotateY, transformPerspective: 720 }}
-      whileHover={{ y: -8, scale: 1.045 }}
-      transition={{ type: "spring", stiffness: 90, damping: 18, mass: 0.7 }}
-      whileTap={{ scale: 0.97 }}
-      className="group preserve-3d relative block w-full cursor-pointer text-left"
-      aria-label={t("card.open", { name: display })}
-    >
+    <Shell onActivate={open} label={t("card.open", { name: display })}>
       <OrnateFrame
         accent={foreign ? "#8b2635" : "#b8902a"}
         cornerClassName="h-6 w-6 opacity-65 transition-opacity duration-500 group-hover:opacity-90 sm:h-7 sm:w-7"
@@ -141,11 +201,13 @@ export const CharacterCard = memo(function CharacterCard({
             {/* aged fade towards the name plate */}
             <div className="absolute inset-x-0 bottom-0 h-1/4 bg-gradient-to-t from-paper-100 to-transparent" />
 
-            {/* cursor glare */}
-            <m.div
-              className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-              style={{ background: glare }}
-            />
+            {/* cursor glare — only a pointer that can hover ever paints one */}
+            {FINE_POINTER && (
+              <div
+                className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+                style={{ background: "var(--card-glare, transparent)" }}
+              />
+            )}
 
             {/* shine sweep */}
             <span className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -220,6 +282,6 @@ export const CharacterCard = memo(function CharacterCard({
           />
         </div>
       </OrnateFrame>
-    </m.button>
+    </Shell>
   );
 });

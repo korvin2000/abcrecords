@@ -106,6 +106,16 @@ export interface YearBounds {
 
 export interface CompiledCriteria {
   readonly tokens: readonly Token[];
+  /**
+   * The whole query, folded, before it was split into tokens.
+   *
+   * Kept beside the tokens because one string comparison answers a question
+   * the token array cannot: *does this query extend the previous one?* Folding
+   * is per-character and order-preserving, so `fold(q + c)` always starts with
+   * `fold(q)` — which is what lets `search/cache.ts` re-rank the previous
+   * result set instead of the whole catalogue.
+   */
+  readonly text: string;
   /** Null means "not narrowing by this" — never an empty set to re-test. */
   readonly types: ReadonlySet<string> | null;
   readonly countries: ReadonlySet<string> | null;
@@ -130,8 +140,11 @@ export function compile(c: SearchCriteria): CompiledCriteria {
   const born = bounds(c.born);
   const died = bounds(c.died);
 
+  const text = fold(c.query);
+
   return {
-    tokens: tokenize(c.query),
+    tokens: tokenize(text),
+    text,
     types: c.types.size ? c.types : null,
     countries: c.countries.size ? c.countries : null,
     gender: c.gender === "any" ? null : c.gender,

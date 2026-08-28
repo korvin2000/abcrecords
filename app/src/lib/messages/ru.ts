@@ -45,6 +45,9 @@ export const ru = {
   "search.empty.title": "Ни одно имя не отзывается.",
   "search.empty.hint": "В кодексе нет записи с таким именем. Попробуйте иначе или снимите фильтры.",
   "search.otherLangs": "Найдено на других языках",
+  "grid.more": "Показать ещё",
+  "grid.shown": "Показано {n} из {total}",
+  "facet.country.group": "Фильтр по странам",
 
   "search.advanced": "Уточнить поиск",
   "search.advanced.hide": "Скрыть уточнения",

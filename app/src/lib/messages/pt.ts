@@ -39,6 +39,9 @@ export const pt: Record<MsgKey, Message> = {
   "search.empty.title": "Nenhum nome responde ao chamado.",
   "search.empty.hint": "O códice não guarda registo com esse nome. Tente de outro modo ou solte os filtros.",
   "search.otherLangs": "Encontrado noutras línguas",
+  "grid.more": "Mostrar mais",
+  "grid.shown": "A mostrar {n} de {total}",
+  "facet.country.group": "Filtrar por país",
 
   "search.advanced": "Afinar a busca",
   "search.advanced.hide": "Ocultar os afinamentos",

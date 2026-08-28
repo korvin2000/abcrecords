@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, type ReactNode } from "react";
 import { Chip } from "./Chip";
 import { SelectField } from "./SelectField";
 
@@ -16,6 +16,7 @@ export function TokenSelect({
   values,
   onToggle,
   label,
+  icon,
   labelledBy,
   placeholder,
 }: {
@@ -25,6 +26,8 @@ export function TokenSelect({
   onToggle: (value: string) => void;
   /** code → localized label. */
   label: (value: string) => string;
+  /** code → a small decorative mark for the chosen token (a flag, today). */
+  icon?: (value: string) => ReactNode;
   labelledBy: string;
   /** Label of the picker's idle option ("Any country"). */
   placeholder: string;
@@ -40,7 +43,14 @@ export function TokenSelect({
       {chosen.length > 0 && (
         <div role="group" aria-labelledby={labelledBy} className="flex flex-wrap gap-1.5">
           {chosen.map((value) => (
-            <Chip key={value} label={`${label(value)} ✕`} active onClick={() => onToggle(value)} size="sm" />
+            <Chip
+              key={value}
+              label={`${label(value)} ✕`}
+              icon={icon?.(value)}
+              active
+              onClick={() => onToggle(value)}
+              size="sm"
+            />
           ))}
         </div>
       )}

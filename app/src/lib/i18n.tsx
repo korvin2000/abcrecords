@@ -9,6 +9,7 @@ import {
 } from "react";
 import { DEFAULT_LANG, isLang, langInfo, type Lang } from "./languages";
 import { DICTS, type Message, type MsgKey } from "./messages";
+import { preferences, setPreference } from "./settings";
 
 /**
  * i18n layer for the UI chrome — ten languages, one dictionary each (see
@@ -22,8 +23,6 @@ import { DICTS, type Message, type MsgKey } from "./messages";
 
 export type { Lang };
 
-const STORAGE_KEY = "codex-lang";
-
 export type TFunc = (key: MsgKey, params?: Record<string, string | number>) => string;
 
 interface I18nValue {
@@ -35,15 +34,15 @@ interface I18nValue {
 
 const I18nContext = createContext<I18nValue | null>(null);
 
+/**
+ * The tongue to open in: the reader's remembered choice, else their browser's,
+ * else the catalogue's own. Only the *absence* of a stored choice lets the
+ * browser decide — a reader who once picked Russian on an English machine gets
+ * Russian on every later visit (see lib/settings.ts).
+ */
 function detectLang(): Lang {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (isLang(stored)) return stored;
-  } catch {
-    /* private mode */
-  }
-  // No stored choice — offer the reader their browser tongue if the codex
-  // speaks it; otherwise the catalogue's primary language.
+  const stored = preferences().lang;
+  if (isLang(stored)) return stored;
   try {
     for (const l of navigator.languages ?? [navigator.language]) {
       const code = l?.slice(0, 2).toLowerCase();
@@ -64,11 +63,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   const setLang = useCallback((l: Lang) => {
     setLangState(l);
-    try {
-      localStorage.setItem(STORAGE_KEY, l);
-    } catch {
-      /* ignore */
-    }
+    setPreference("lang", l);
   }, []);
 
   const t = useCallback<TFunc>(

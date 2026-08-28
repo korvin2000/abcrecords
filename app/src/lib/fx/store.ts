@@ -1,6 +1,7 @@
 import { useEffect, useSyncExternalStore } from "react";
 import { EFFECTS } from "@/config";
 import { measureTier, prefersReducedMotion, staticTier, type PerfTier } from "./tier";
+import { preferences, setPreference } from "@/lib/settings";
 
 /**
  * The one place that decides which ornaments are running right now.
@@ -31,8 +32,6 @@ const DENSITY: Record<PerfTier, number> = {
   mid: 0.6,
   low: 0.3,
 };
-
-const STORAGE_KEY = "codex-fx";
 
 export interface FxSnapshot {
   /** The measured (or pinned) capability grade. */
@@ -86,25 +85,15 @@ function emit(): void {
 
 /** The reader's stored choice, or — failing that — what the machine implies. */
 function readPreference(): boolean {
-  let stored: string | null = null;
-  try {
-    stored = localStorage.getItem(STORAGE_KEY);
-  } catch {
-    /* private mode */
-  }
-  if (stored === "on") return true;
-  if (stored === "off") return false;
+  const stored = preferences().effects;
+  if (stored !== null) return stored;
   return !(EFFECTS.respectReducedMotion && prefersReducedMotion());
 }
 
 /** Turn every ornament on or off. Takes effect on the next frame. */
 export function setEffectsEnabled(next: boolean): void {
   on = next;
-  try {
-    localStorage.setItem(STORAGE_KEY, next ? "on" : "off");
-  } catch {
-    /* ignore */
-  }
+  setPreference("effects", next);
   emit();
 }
 

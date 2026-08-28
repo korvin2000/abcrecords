@@ -39,6 +39,9 @@ export const de: Record<MsgKey, Message> = {
   "search.empty.title": "Kein Name gibt Antwort.",
   "search.empty.hint": "Der Kodex kennt keinen Eintrag mit diesem Namen. Versuchen Sie es anders oder lösen Sie die Filter.",
   "search.otherLangs": "In anderen Sprachen gefunden",
+  "grid.more": "Mehr zeigen",
+  "grid.shown": "{n} von {total} gezeigt",
+  "facet.country.group": "Nach Land filtern",
 
   "search.advanced": "Suche verfeinern",
   "search.advanced.hide": "Verfeinerungen verbergen",

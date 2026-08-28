@@ -1,8 +1,12 @@
+import { readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { join } from "node:path";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { legacyArchive } from "./vite/legacy-archive";
+import { contentWatch, ignoreContent } from "./vite/content-watch";
+import { factsDigest } from "./vite/facts-digest";
 
 /**
  * The app is a pure renderer: all catalogue content (index.json, *.bio.json,
@@ -21,15 +25,39 @@ import { legacyArchive } from "./vite/legacy-archive";
  */
 const base = process.env.DEPLOY_BASE ?? "/";
 
+const contentDir = fileURLToPath(new URL("../pages", import.meta.url));
+
+/**
+ * The per-language content directories (`pages/ru/`, `pages/en/`, …). Read
+ * once at config time: they hold ~16 000 files between them and the dev server
+ * neither bundles nor transforms a single one, so watching them buys nothing
+ * and costs both memory and stability (see vite/content-watch.ts).
+ */
+const contentLangDirs = readdirSync(contentDir, { withFileTypes: true })
+  .filter((e) => e.isDirectory() && /^[a-z]{2}$/.test(e.name))
+  .map((e) => join(contentDir, e.name));
+
 export default defineConfig({
   base,
-  plugins: [react(), tailwindcss(), legacyArchive("https://www.abc-guitars.com")],
-  publicDir: fileURLToPath(new URL("../pages", import.meta.url)),
+  plugins: [
+    react(),
+    tailwindcss(),
+    contentWatch(),
+    factsDigest(contentDir),
+    legacyArchive("https://www.abc-guitars.com"),
+  ],
+  publicDir: contentDir,
   resolve: {
     alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
   },
   server: {
     port: 5173,
+    watch: {
+      ignored: [ignoreContent(contentLangDirs)],
+      // A content file written in pieces must not be read (or watched) while
+      // the writing tool still holds it open.
+      awaitWriteFinish: { stabilityThreshold: 300, pollInterval: 100 },
+    },
   },
   build: {
     target: "baseline-widely-available",

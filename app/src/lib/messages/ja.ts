@@ -37,6 +37,9 @@ export const ja: Record<MsgKey, Message> = {
   "search.empty.title": "その名に応える者はいない。",
   "search.empty.hint": "写本にその名の記録はありません。別の名を試すか、絞り込みを解いてください。",
   "search.otherLangs": "他の言語で見つかった記録",
+  "grid.more": "さらに表示",
+  "grid.shown": "{total} 件中 {n} 件を表示",
+  "facet.country.group": "国で絞り込む",
 
   "search.advanced": "検索を絞り込む",
   "search.advanced.hide": "絞り込みを隠す",

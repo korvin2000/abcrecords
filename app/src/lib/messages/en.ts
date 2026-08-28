@@ -39,6 +39,9 @@ export const en: Record<MsgKey, Message> = {
   "search.empty.title": "No name answers the call.",
   "search.empty.hint": "The codex holds no record matching your seek. Try another name, or release the filters.",
   "search.otherLangs": "Found in other languages",
+  "grid.more": "Show more",
+  "grid.shown": "Showing {n} of {total}",
+  "facet.country.group": "Filter by country",
 
   "search.advanced": "Refine the search",
   "search.advanced.hide": "Hide refinements",
