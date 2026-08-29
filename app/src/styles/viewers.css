@@ -1,0 +1,97 @@
+/* ============================================================
+   Inline audio pill (components/AudioPlayer)
+   The compact form that stands in for a link inside prose and, above all,
+   inside the archive's score tables — where a row can hold three of them and
+   the whole table has to fit a phone. Every measurement here is width.
+   ============================================================ */
+.audio-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  margin-inline: 0.1rem;
+  padding: 0.05rem 0.3rem;
+  border: 1px solid rgba(184, 144, 42, 0.5);
+  border-radius: 4px;
+  background: rgba(244, 236, 214, 0.8);
+  vertical-align: baseline;
+  line-height: 1;
+}
+.audio-pill--mute {
+  border-color: rgba(184, 144, 42, 0.4);
+  background: rgba(244, 236, 214, 0.7);
+}
+.audio-format-icon {
+  inline-size: 0.95em;
+  block-size: 0.95em;
+  color: var(--color-sepia-600);
+}
+
+/* ============================================================
+   ASCII tablature viewer (components/AsciiTabViewer)
+   The score itself is an SVG scaled to fit the pane (see the component); this
+   is the chrome around it, which was built at desktop sizes throughout — a
+   56 px side padding on the plate, a 36 px close button the title ran under,
+   and eight toolbar controls at fixed padding that wrapped onto four rows and
+   took nearly half of a 360x800 screen before a single note was drawn.
+   ============================================================ */
+.tabview-plate {
+  padding-block: clamp(0.4rem, 0.25rem + 0.6vw, 1rem) clamp(0.3rem, 0.2rem + 0.5vw, 0.75rem);
+  /* Wide enough to clear the close control, which sits in the corner. */
+  padding-inline: calc(var(--codex-ctrl-inset) + var(--codex-ctrl-size) + 0.5rem);
+}
+.tabview-close {
+  position: absolute;
+  inset-block-start: var(--codex-ctrl-inset-block);
+  inset-inline-end: var(--codex-ctrl-inset);
+}
+.tabview-kicker {
+  font-size: clamp(0.5rem, 0.46rem + 0.13vw, 0.65rem);
+}
+.tabview-title {
+  font-size: clamp(0.95rem, 0.75rem + 0.95vw, 1.5rem);
+  line-height: 1.2;
+}
+.tabview-meta {
+  font-size: clamp(0.58rem, 0.53rem + 0.16vw, 0.75rem);
+}
+.tabview-toolbar {
+  padding: clamp(0.3rem, 0.2rem + 0.4vw, 0.65rem) clamp(0.4rem, 0.2rem + 0.9vw, 1.5rem);
+}
+/* One size for every button in the strip, so eight controls fit two rows on a
+   phone instead of four. `!important` is not needed: `btn-rpg` sets padding in
+   the same unlayered sheet and this rule comes later. */
+.tabview-btn {
+  padding: 0.2rem clamp(0.4rem, 0.2rem + 0.7vw, 0.8rem);
+  font-size: clamp(0.55rem, 0.5rem + 0.18vw, 0.7rem);
+  line-height: 1.25;
+}
+.tabview-small {
+  block-size: clamp(1.35rem, 1.2rem + 0.45vw, 1.75rem);
+  min-inline-size: clamp(1.35rem, 1.2rem + 0.45vw, 1.75rem);
+  padding-inline: 0.3rem;
+  font-size: clamp(0.6rem, 0.55rem + 0.16vw, 0.75rem);
+}
+.tabview-zoom {
+  inline-size: clamp(2.6rem, 2.2rem + 1.2vw, 3.4rem);
+  font-size: clamp(0.55rem, 0.5rem + 0.18vw, 0.7rem);
+}
+/* The archive's files carry an English preamble before the music. It is prose,
+   not data, so it wraps — and at a size that suits the pane rather than the
+   flat 1 rem it was, which on a phone put five words on a line. */
+.tabview-prose {
+  padding: 0.35rem clamp(0.55rem, 0.3rem + 0.8vw, 1rem);
+  font-size: clamp(0.8rem, 0.72rem + 0.35vw, 1rem);
+}
+.tabview-body {
+  padding: clamp(0.5rem, 0.3rem + 0.8vw, 1rem) clamp(0.4rem, 0.15rem + 1.1vw, 1.75rem);
+}
+
+/* ASCII tablature fallback: source columns are musical data. */
+.tab-raw {
+  white-space: pre;
+  tab-size: 8;
+  font-family: "Cascadia Mono", "Courier New", ui-monospace, monospace;
+  font-variant-ligatures: none;
+  font-kerning: none;
+  letter-spacing: 0;
+}

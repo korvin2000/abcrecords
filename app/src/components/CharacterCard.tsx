@@ -215,8 +215,8 @@ export const CharacterCard = memo(function CharacterCard({
             </span>
 
             {/* top badges */}
-            <div className="absolute inset-x-0 top-0 flex items-start justify-between p-2.5">
-              <span className="rounded-sm bg-burgundy-600/90 px-1.5 py-0.5 font-heading text-[0.6rem] font-bold uppercase tracking-wider text-paper-50">
+            <div className="absolute inset-x-0 top-0 flex items-start justify-between p-2">
+              <span className="card-badge rounded-sm bg-burgundy-600/90 px-1.5 py-0.5 font-heading font-bold uppercase tracking-wider text-paper-50">
                 {typeLabel(t, entry.type)}
               </span>
               {/* foreign find — flags of the tongues this entry IS written in */}
@@ -244,11 +244,15 @@ export const CharacterCard = memo(function CharacterCard({
             </div>
           </div>
 
-          {/* name plate — below the portrait, on paper */}
-          <div className="relative px-3 pb-3 pt-1.5 text-center">
+          {/* name plate — below the portrait, on paper. The three type sizes
+              are read off the card's own width (`.card-*`, index.css), because
+              a card is 152 px on a phone and 250-odd on a wide monitor and the
+              viewport does not know which of those this one is. */}
+          <div className="relative px-2.5 pb-2.5 pt-1 text-center">
             <h3
+              title={display}
               className={clsx(
-                "font-heading text-lg font-bold leading-tight sm:text-xl",
+                "card-name font-heading font-bold leading-tight",
                 foreign ? "text-ink-900/75" : "text-ink-900",
               )}
             >
@@ -256,7 +260,7 @@ export const CharacterCard = memo(function CharacterCard({
             </h3>
             <p
               className={clsx(
-                "mt-0.5 truncate font-body text-xs italic",
+                "card-sub mt-0.5 truncate font-body italic",
                 foreign ? "text-burgundy-700/65" : "text-sepia-600",
               )}
             >
@@ -265,7 +269,7 @@ export const CharacterCard = memo(function CharacterCard({
             {/* hover underline flourish */}
             <span
               className={clsx(
-                "mx-auto mt-1.5 block h-px w-10 transition-all duration-500 group-hover:w-24",
+                "mx-auto mt-1 block h-px w-8 transition-all duration-500 group-hover:w-20",
                 foreign ? "bg-burgundy-500/50 group-hover:bg-burgundy-500" : "bg-gold-600/50 group-hover:bg-gold-600",
               )}
             />

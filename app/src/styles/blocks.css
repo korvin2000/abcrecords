@@ -1,0 +1,311 @@
+/* ============================================================
+   Alignment block (::: align, spec 13) — a bounded aligned group. It starts a
+   new block, so it ends an earlier left/right image wrap (same rule as 6.2);
+   intrinsic-width block children follow the alignment as well.
+   ============================================================ */
+.bio-article .bio-align {
+  clear: both;
+}
+.bio-article .bio-align-left { text-align: left; }
+.bio-article .bio-align-center { text-align: center; }
+.bio-article .bio-align-right { text-align: right; }
+.bio-article .bio-align-left > figure { margin-inline: 0 auto; }
+.bio-article .bio-align-center > figure { margin-inline: auto; }
+.bio-article .bio-align-right > figure { margin-inline: auto 0; }
+
+/* ============================================================
+   In-article navigation bar (::: nav, spec 10) — the codex tab strip's visual
+   language: a centered paper pill row with a gold hairline and a burgundy
+   current item. Wraps on narrow screens; no measurement, no scripting.
+   Selectors are scoped `.bio-article .bio-nav …` so they outrank the generic
+   `.bio-article ul`/`a` article rules regardless of source order.
+   ============================================================ */
+.bio-article .bio-nav {
+  clear: both;
+  margin: var(--bio-block) 0;
+}
+.bio-article .bio-nav-title {
+  font-family: var(--font-heading);
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 0.72rem;
+  color: var(--color-sepia-600);
+  text-align: center;
+  margin-bottom: 0.45rem;
+}
+.bio-article .bio-nav ul {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.25rem;
+  width: max-content;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0.25rem;
+  border: 1px solid rgba(184, 144, 42, 0.4);
+  border-radius: 6px;
+  background: rgba(244, 236, 214, 0.6);
+}
+.bio-article .bio-nav li {
+  margin: 0;
+}
+.bio-article .bio-nav a,
+.bio-article .bio-nav .bio-jump,
+.bio-article .bio-nav .bio-nav-current {
+  display: block;
+  padding: 0.35rem 0.9rem;
+  border-radius: 4px;
+  font-family: var(--font-heading);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  text-decoration: none;
+  /* No `nowrap`: flex wraps whole items between rows first and only breaks the
+     text of an item that cannot fit the bar at all — which is what keeps a long
+     label (or a plain-text current item, spec 10) inside its own container
+     instead of overflowing the page. */
+  text-align: center;
+  color: var(--color-sepia-600);
+  transition: background-color 0.2s, color 0.2s;
+}
+.bio-article .bio-nav a:hover,
+.bio-article .bio-nav .bio-jump:hover {
+  background: rgba(236, 223, 192, 0.8);
+  color: var(--color-ink-800);
+}
+.bio-article .bio-nav a:focus-visible,
+.bio-article .bio-nav .bio-jump:focus-visible {
+  outline: 2px solid var(--color-gold-600);
+  outline-offset: 2px;
+}
+.bio-article .bio-nav .bio-nav-current {
+  background: var(--color-burgundy-600);
+  color: var(--color-paper-50);
+  box-shadow: 0 2px 10px rgba(122, 31, 43, 0.35);
+  cursor: default;
+}
+
+/* ============================================================
+   Columns (::: columns, spec 9) — one grid, `bio-cols-N` tracks wide. Cells
+   follow source order and wrap into a new row after every N, so a whole record
+   grid fits in a single block (spec 9.1). Below `md` they stack, and a
+   meaningful vertical divider becomes a horizontal separator.
+   This element owns its grid: never put `grid-*` utilities on it as well.
+   ============================================================ */
+.bio-article .bio-columns {
+  clear: both;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  /* The horizontal gap is a share of the column, not a constant: a flat 2rem
+     is 4 % of a 768 px measure and 11 % of a 304 px one. */
+  --bio-cols-gap: clamp(0.75rem, 0.3rem + 3cqi, 2rem);
+  gap: 0.5rem var(--bio-cols-gap);
+  align-items: start;
+  margin: calc(var(--bio-block) * 0.75) 0;
+}
+/*
+ * A cell is a *new reading column*, so it has to become the query container
+ * for everything inside it.
+ *
+ * This is the invariant the whole article stylesheet is built on: `cqi` means
+ * "1 % of the box this element is actually in". It held while `.bio-measure`
+ * was the only container and nothing between it and the text narrowed the
+ * inline axis. `::: columns` breaks it — it halves, thirds or quarters the
+ * width and, without this rule, declares no container of its own, so every
+ * `cqi` inside a cell keeps answering with the *full* measure.
+ *
+ * A figure is where that lie turns into damage, because its size floors are
+ * `min-inline-size`, and CSS applies min-width *after* max-width: the floor
+ * beats the `max-width: 100%` that would otherwise have contained the print.
+ * Measured on `garcia_lorca` at 1280x720: a `size: large` figure asked for
+ * 62cqi of a 768 px measure = 422 px inside a 370 px cell and got it — 52 px
+ * of photograph over the top of the neighbouring column's text, and a 219 px
+ * scan upscaled 1.9x into the bargain. It gets worse with more tracks: a
+ * `large` figure in a four-track group computes to 279 % of its cell.
+ *
+ * Restoring the invariant fixes every size class at every track count at once,
+ * and it fixes the *other* half of the same lie for free: the float threshold,
+ * the nested `::: columns` track count, the group gap and any nested image
+ * group now all ask the cell rather than the page.
+ */
+.bio-article .bio-columns > * {
+  min-width: 0;
+  container: bio / inline-size;
+}
+/* Container, not viewport: a record grid inside a 768 px column should be a
+   grid whether the window around it is 800 px or 3840 px wide, and the old
+   `min-width: 48rem` viewport pair kept it stacked in an 684 px column on a
+   landscape phone. The stacked form is the base rule above, so the divider
+   below only has to describe the case the tracks did not appear.
+
+   The thresholds are one per column of ~9 rem — the same floor `::: images`
+   uses for a print — rather than the 30/40/50 rem they were. Two consequences:
+   a two-cell record row (the only shape in the whole corpus: a title and a
+   year, or a title and a photograph) stays a row on a 360 px phone instead of
+   becoming two, and `bio-cols-4` becomes reachable at all — it asked for 50 rem
+   of a column that `.bio-measure` caps at 48. Declared, not derived, because
+   the divider rules below address cells by `nth-child` and therefore have to
+   know the count. */
+@container bio (min-width: 18rem) {
+  .bio-article .bio-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@container bio (min-width: 28rem) {
+  .bio-article .bio-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@container bio (min-width: 38rem) {
+  .bio-article .bio-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+/* Stacked: a meaningful vertical rule becomes a horizontal separator. */
+.bio-article .bio-columns--divided > * + * {
+  border-block-start: 1px solid rgba(184, 144, 42, 0.4);
+  padding-block-start: 0.8em;
+}
+
+/* In tracks: the rule sits on each cell's leading edge, with its own padding
+   matching the column gap so the line lands midway between the two texts. The
+   horizontal separator above is cancelled for every cell that now starts a
+   column rather than a row. */
+@container bio (min-width: 18rem) {
+  .bio-article .bio-cols-2.bio-columns--divided > * + * {
+    border-block-start: none;
+    padding-block-start: 0;
+  }
+  .bio-article .bio-cols-2.bio-columns--divided > *:not(:nth-child(2n + 1)) {
+    border-inline-start: 1px solid rgba(184, 144, 42, 0.45);
+    padding-inline-start: var(--bio-cols-gap);
+  }
+}
+@container bio (min-width: 28rem) {
+  .bio-article .bio-cols-3.bio-columns--divided > * + * {
+    border-block-start: none;
+    padding-block-start: 0;
+    border-inline-start: none;
+    padding-inline-start: 0;
+  }
+  .bio-article .bio-cols-3.bio-columns--divided > *:not(:nth-child(3n + 1)) {
+    border-inline-start: 1px solid rgba(184, 144, 42, 0.45);
+    padding-inline-start: var(--bio-cols-gap);
+  }
+}
+@container bio (min-width: 38rem) {
+  .bio-article .bio-cols-4.bio-columns--divided > * + * {
+    border-block-start: none;
+    padding-block-start: 0;
+    border-inline-start: none;
+    padding-inline-start: 0;
+  }
+  .bio-article .bio-cols-4.bio-columns--divided > *:not(:nth-child(4n + 1)) {
+    border-inline-start: 1px solid rgba(184, 144, 42, 0.45);
+    padding-inline-start: var(--bio-cols-gap);
+  }
+}
+
+/* ============================================================
+   Bordered notice / callout (::: frame, spec 11) — a region the source
+   deliberately enclosed: obituary, congratulation, ceremonial notice. The
+   palette token names the intent; thickness, shade and background are ours.
+   `black` stays restrained, `red` reads celebratory (spec 11). The block
+   starts a new flow, so it ends an earlier left/right image wrap (spec 6.2).
+   ============================================================ */
+.bio-article .bio-frame {
+  clear: both;
+  /* Same reason as `.bio-columns > *` above: the notice's own padding is
+     inline space its contents cannot use, so a figure inside it must measure
+     the frame, not the page. Smaller lie than a column cell (9 % of a 332 px
+     measure, 6 % of a 768 px one) but the same kind, and closing it costs one
+     declaration. The padding below is unaffected: an element is never its own
+     query container, so these `cqi` still read the frame's own ancestor. */
+  container: bio / inline-size;
+  margin: var(--bio-block) 0;
+  padding: clamp(0.7rem, 0.4rem + 2cqi, 1.1rem) clamp(0.8rem, 0.4rem + 2.6cqi, 1.4rem) clamp(0.75rem, 0.45rem + 2cqi, 1.2rem);
+  border: 2px solid rgba(184, 144, 42, 0.7);
+  border-radius: 2px;
+}
+.bio-article .bio-frame > :first-child { margin-top: 0; }
+.bio-article .bio-frame > :last-child { margin-bottom: 0; }
+/* A heading inside a notice announces it — no section rule above the article. */
+.bio-article .bio-frame :is(h2, h3, h4) {
+  border-bottom: none;
+  padding-bottom: 0;
+  margin: 0.1em 0 0.5em;
+  text-align: center;
+}
+.bio-article .bio-frame-title {
+  font-family: var(--font-heading);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 0.8rem;
+  text-align: center;
+  color: var(--color-sepia-600);
+  margin: 0 0 0.7em;
+}
+/* Ceremonial: an antique double rule. */
+.bio-article .bio-frame--gold {
+  border: 4px double var(--color-gold-600);
+  background: rgba(251, 243, 210, 0.45);
+}
+/* In memoriam: one heavy ink rule, no ornament. */
+.bio-article .bio-frame--black {
+  border: 3px solid var(--color-ink-900);
+  background: rgba(42, 24, 16, 0.05);
+}
+/* Congratulation: burgundy rule with a gold band inside it. */
+.bio-article .bio-frame--red {
+  border: 2px solid var(--color-burgundy-600);
+  background: rgba(122, 31, 43, 0.05);
+  box-shadow: inset 0 0 0 3px rgba(212, 175, 55, 0.25);
+}
+/* A raised ivory card for any other source-backed border. */
+.bio-article .bio-frame--white {
+  border: 1px solid rgba(184, 144, 42, 0.35);
+  background: var(--color-paper-50);
+  box-shadow: 0 1px 6px rgba(51, 34, 15, 0.12);
+}
+
+/* ============================================================
+   Closing signature (::: signature, spec 12) — a compact credit block aligned
+   toward the reading-end edge on wide screens, ordinary prose on narrow ones.
+   ============================================================ */
+.bio-article .bio-signature {
+  clear: both;
+  margin: 2em 0 0.5em;
+  font-style: italic;
+  line-height: 1.5;
+  color: var(--color-sepia-600);
+}
+.bio-article .bio-signature p {
+  margin-bottom: 0.3em;
+}
+@container bio (min-width: 30rem) {
+  .bio-article .bio-signature {
+    text-align: right;
+  }
+}
+
+/* An embedded document (::: document with `mode: embed`, spec 8) keeps its link
+   card directly below as the accessible fallback. */
+.bio-article .bio-doc-embed {
+  clear: both;
+  margin: 1.4em 0;
+}
+.bio-article .bio-doc-embed iframe {
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  max-height: min(70svh, 44rem);
+  border: 1px solid rgba(184, 144, 42, 0.5);
+  background: var(--color-paper-100);
+}
+.bio-article .bio-doc-embed .bio-doc {
+  border-top: none;
+}
+
+/* A linked figure (::: image with `link:`) is an anchor around the picture;
+   it must not inherit the article link's dotted underline. */
+.bio-article .bio-figure-link {
+  display: block;
+  text-decoration: none;
+}

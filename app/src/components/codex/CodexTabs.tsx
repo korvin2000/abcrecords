@@ -28,7 +28,9 @@ export function CodexTabs({
 
   return (
     <nav
-      className="mb-6 flex flex-wrap justify-center gap-1 rounded-md border border-gold-600/40 bg-paper-100/60 p-1 sm:gap-2"
+      // `codex-tabstrip` sizes the four labels off the pane width so they stay
+      // on one row from ~340 px up; the wrap is kept as the fallback below that.
+      className="codex-tabstrip mb-stack flex flex-wrap justify-center gap-1 rounded-md border border-gold-600/40 bg-paper-100/60 p-1"
       role="tablist"
     >
       {CODEX_TABS.map((tab) => (
@@ -39,7 +41,7 @@ export function CodexTabs({
           onClick={() => select(tab)}
           onMouseEnter={() => audio.hover()}
           className={clsx(
-            "rounded px-3 py-1.5 font-heading text-[0.72rem] uppercase tracking-[0.18em] transition-all duration-200 sm:px-5 sm:text-[0.8rem]",
+            "codex-tab rounded font-heading uppercase transition-all duration-200",
             value === tab
               ? "bg-burgundy-600 text-paper-50 shadow-[0_2px_10px_rgba(122,31,43,0.4)]"
               : "text-sepia-600 hover:bg-paper-200/80 hover:text-ink-800",

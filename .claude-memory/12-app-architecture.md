@@ -89,7 +89,7 @@ See [`app/README.md`](../app/README.md) for the full layer table.
 ## Recent additions (2026-07-21)
 
 - **Lifted-Curl image frame** (`src/components/CurlFrame.tsx` + `.fx-curl` in
-  `index.css`): replaced the old flat double border on all article & gallery
+  `styles/figures.css`): replaced the old flat double border on all article & gallery
   images (the main-menu `CharacterCard` keeps its own 3D-tilt effect). Borderless
   photo + drop shadow + curled-corner shadows + a hover zoom kept working under
   `prefers-reduced-motion` on purpose.

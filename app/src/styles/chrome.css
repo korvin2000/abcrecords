@@ -1,0 +1,76 @@
+/* ============================================================
+   Parchment panel (codex modal) — light re-theme of Copendum
+   ============================================================ */
+.parchment {
+  background:
+    radial-gradient(ellipse at top left, rgba(107, 74, 42, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at bottom right, rgba(107, 74, 42, 0.12) 0%, transparent 50%),
+    repeating-linear-gradient(
+      45deg,
+      rgba(120, 80, 40, 0.03) 0px,
+      rgba(120, 80, 40, 0.03) 1px,
+      transparent 1px,
+      transparent 4px
+    ),
+    linear-gradient(135deg, #f6efdb 0%, #efe3c4 50%, #e6d6b0 100%);
+  color: var(--color-ink-900);
+  box-shadow:
+    inset 0 0 70px rgba(138, 106, 31, 0.18),
+    inset 0 0 3px rgba(84, 56, 30, 0.25),
+    0 12px 45px rgba(51, 34, 15, 0.35);
+}
+
+/* Thin double border: muted gold outside, dark brown inside (design brief) */
+.ornate-border {
+  position: relative;
+  border: 1.5px solid rgba(184, 144, 42, 0.75);
+  outline: 1px solid rgba(84, 56, 30, 0.45);
+  outline-offset: -5px;
+}
+
+/* (Corner accents are drawn by <CornerOrnament> in the markup — the old
+   two-corner ::before/::after brackets clashed with them and are gone.) */
+
+/* Ornamental divider with centered symbol */
+.divider-ornament {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  color: #b8902a;
+}
+.divider-ornament::before,
+.divider-ornament::after {
+  content: "";
+  flex: 1;
+  max-width: 14rem;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(184, 144, 42, 0.7) 50%, transparent 100%);
+}
+
+/* Dark rectangular RPG button ("Close Codex").
+   NB: must not set `position` — this class is un-layered and would beat
+   Tailwind's layered `.absolute` utility on the codex close button
+   (that bug once pushed the codex scroll area out of its frame). */
+.btn-rpg {
+  padding: 0.45rem 1.1rem;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: #f4ecd6;
+  background: linear-gradient(180deg, #4a3423 0%, #2a1810 100%);
+  border: 1px solid rgba(184, 144, 42, 0.7);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+}
+.btn-rpg:hover {
+  color: #f7e7b4;
+  border-color: #d4af37;
+  box-shadow: 0 0 16px rgba(184, 144, 42, 0.45);
+  background: linear-gradient(180deg, #54381e 0%, #33220f 100%);
+}
+.btn-rpg:active {
+  transform: translateY(1px);
+}

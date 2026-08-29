@@ -1,0 +1,305 @@
+/* ============================================================
+   Article figures and image groups — sized by the column, not the window
+   (see the `container` declaration on `.bio-article`)
+   ============================================================ */
+
+/*
+ * A figure is as wide as its picture, and no wider.
+ *
+ * `inline-size: fit-content` is the whole point. The archive's scans are small
+ * — measured 150x200, 194x255, 196x271, 410x677 — and a figure stretched to
+ * the column was *upscaling* them: a 194 px photograph blown up to 332 px on a
+ * phone and 768 px on a desktop, which is exactly why the article pictures
+ * read as coarse and disproportionately large. Now the box shrinks to the
+ * image's own size, the ceilings below only ever shrink it further, and a
+ * picture narrower than the column is centred rather than left with an empty
+ * half beside it.
+ */
+.bio-article .bio-figure {
+  inline-size: fit-content;
+  /* A picture that has not loaded yet reports no intrinsic width, and a
+     shrink-wrapped box around nothing is a hairline that jumps when the bytes
+     arrive. The floor keeps the reflow small. */
+  min-inline-size: min(100%, 6rem);
+  max-inline-size: 100%;
+  margin-block: calc(var(--bio-block) * 0.6);
+  margin-inline: auto;
+}
+
+/*
+ * A declared size is a *proportion of the column with a ceiling*, not a fixed
+ * pixel width that switches on at one viewport. `cqi` is 1 % of the container's
+ * inline axis, so a `small` figure is capped at 133 px in a 332 px phone column
+ * and at 200 px in a 768 px one, with every width in between — no threshold,
+ * no cliff. The ceilings are the sizes the spec has always meant.
+ */
+/*
+ * `100%` is first in every `min()` on purpose, and it is not decoration.
+ * These three rules have the same specificity as `.bio-article .bio-figure`
+ * above and come later, so *every one of them silently replaced* that rule's
+ * `max-inline-size: 100%`: a declared size class removed the only guarantee
+ * that a figure stays inside the box it is in. Naming 100 % here gives it back
+ * without reintroducing the source-order trap.
+ *
+ * It binds only when the query container is wider than the figure's actual
+ * containing block — which, with the container declarations now on
+ * `.bio-columns > *` and `.bio-frame`, should never happen. That is the point:
+ * it is the backstop for the next construct someone adds that narrows the
+ * inline axis and forgets to declare a container. Failure mode with it:
+ * the print clips inside its own frame. Without it: the print lies across the
+ * neighbouring column's text.
+ */
+.bio-article .bio-fig--small { max-inline-size: min(100%, 40cqi, 200px); }
+.bio-article .bio-fig--medium { max-inline-size: min(100%, 52cqi, 320px); }
+.bio-article .bio-fig--large { max-inline-size: min(100%, 66cqi, 460px); }
+
+/*
+ * A ceiling only ever stops a figure being blown up; it does nothing for the
+ * opposite problem, which turned out to be the more common one. A lot of the
+ * archive's scans are 150–200 px natively (RC7, round 1) — well inside every
+ * ceiling above — so they were rendering at their bare native size: a
+ * postage stamp next to 18 px body text on a modern screen, and disproportion-
+ * ately smaller than the same figure looked on the 20-year-old site it was
+ * migrated from. Each size class gets a floor too, roughly proportioned to
+ * its own ceiling so the three classes stay visually distinct.
+ *
+ * The floor lives on the *picture*, not the figure: `.bio-figure` and
+ * `.fx-curl` both shrink-wrap their content (see below), so it is enlarging
+ * the image that makes the figure and its frame grow to match — asking the
+ * figure to be wider would just leave blank paper beside a small print,
+ * which is the exact bug `.bio-article .fx-curl` was written to avoid
+ * (round 2, §13.1).
+ *
+ * Every floor here is a `min(Acqi, Bpx)` kept *pointwise below* its own
+ * class's `min(Ccqi, Dpx)` ceiling above — A < C and B < D, both — which is
+ * enough to guarantee the floor can never exceed the ceiling at any
+ * container width (min is monotone: if A≤C and B≤D then min(Ax,B)≤min(Cx,D)
+ * for every x≥0). Get this backwards — a floor whose *px* cap is generous but
+ * whose *cqi* term is steeper than the ceiling's own — and the figure clamps
+ * to the smaller ceiling while the picture inside, floored independently,
+ * stays larger: the picture overflows its own frame, which is the very bug
+ * this rule exists to avoid, just triggered from the other side.
+ */
+.bio-article .fx-curl .inner img { min-inline-size: min(7.5rem, 85cqi); }
+.bio-article .bio-fig--small .fx-curl .inner img { min-inline-size: min(11.6rem, 38cqi); }
+.bio-article .bio-fig--medium .fx-curl .inner img { min-inline-size: min(18.4rem, 49cqi); }
+.bio-article .bio-fig--large .fx-curl .inner img { min-inline-size: min(26.4rem, 62cqi); }
+
+/*
+ * The `cqi` term in each floor is what makes the floor *safe*, not merely
+ * proportional: every coefficient is well under 100, so a floor can never
+ * exceed the box — as long as `cqi` names the right box. It is the same single
+ * invariant the container declarations on `.bio-columns > *` and `.bio-frame`
+ * exist to hold, seen from the other end. A percentage cannot do this job in
+ * its place: `min-inline-size: 100%` on the picture would resolve against a
+ * `.inner` whose own width the picture is currently deciding.
+ *
+ * A scan that fails to load reports no intrinsic size, so nothing balances the
+ * floor and the frame is drawn at the floor's full width around nothing —
+ * up to 26 rem of empty paper with a broken-image glyph in it. `Figure` in
+ * BioArticle.tsx already marks that case; it just had no rule to land on.
+ */
+.bio-article .bio-figure-broken .fx-curl .inner img { min-inline-size: 0; }
+
+/*
+ * Wrapping text around a picture needs a real threshold, because a float is
+ * either worth it or ruinous: below ~28 rem of column the text beside a figure
+ * is four or five words wide. Above it the figure floats and the prose runs
+ * past, which is what the source documents were written for.
+ */
+/*
+ * Wrapping text around a picture needs a real threshold, because a float is
+ * either worth it or ruinous: below ~28 rem of column the text beside a figure
+ * is four or five words wide. Below that the figure is simply centred (see
+ * `.bio-figure` above) — a left-aligned picture with a column of empty paper
+ * beside it and the prose starting underneath is the worst of both.
+ *
+ * Physical `left`/`right`, as the utilities these replace were: every content
+ * language the catalogue carries is left-to-right, and `float: inline-start`
+ * is a good deal newer than the rest of the baseline this file targets.
+ */
+@container bio (min-width: 28rem) {
+  .bio-article .bio-fig--left {
+    float: left;
+    margin: 0 1.5rem 0.5rem 0;
+  }
+  .bio-article .bio-fig--right {
+    float: right;
+    margin: 0 0 0.5rem 1.5rem;
+  }
+}
+
+/*
+ * An `::: images` group derives its column count instead of declaring it, the
+ * way the catalogue grid does: `columns: N` is the **ceiling**, a print floor
+ * is the other bound, and the track size decides everything between them.
+ *
+ *   upper guard  (100% − (N−1)·gap) / N   — auto-fill can never fit an N+1th
+ *   lower guard  9rem                     — a print narrower than this is a stamp
+ *
+ * The three container queries this replaces switched at 24 / 34 / 44 rem, and
+ * 24 rem was the wrong number for the commonest case in the archive: two small
+ * scans on a phone. A 1080-physical-pixel phone is a 360 px viewport, whose
+ * reading column measures 304 px — under the threshold — so a pair that would
+ * sit side by side at 148 px each was stacked into two full-width prints and
+ * cost a whole screen. The floor puts the switch at ~296 px of column instead
+ * of 384, and the fall from 4 → 3 → 2 → 1 is now continuous rather than in
+ * three steps.
+ */
+.bio-article .bio-images {
+  --bio-images-n: 1;
+  --bio-images-gap: clamp(0.5rem, 0.2rem + 1.6cqi, 1rem);
+  display: grid;
+  gap: var(--bio-images-gap);
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(
+      max(
+        (100% - (var(--bio-images-n) - 1) * var(--bio-images-gap)) / var(--bio-images-n),
+        min(9rem, 100%)
+      ),
+      1fr
+    )
+  );
+  margin: calc(var(--bio-block) * 0.8) 0;
+}
+.bio-article .bio-images--2 { --bio-images-n: 2; }
+.bio-article .bio-images--3 { --bio-images-n: 3; }
+.bio-article .bio-images--4 { --bio-images-n: 4; }
+/* Stacked, a group of prints must not become a column of full-width ones: each
+   keeps a sane ceiling and the paper shows down both sides. */
+.bio-article .bio-images .bio-figure {
+  max-inline-size: min(100%, 18rem);
+}
+
+/* ============================================================
+   Lifted Curl — photo-print frame for article & gallery images
+   Adapted from prototypes/snippets/image_effects ("Lifted Curl"),
+   re-toned from the snippet's black/white to the warm manuscript
+   palette: a soft ink drop shadow, an ivory print border, and two
+   curled-corner shadows that lift the print off the page. A gentle
+   ~6% zoom on hover makes the picture easier to see. Applied
+   everywhere EXCEPT the main-menu CharacterCard (its own effect).
+   ============================================================ */
+.fx-curl {
+  position: relative;
+  display: block;
+  border-radius: 3px;
+  overflow: visible;
+  box-shadow: 0 2px 8px rgba(51, 34, 15, 0.5);
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.4s ease;
+}
+/* `will-change` is a hint with a price: it hands the element its own
+   compositor layer and *keeps* it there. On a gallery of thirty prints that
+   was thirty full-size textures held in GPU memory for a 6% zoom that may
+   never happen. Promote on hover instead — by the time the transition starts
+   the layer exists, and it is released again when the pointer leaves. */
+.fx-curl:hover,
+.fx-curl:focus-within {
+  will-change: transform;
+}
+.fx-curl .inner {
+  position: relative;
+  display: block;
+  z-index: 1;
+  overflow: hidden;
+  border-radius: 3px;
+}
+/* The frame is drawn *around the print*, so it has to be exactly as wide as the
+   print. `.bio-figure` shrink-wraps its content, but its content is the picture
+   AND the caption — a caption longer than a small scan makes the figure wider
+   than the photograph, and the drop shadow and the two curled corners were then
+   drawn against empty paper to the right of it. Shrink-wrapping the frame too
+   pins the decoration to the picture and centres it under the wider caption.
+   Scoped to the article: the gallery tiles are deliberately uniform `w-full`
+   crops and must keep filling their grid cell. */
+.bio-article .fx-curl {
+  inline-size: fit-content;
+  max-inline-size: 100%;
+  margin-inline: auto;
+}
+/* `max-width`, never `width`. A forced `width: 100%` is what made every
+   article picture stretch to its column and every small archive scan blur; the
+   gallery's own cells still ask for `w-full` explicitly and are unaffected. */
+.fx-curl .inner img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  background: #ecdfc0;
+  filter: sepia(0.2);
+  transition: filter 0.4s ease;
+}
+/* No print border: the original snippet's `inset` shadow renders behind the
+   <img> and is therefore invisible, so the intended look is a borderless
+   photo — just rounded corners, a drop shadow, and the curled corners. */
+/* Two curled-corner shadows lifting off the page. */
+.fx-curl::before,
+.fx-curl::after {
+  content: "";
+  position: absolute;
+  inset: auto;
+  bottom: 14px;
+  width: 46%;
+  height: 22%;
+  z-index: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow: 0 16px 12px rgba(51, 34, 15, 0.55);
+}
+.fx-curl::before {
+  left: 8px;
+  transform: rotate(-5deg) skew(-6deg);
+}
+.fx-curl::after {
+  right: 8px;
+  transform: rotate(5deg) skew(6deg);
+}
+/* Hover: gentle lift (~6%) — within the requested 5–10% "increase in volume".
+   Kept even under prefers-reduced-motion: it's a small, explicitly-requested
+   readability zoom (like the reference snippet, which has no such guard). */
+.fx-curl:hover {
+  transform: scale(1.06);
+  z-index: 20;
+  box-shadow: 0 8px 20px rgba(51, 34, 15, 0.55);
+}
+.fx-curl:hover .inner img {
+  filter: sepia(0);
+}
+
+/* ============================================================
+   Optional picture frames (::: image → frame:, spec 6.5).
+   A framed print reads as a hung picture rather than a loose photo, so the
+   curled corners go and the drop shadow softens; the hover zoom stays (it is
+   the image-viewer click affordance, not decoration). Every selector needs a
+   `fx-curl--*` class, so a default image cannot be affected.
+   ============================================================ */
+.fx-curl--framed::before,
+.fx-curl--framed::after {
+  display: none;
+}
+.fx-curl--framed {
+  box-shadow: 0 1px 5px rgba(51, 34, 15, 0.28);
+}
+/* Colour frames: a deliberately visible mount, ~4x the old hairline, so the
+   frame reads as part of the picture rather than as a stray outline. */
+.fx-curl--black > .inner {
+  border: 6px solid var(--color-ink-900);
+}
+.fx-curl--white > .inner {
+  border: 6px solid var(--color-paper-50);
+}
+.fx-curl--red > .inner {
+  border: 6px solid var(--color-burgundy-600);
+}
+.fx-curl--gold > .inner {
+  border: 6px solid var(--color-gold-600);
+}
+/* Passe-partout: an ivory mount between the hairline and the picture. */
+.fx-curl--mat > .inner {
+  border: 1px solid rgba(184, 144, 42, 0.55);
+  padding: 10px;
+  background: var(--color-paper-100);
+}
+.fx-curl--none {
+  box-shadow: none;
+}

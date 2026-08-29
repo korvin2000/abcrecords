@@ -66,7 +66,18 @@ export function CountryFilter({
   const hidden = ordered.length - shown.length;
 
   return (
-    <div role="group" aria-labelledby={labelledBy} aria-label={labelledBy ? undefined : t("facet.country.group")} className="flex flex-wrap items-center justify-center gap-1.5">
+    <div
+      role="group"
+      aria-labelledby={labelledBy}
+      aria-label={labelledBy ? undefined : t("facet.country.group")}
+      /* Open, this used to be every nation in the catalogue in one unbounded
+         block — six rows of flags on a phone. `.country-row--open` caps it and
+         gives it its own scroll (index.css). */
+      className={clsx(
+        "flex flex-wrap items-center justify-center gap-1",
+        expanded && "country-row--open",
+      )}
+    >
       {shown.map((code) => {
         const name = countryName(code, locale) ?? code;
         const n = counts.get(code) ?? 0;
@@ -89,7 +100,7 @@ export function CountryFilter({
                chosen one stands at full strength, a little larger, ringed and
                lifted. The difference reads at a glance across a row of fifty. */
             className={clsx(
-              "relative grid h-[1.45rem] w-[2.15rem] place-items-center overflow-hidden rounded-[0.2rem] border transition-all duration-200",
+              "country-flag relative grid place-items-center overflow-hidden rounded-[0.2rem] border transition-all duration-200",
               on
                 ? "z-10 scale-[1.18] border-burgundy-600 shadow-[0_0_0_1px_#7a1f2b,0_3px_10px_rgba(122,31,43,0.45)]"
                 : "border-gold-600/35 opacity-55 saturate-[0.7] hover:border-gold-600 hover:opacity-100 hover:saturate-100",
@@ -106,17 +117,24 @@ export function CountryFilter({
         );
       })}
 
-      {hidden > 0 && (
+      {(hidden > 0 || expanded) && (
+        /* A toggle, not a one-way door: the row could be opened and never shut
+           again, which on a phone left the whole catalogue's flags standing
+           between the search box and the first card. The glyph carries the
+           state visually and `aria-expanded` carries it to a screen reader, so
+           no new string is needed in ten dictionaries. */
         <button
           type="button"
           onClick={() => {
             audio.click();
-            setExpanded(true);
+            setExpanded((was) => !was);
           }}
           onMouseEnter={() => audio.hover()}
-          className="h-[1.45rem] rounded-full border border-gold-600/45 bg-paper-50/60 px-2 font-heading text-[0.6rem] font-bold uppercase tracking-wider text-sepia-600 transition-colors hover:border-gold-600 hover:text-ink-800"
+          aria-expanded={expanded}
+          aria-label={t("facet.country.group")}
+          className="country-flag grid place-items-center rounded-full border border-gold-600/45 bg-paper-50/60 px-1 font-heading text-[0.58rem] font-bold uppercase tracking-wider text-sepia-600 transition-colors hover:border-gold-600 hover:text-ink-800"
         >
-          +{hidden}
+          {expanded ? "−" : `+${hidden}`}
         </button>
       )}
     </div>

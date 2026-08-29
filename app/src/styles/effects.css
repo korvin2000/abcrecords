@@ -1,0 +1,175 @@
+/* ============================================================
+   Pluggable ornaments (components/fx/, budgeted by lib/fx/)
+
+   Both effects animate `transform` and `opacity` and nothing else, so every
+   frame is the compositor's work and none of it is JavaScript's. Whether they
+   run at all is decided in `lib/fx/store.ts`; this file only says how.
+
+   NB: `.fx-drift` and `.fx-clef` own their `position`, so — per the house rule
+   for unlayered CSS — those elements must never also carry a Tailwind position
+   or z-index utility.
+   ============================================================ */
+
+/* ---- The turning clef in the search box (ClefSpinner) ------------------- */
+
+/* A fixed box: the glyph narrows to a hairline edge-on, and the search box's
+   contents must not breathe once per revolution. */
+.fx-clef {
+  display: grid;
+  place-items: center;
+  width: 1.4rem;
+  height: 1.4rem;
+  flex: none;
+  color: var(--color-gold-700);
+}
+
+.fx-clef-glyph {
+  font-family: var(--font-music);
+  /* Every number here is measured, not chosen: the fonts that carry U+1D11E
+     draw the clef at very different fractions of the em, so a fixed font-size
+     drew a visibly different clef per platform (about a fifth larger on Linux
+     and Android than on Windows). `--fx-clef-size` is the size that makes the
+     *ink* one height everywhere, `--fx-clef-ink` lifts that ink into the middle
+     of the box — a clef hangs far below its baseline, so centring the line box
+     leaves it low — and `--fx-clef-nudge` does the same sideways, so the turn is
+     about the middle of the drawn clef. All three come from ClefSpinner's one
+     `measureText`; the literals below are the Windows/Segoe values, used only
+     when an engine reports no ink metrics. They are `font-size`/`top`/`left`
+     rather than a transform, so none of them can fight the rotation. */
+  font-size: var(--fx-clef-size, 1.45rem);
+  line-height: 1;
+  position: relative;
+  top: calc(-1 * var(--fx-clef-ink, 0.129em));
+  left: calc(-1 * var(--fx-clef-nudge, 0em));
+  /* Perspective belongs to the transform, not to a wrapper: one element, one
+     composited layer, and the depth reads the same wherever the clef is used. */
+  transform: perspective(600px) rotateY(0deg);
+}
+
+.fx-clef-glyph--spin {
+  --fx-dur: 4s;
+  animation: fx-clef-spin var(--fx-dur) linear infinite;
+}
+
+@keyframes fx-clef-spin {
+  from { transform: perspective(600px) rotateY(0deg); }
+  to { transform: perspective(600px) rotateY(360deg); }
+}
+
+/* ---- Musical glyphs rising behind the page (MusicalDrift) --------------- */
+
+.fx-drift {
+  position: fixed;
+  inset: 0;
+  z-index: -10;
+  overflow: hidden;
+  pointer-events: none;
+  /* Nothing inside can affect layout, paint or style outside this box — the
+     compositor may keep the whole layer to itself. */
+  contain: layout paint style;
+}
+
+.fx-note {
+  position: absolute;
+  bottom: -8vh;
+  font-family: var(--font-music);
+  line-height: 1;
+  opacity: 0; /* the keyframes own the fade; `color` alpha owns the depth */
+  /* Duration arrives per glyph as a custom property, not as a plain
+     `animation-duration`: the blanket reduced-motion rule at the foot of this
+     file clamps that property with `!important`, and only a custom property
+     survives for the opt-in rule beside it to hand back. */
+  animation-duration: var(--fx-dur, 48s);
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+/* While a full-screen codex covers the layer there is nothing to see, so
+   there is nothing to spend frames on either. `visibility` on top of the
+   paused clock is what lets the compositor *release* the glyph layers rather
+   than merely stop advancing them — up to `driftCount` textures handed back
+   for as long as a codex is open, which is exactly when the reader's machine
+   is busiest. They resume mid-flight, so nothing jumps on the way back. */
+.fx-drift--paused {
+  visibility: hidden;
+}
+.fx-drift--paused .fx-note {
+  animation-play-state: paused;
+}
+
+/* Three sway paths, written out with literal values rather than folded into
+   one parameterised keyframe: a `var()` inside an animated `transform` can
+   drop the animation back onto the main thread in some engines, which is
+   precisely the device class this effect must not punish. */
+@keyframes fx-rise-0 {
+  0% { transform: translate3d(0, 0, 0) rotate(0deg); opacity: 0; }
+  14% { opacity: 1; }
+  50% { transform: translate3d(22px, -58vh, 0) rotate(-8deg); }
+  86% { opacity: 1; }
+  100% { transform: translate3d(0, -116vh, 0) rotate(0deg); opacity: 0; }
+}
+@keyframes fx-rise-1 {
+  0% { transform: translate3d(0, 0, 0) rotate(0deg); opacity: 0; }
+  14% { opacity: 1; }
+  50% { transform: translate3d(-30px, -58vh, 0) rotate(11deg); }
+  86% { opacity: 1; }
+  100% { transform: translate3d(0, -116vh, 0) rotate(0deg); opacity: 0; }
+}
+@keyframes fx-rise-2 {
+  0% { transform: translate3d(0, 0, 0) rotate(0deg); opacity: 0; }
+  14% { opacity: 1; }
+  50% { transform: translate3d(14px, -58vh, 0) rotate(5deg); }
+  86% { opacity: 1; }
+  100% { transform: translate3d(0, -116vh, 0) rotate(0deg); opacity: 0; }
+}
+.fx-note--0 { animation-name: fx-rise-0; }
+.fx-note--1 { animation-name: fx-rise-1; }
+.fx-note--2 { animation-name: fx-rise-2; }
+
+/* ============================================================
+   Keyframes shared by components
+   ============================================================ */
+@keyframes floaty {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-9px); }
+}
+.anim-floaty { animation: floaty 5.5s ease-in-out infinite; }
+
+@keyframes shimmer-slide {
+  to { background-position: -200% center; }
+}
+
+@keyframes eq-bounce {
+  from { transform: scaleY(0.25); }
+  to { transform: scaleY(1); }
+}
+
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+.skeleton {
+  background: linear-gradient(135deg, #ecdfc0, #e2d1a8);
+  animation: skeleton-pulse 1.6s ease-in-out infinite;
+}
+
+/* Reduced motion: kill all animation */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* …except the two ornaments, and only once the reader has switched them on
+     themselves (`data-fx` is written by App from the store). The OS hint picks
+     the *default* for that switch — see EFFECTS.respectReducedMotion — but an
+     explicit choice has to be able to beat a machine-wide guess, or the button
+     is a lie. Both declarations here are `!important` too, so the more specific
+     selector is what decides. */
+  html[data-fx="on"] .fx-note,
+  html[data-fx="on"] .fx-clef-glyph--spin {
+    animation-duration: var(--fx-dur) !important;
+    animation-iteration-count: infinite !important;
+  }
+}

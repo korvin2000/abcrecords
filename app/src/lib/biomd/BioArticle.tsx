@@ -199,7 +199,7 @@ function InlineImage({ src, alt }: { src?: string | Blob; alt?: string }) {
   const url = typeof src === "string" ? resolveResourcePath(src) : undefined;
   return (
     <span
-      className="bio-figure my-3 block cursor-zoom-in"
+      className="bio-figure block cursor-zoom-in"
       onClick={() => url && openImage({ src: url, alt: alt ?? "", caption: alt, download: filename(url) })}
     >
       <CurlFrame>
@@ -242,10 +242,22 @@ function tabLabel(text: string, url: string): string {
   return !label || /^(?:ascii\s*)?tab(?:lature)?$/i.test(label) ? filename(url) : label;
 }
 
+/*
+ * Figure size and float used to be Tailwind `sm:` utilities — i.e. gated on a
+ * 640 px *viewport*. The quantity that decides whether a 200 px picture can sit
+ * beside a paragraph is the width of the column the paragraph is in, and that
+ * column is 332 px at a 390 px viewport, 556 px at 700 px, and 768 px at every
+ * viewport from ~1150 px up. The two only coincided by accident, and where they
+ * did not the result was a 3.2x jump in figure width across one pixel of
+ * viewport (measured: 567 px at 639, 175 px at 640).
+ *
+ * So these are plain names now, and `.bio-article` answers them from its own
+ * inline size — see the container queries in index.css.
+ */
 const SIZE_CLASS: Record<ImageNode["size"], string> = {
-  small: "sm:max-w-[200px]",
-  medium: "sm:max-w-[320px]",
-  large: "sm:max-w-[460px]",
+  small: "bio-fig--small",
+  medium: "bio-fig--medium",
+  large: "bio-fig--large",
   full: "",
 };
 
@@ -253,18 +265,19 @@ const SIZE_CLASS: Record<ImageNode["size"], string> = {
 // left/right image wrap instead of sliding into the gap beside it. (`clear` has
 // no effect on the grid items of an ::: images group — harmless there.)
 const FLOAT_CLASS: Record<ImageNode["position"], string> = {
-  left: "sm:float-left sm:mr-6 sm:mb-2",
-  right: "sm:float-right sm:ml-6 sm:mb-2",
+  left: "bio-fig--left",
+  right: "bio-fig--right",
   center: "mx-auto clear-both",
   full: "mx-auto clear-both",
 };
 
-/** Literal classes, not built from `tracks` — Tailwind only emits what it sees. */
+/** Literal classes, not built from `tracks` — the CSS side only styles what it
+ *  declares, and a group narrows to fewer tracks before it stacks. */
 const IMAGES_TRACK_CLASS: Record<Tracks, string> = {
   1: "",
-  2: "sm:grid-cols-2",
-  3: "sm:grid-cols-3",
-  4: "sm:grid-cols-4",
+  2: "bio-images--2",
+  3: "bio-images--3",
+  4: "bio-images--4",
 };
 
 const ALIGN_CLASS: Record<ContentAlignment, string> = {
@@ -337,7 +350,9 @@ function Figure({ node, onNavigateEntry }: { node: ImageNode; onNavigateEntry?: 
       // cell itself, because the grid has no room for a marker node (spec 19).
       id={node.anchor && anchorElementId(node.anchor)}
       className={clsx(
-        "bio-figure my-4 w-full",
+        // No `w-full`: `.bio-figure` shrink-wraps its picture so a small scan
+        // is shown at its own size instead of stretched to the column.
+        "bio-figure",
         SIZE_CLASS[node.size],
         FLOAT_CLASS[node.position],
         node.anchor && "bio-anchor-target",
@@ -404,7 +419,7 @@ function renderNode(node: BioNode, key: number, onNavigateEntry?: (p: string) =>
       return (
         <div
           key={key}
-          className={clsx("my-5 grid grid-cols-1 gap-4 clear-both", IMAGES_TRACK_CLASS[node.tracks])}
+          className={clsx("bio-images clear-both", IMAGES_TRACK_CLASS[node.tracks])}
         >
           {node.images.map((img, i) => (
             <Figure

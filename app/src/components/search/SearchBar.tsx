@@ -1,4 +1,4 @@
-import { useCallback, useId, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { AnimatePresence, m } from "framer-motion";
 import { FEATURES } from "@/config";
 import { audio } from "@/lib/audio";
@@ -55,6 +55,16 @@ export function SearchBar({
   const close = useCallback(() => setAdvancedOpen(false), []);
   const shellRef = useDismissOnOutside<HTMLDivElement>(advancedOpen, close);
 
+  // The panel hangs out of the search bar on `position: absolute`, so on a
+  // phone its foot lands below the fold — measured 964 px in an 844 px
+  // viewport. There is no CSS for "how far is it to the bottom of the screen",
+  // and the answer moves with the hero above it, so the panel asks to be shown
+  // once, when it opens. Not a viewport listener: one scroll, on one click.
+  const panelRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (advancedOpen) panelRef.current?.scrollIntoView({ block: "end", behavior: "smooth" });
+  }, [advancedOpen]);
+
   const refinements = refinementCount(criteria);
 
   return (
@@ -62,7 +72,7 @@ export function SearchBar({
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 1.15, duration: 0.6 }}
-      className="mx-auto mt-9 w-full max-w-2xl px-4"
+      className="mx-auto mt-[calc(var(--spacing-stack)*1.3)] w-full max-w-2xl px-2"
     >
       {/* the box and its panel share one shell, so a click on the handle is
           never read as a click outside the panel */}
@@ -110,7 +120,7 @@ export function SearchBar({
         {FEATURES.advancedSearch && (
           <AnimatePresence>
             {advancedOpen && (
-              <div className="absolute inset-x-0 top-full z-40 pt-2">
+              <div ref={panelRef} className="absolute inset-x-0 top-full z-40 pt-2">
                 <AdvancedSearchPanel
                   id={panelId}
                   criteria={criteria}
@@ -128,7 +138,7 @@ export function SearchBar({
       </div>
 
       {/* quick facets: craft as words, country as flags */}
-      <div className="mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
+      <div className="mt-stack flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5">
         <ChipGroup
           values={types}
           selected={criteria.types}
@@ -138,7 +148,7 @@ export function SearchBar({
       </div>
 
       {countries.length > 1 && (
-        <div className="mt-3">
+        <div className="mt-2">
           <CountryFilter
             values={countries}
             counts={countryCounts}
@@ -148,7 +158,7 @@ export function SearchBar({
         </div>
       )}
 
-      <p className="mt-3 text-center font-heading text-xs uppercase tracking-[0.3em] text-sepia-600/80" aria-live="polite">
+      <p className="mt-2 text-center font-heading text-xs uppercase tracking-[0.3em] text-sepia-600/80" aria-live="polite">
         {resultCount === totalCount
           ? t("search.count", { n: totalCount })
           : t("search.countFiltered", { n: resultCount, total: totalCount })}

@@ -67,3 +67,5 @@ typings/
 app/.idea/
 .orca/
 prototypes/tetris/
+/pages/
+/pages.old/
