@@ -190,19 +190,56 @@
   padding-right: clamp(0.6rem, 0.3rem + 1vw, 1rem);
   border-radius: 0 999px 999px 0;
 }
-/* A sign, not a word: squared off so the three of them read as one plaque of
-   equal cells, and drawn from the symbol stack because ⚥ (U+26A5) is missing
-   from the text faces. Slightly larger than the labels it replaces — a glyph
-   at caption size is a smudge. */
+/* A sign, not a word — drawn from the symbol stack because ⚥ (U+26A5) is
+   missing from the text faces — paired with its word once the strip has
+   room to spell it out. Below that width `.form-segment-text` collapses to
+   nothing and the row is three signs again, squared off so they read as one
+   plaque of equal cells; the icon alone is slightly larger than the label it
+   stands in for, because a glyph at caption size is a smudge. */
 .form-segment--icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
   min-inline-size: 1.6rem;
   padding-inline: 0.3rem;
+}
+.form-segment--icon > span:first-child {
   font-family: var(--font-music);
   font-size: 0.9rem;
-  letter-spacing: 0;
+  /* The symbol stack's own vertical metrics (tall ascent, shallow descent —
+     it reserves headroom for symbols far taller than ♀/♂/⚥) sit its glyphs
+     lower than the label's line box centers them, even though both boxes
+     are correctly centered in the button — flex `align-items: center`
+     centers line boxes, not ink, and the two fonts disagree on where ink
+     sits inside one. Measured against "Cormorant SC" at this size the sign
+     needs nudging back up by about a tenth of its own em; baked in here
+     rather than left to whatever the layout math produces. */
+  transform: translateY(-0.1em);
 }
 .form-segment--icon:first-child { padding-left: 0.45rem; }
 .form-segment--icon:last-child { padding-right: 0.45rem; }
+.form-segment-text {
+  display: none;
+}
+/* The panel goes two-column from `sm` (see AdvancedSearchPanel), and that is
+   exactly where the gender field stops sharing its row with the scope strip
+   and gets a column wide enough to spell "Männlich"/"Weiblich" beside the
+   sign. A container query would be the more general tool, but the strip's
+   own box hugs its content (`inline-flex`) — querying its own inline-size
+   would be circular, showing the word if and only if showing the word makes
+   it fit. The panel's width tracks the viewport (see the rejected-container-
+   query note in the round-1 report), so a media query is the honest tool
+   here, not a workaround. */
+@media (min-width: 40rem) {
+  .form-segment--icon {
+    padding-inline: clamp(0.45rem, 0.2rem + 0.85vw, 0.8rem);
+  }
+  .form-segment--icon:first-child { padding-left: clamp(0.6rem, 0.3rem + 1vw, 1rem); }
+  .form-segment--icon:last-child { padding-right: clamp(0.6rem, 0.3rem + 1vw, 1rem); }
+  .form-segment-text {
+    display: inline;
+  }
+}
 .form-segment:hover {
   color: var(--color-ink-800);
   background: rgba(212, 175, 55, 0.14);

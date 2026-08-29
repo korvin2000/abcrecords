@@ -30,7 +30,7 @@ export const zh: Record<MsgKey, Message> = {
   "footer.usageNotice": "使用本站资料时,必须注明指向《吉他手与作曲家》项目的链接",
   "footer.rights": "版权所有 © Tavrovsky V.V.、A.V. 与 S.V., 2001–2026",
 
-  "search.placeholder": "按姓名查找 — 例如:塞戈维亚、姜戈、约万…",
+  "search.placeholder": "按姓名查找…",
   "search.clear": "清除搜索",
   "search.count": { other: "编年史中共 {n} 条记录" },
   "search.countFiltered": "找到 {n} 条,共 {total} 条",
@@ -91,7 +91,7 @@ export const zh: Record<MsgKey, Message> = {
   "codex.notFound": "此条目的书页尚未写入法典。",
 
   "tabs.biography": "编年史",
-  "tabs.gallery": "画廊",
+  "tabs.gallery": "媒体",
   "tabs.documents": "文书",
   "tabs.lore": "属性",
 

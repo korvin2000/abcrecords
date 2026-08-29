@@ -36,12 +36,23 @@
  *
  * The strings and their fade live on a pseudo-element, not on the box itself,
  * because a mask brings `mask-clip: border-box` with it — and that clips the
- * element's whole rendering, descendants included. The rosette below is a 31 px
- * child of this 14 px band, so masking the parent sliced the clef's head and
- * tail off. The pseudo-element is masked; the rosette is not. */
+ * element's whole rendering, descendants included. The rosette below is a
+ * ~27–36 px child of this 14 px band, so masking the parent sliced the
+ * clef's head and tail off. The pseudo-element is masked; the rosette is not. */
 .footer-string-rule {
   position: relative;
   height: 14px;
+  /* Declared here, not on `.footer-rosette` below, so the margin on *this*
+     element can use it too — a custom property is only visible to the
+     element that sets it and that element's own descendants. */
+  --footer-rosette: clamp(1.7rem, 1.4rem + 1vw, 2.25rem);
+  /* The rosette is a circle taller than this 14px band and centred on it, so
+     it overflows top and bottom by half of that difference — and with
+     nothing accounting for the bottom half, it sat 2–3px into the kicker
+     line beneath ("Archive · Navigation · Correspondence"). The gutter is
+     derived from the same size the rosette itself uses, not a guessed
+     constant, so the two can never drift out of sync again. */
+  margin-bottom: calc((var(--footer-rosette) - 14px) / 2 + 0.35rem);
 }
 .footer-string-rule::before {
   content: "";
@@ -62,8 +73,8 @@
   left: 50%;
   top: 50%;
   display: grid;
-  width: clamp(1.7rem, 1.4rem + 1vw, 2.25rem);
-  height: clamp(1.7rem, 1.4rem + 1vw, 2.25rem);
+  width: var(--footer-rosette);
+  height: var(--footer-rosette);
   place-items: center;
   transform: translate(-50%, -50%);
   border: 1px solid rgba(184, 144, 42, 0.7);

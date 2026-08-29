@@ -25,7 +25,7 @@ export function GalleryTab({ record, bundle }: Props) {
   const openImage = useImageViewer();
   const openTab = useAsciiTabViewer();
 
-  const photos: MediaItem[] = dedupeByTarget([
+  const photos: MediaItem[] = dedupeByName([
     // A declared index portrait leads the gallery; the synthetic default
     // portrait is chrome, not a photograph, so it stays out.
     ...(entry.img ? [{ label: display, target: resolveContentPath(entry.img) }] : []),
@@ -34,7 +34,11 @@ export function GalleryTab({ record, bundle }: Props) {
       target: resolveResourcePath(photo.target),
     })),
   ]);
-  const music = bundle.data?.media?.music ?? [];
+  // Real recordings first, MIDI next, tab/text transcriptions last — the
+  // archive's own priority order for "music", not the filesystem's alphabetical
+  // one the source data happens to arrive in. `Array#sort` is a stable sort, so
+  // within one tier the original order survives.
+  const music = [...(bundle.data?.media?.music ?? [])].sort((a, b) => trackRank(a.target) - trackRank(b.target));
 
   return (
     <div>
@@ -101,16 +105,42 @@ export function GalleryTab({ record, bundle }: Props) {
   );
 }
 
-/** One figure per file. The index portrait and a media.photos entry may name
- *  the same image (the two bases resolve to one URL); the first occurrence
- *  wins, so a declared portrait keeps the lead — and `target` stays a key. */
-function dedupeByTarget(items: MediaItem[]): MediaItem[] {
-  const seen = new Set<string>();
-  return items.filter((item) => {
-    if (seen.has(item.target)) return false;
-    seen.add(item.target);
-    return true;
-  });
+/** One figure per *file name*, not per URL. The index portrait and a
+ *  media.photos entry sometimes name the same picture through two different
+ *  paths — the same JPEG filed once under the entry's own bucket and once
+ *  under a shared `photo/` folder — which a same-URL check does not catch,
+ *  so the same face appeared twice under "Portraits & photographs". Entries
+ *  are compared by filename instead, first occurrence keeping the slot (so
+ *  the declared portrait still leads by default), but a later duplicate with
+ *  a longer, more descriptive caption takes over that slot — a plain repeat
+ *  of the entry's name should not beat an actual description of the photo. */
+function dedupeByName(items: MediaItem[]): MediaItem[] {
+  const order: string[] = [];
+  const best = new Map<string, MediaItem>();
+  for (const item of items) {
+    const name = fileName(item.target);
+    const current = best.get(name);
+    if (!current) {
+      order.push(name);
+      best.set(name, item);
+    } else if (item.label.trim().length > current.label.trim().length) {
+      best.set(name, item);
+    }
+  }
+  return order.map((name) => best.get(name)!);
+}
+
+function fileName(target: string): string {
+  return target.split(/[?#]/, 1)[0].split("/").pop()?.toLowerCase() ?? target;
+}
+
+/** Real recordings (mp3, m4a, wma, ogg, …) before MIDI before tab/text —
+ *  ask the same format tables the players already use rather than hand-
+ *  rolling an extension list. */
+function trackRank(target: string): number {
+  if (isAsciiTabUrl(target)) return 2;
+  if (audioKind(target) === "midi") return 1;
+  return 0;
 }
 
 /** The entry's generated leitmotif — same name, same melody, every visit. */

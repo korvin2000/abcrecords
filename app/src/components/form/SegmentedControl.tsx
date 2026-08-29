@@ -48,7 +48,20 @@ export function SegmentedControl<T extends string>({
             title={segment.icon ? segment.label : undefined}
             className={clsx("form-segment", segment.icon && "form-segment--icon", active && "form-segment--on")}
           >
-            {segment.icon ? <span aria-hidden>{segment.icon}</span> : segment.label}
+            {segment.icon ? (
+              <>
+                <span aria-hidden>{segment.icon}</span>
+                {/* Shown once the strip has room for a word beside the sign;
+                    below that this collapses to icon-only buttons (see
+                    `.form-segment--icon` / `.form-segment-text` in search.css).
+                    `aria-label` above keeps the accessible name stable either
+                    way, so nothing changes for a screen reader at the
+                    breakpoint. */}
+                <span className="form-segment-text">{segment.label}</span>
+              </>
+            ) : (
+              segment.label
+            )}
           </button>
         );
       })}

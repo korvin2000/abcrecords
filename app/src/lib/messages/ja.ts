@@ -30,7 +30,7 @@ export const ja: Record<MsgKey, Message> = {
   "footer.usageNotice": "資料を利用する際は、プロジェクト「ギタリストと作曲家」へのリンクが必須です",
   "footer.rights": "無断転載を禁ず © タヴロフスキー V.V.・A.V.・S.V., 2001–2026",
 
-  "search.placeholder": "名前で探す — 例:セゴビア、ジャンゴ、ヨヴァン…",
+  "search.placeholder": "名前で探す…",
   "search.clear": "検索を消去",
   "search.count": { other: "年代記に {n} 件の記録" },
   "search.countFiltered": "{total} 件中 {n} 件が見つかりました",
@@ -91,7 +91,7 @@ export const ja: Record<MsgKey, Message> = {
   "codex.notFound": "この記録の頁は、まだ写本に記されていません。",
 
   "tabs.biography": "年代記",
-  "tabs.gallery": "画廊",
+  "tabs.gallery": "メディア",
   "tabs.documents": "文書",
   "tabs.lore": "属性",
 

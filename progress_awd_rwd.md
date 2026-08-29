@@ -807,3 +807,132 @@ symptom it was reported for, not just against its own unit.
 (`17be472`) and its follow-up (`72f2d10`) are the only commits on this branch; round 2's
 work sits in the working tree pending your review, per the standing instruction to commit
 only when asked.
+
+---
+
+## 17. Round 3 — the figure that lay across the next column 🔴
+
+Reported: on `#/garcia_lorca` the portrait in the left column is enormous and covers the
+poem in the right one. Confirmed to be **introduced by this branch** — `main` has neither
+the container query nor the size floors that produce it.
+
+### 17.1 What was actually wrong
+
+Not the figure. The **query container**.
+
+The whole article stylesheet rests on one invariant: `cqi` means *1 % of the box this
+element is actually in*. It was true while `.bio-measure` was the only container and
+nothing between it and the text narrowed the inline axis. `::: columns` breaks it. A
+column cell halves, thirds or quarters the available width and — before this round —
+declared no container of its own, so every `cqi` inside a cell went on answering with the
+**full reading measure**.
+
+A figure is where that lie turns into damage, because the size floors added in round 2 are
+`min-inline-size`, and CSS applies `min-width` *after* `max-width`: the floor beats the
+`max-width: 100%` that would otherwise have contained the print. Measured at 1280×720,
+`.bio-measure` = 768 px, cell = 370 px:
+
+| | value | from |
+|---|---:|---|
+| figure ceiling | 460 px | `min(66cqi, 460px)`, `cqi` read as 7.68 px |
+| picture floor | **422.4 px** | `min(26.4rem, 62cqi)` — the binding constraint |
+| cell | 370 px | `(768 − 32) / 2` |
+| **overflow** | **52.3 px** | 32 px of gutter + 20 px over the neighbour's text |
+| upscale | **1.93×** | a 219 × 350 scan drawn at 422 px |
+
+Two independent guarantees were missing, and the second one hid the first:
+
+1. **Truthfulness** — the container was not the box the content was in.
+2. **Boundedness** — `.bio-fig--small/medium/large` have the same specificity as
+   `.bio-figure` and come later in `figures.css`, so each of them had been *silently
+   replacing* that rule's `max-inline-size: 100%`. Declaring a size class removed the only
+   guarantee that a figure stays inside its box.
+
+Garcia Lorca was the mildest visible case. Modelling the arithmetic across every measure
+and track count the corpus can produce gives, as a percentage of the cell the figure sits
+in:
+
+| tracks | small | medium | large |
+|---|---:|---:|---:|
+| 2 | 100 % | 103 % | **130 %** |
+| 3 | 107 % | 159 % | **202 %** |
+| 4 | 125 % | 198 % | **279 %** |
+
+### 17.2 The fix — restore the invariant, then back it up
+
+```css
+.bio-article .bio-columns > * { container: bio / inline-size; }   /* blocks.css */
+.bio-article .bio-frame      { container: bio / inline-size; }
+.bio-article .bio-fig--large { max-inline-size: min(100%, 66cqi, 460px); }  /* figures.css */
+```
+
+One idea, not three patches. Making the cell a container fixes **every size class at every
+track count at once**, and fixes the other half of the same lie for free: the float
+threshold, a nested `::: columns` track count, the group gap and any nested `::: images`
+group now all ask the cell rather than the page. `.bio-frame` is the same kind of lie,
+smaller (its padding is 9 % of a 332 px measure, 6 % of a 768 px one) and closed for one
+declaration; its own `cqi` padding is unaffected, because an element is never its own query
+container.
+
+Naming `100%` in the ceilings gives back the guarantee source order had removed. It binds
+only when the container is wider than the figure's real containing block — i.e. never,
+once the containers are truthful. That is the point: it is the backstop for the next
+construct that narrows the inline axis and forgets to declare a container. With it, the
+failure mode is a print clipped inside its own frame; without it, a print lying across the
+neighbour's text.
+
+The floors need no change and get none. Every one is `min(Bpx, Acqi)` with A well under
+100, so a floor **cannot** exceed its box once `cqi` names the right box — the same single
+invariant seen from the other end. A percentage cannot do that job in its place:
+`min-inline-size: 100%` on the picture would resolve against a `.inner` whose width the
+picture is currently deciding.
+
+One adjacent defect closed in passing: `Figure` in `BioArticle.tsx` marks a scan that fails
+to load with `bio-figure-broken`, and **no rule had ever been written for that class**, so a
+missing picture still claimed its floor and drew up to 26 rem of empty framed paper.
+`min-inline-size: 0` there.
+
+### 17.3 Result
+
+`garcia_lorca` at 1280×720: figure **422 → 229 px** in a 370 px cell, centred with 70 px of
+paper each side, upscale **1.93 → 1.05×**, overflow **52.3 → 0 px**.
+
+### 17.4 Testing
+
+Scanned all 8 097 content files: `::: image` nested inside `::: columns` occurs **1 430
+times**, across **45 of the 736 ru entries** (130 figures: 72 medium, 38 small, 20 large).
+This was never a single-page bug.
+
+All 45 affected entries swept at **1382 px** and at **375 px**, measuring every
+`.bio-figure` against its own cell and every article descendant against the reading
+measure, ignoring anything with an `overflow-x`-clipping ancestor: **45/45 clean at both**.
+The detector was proved rather than trusted — with the fix disabled in-page, `zintchuk`
+reports 7 overflowing figures and 21 escaping elements, `villa` 2 and 4, `garcia_lorca` 1;
+with it, 0 everywhere.
+
+Regression pass on the constructs the change touches but the bug never did — `::: images`
+groups (`aussel` 2 × 363 px tracks, prints at their natural 203/182 px; `agababov` 120 px),
+floats (`abiton`, `kalinin` — `bio-fig--right` flush to the measure, no overflow),
+`::: frame` (`zelenka`, 9 notices, content box correctly 695 px inside a 742 px measure):
+all clean. `npm run build` clean in 31.7 s; the compiled bundle keeps
+`container:bio/inline-size` and `min(100%,66cqi,460px)` verbatim.
+
+One flake worth recording so the next person does not chase it: the sweep intermittently
+reported a `bio-fig--right` print escaping the measure by ~5 px. That is the by-design
+`.fx-curl:hover { transform: scale(1.06) }` lift on a figure already flush with the edge,
+caught mid-transition — not a layout fault. Neutralise the hover transform while measuring.
+
+### 17.5 Noticed, not changed — needs your call
+
+At a 319 px reading measure (375 px phone) `::: columns` still resolves to **two 152 px
+cells**, because round 2 lowered the two-track threshold to 18 rem on the reasoning that
+"the only shape in the whole corpus is a title and a year, or a title and a photograph".
+`garcia_lorca` disproves that: its cells hold whole **poems**, and at 152 px nearly every
+verse line wraps — which destroys line breaks that spec v1.6 §3.9 defines as *content*.
+The photograph is correct there now (101 px, in its cell, no overlap); the poetry is not.
+
+The fix is a threshold, and thresholds are taste: raising the two-track switch back toward
+~24 rem would stack verse pairs on a phone but also stack the record rows that the lower
+number was chosen for. A content-aware alternative — a wider threshold only for cells
+containing a verse fence — is possible but adds a class the parser would have to emit.
+Left alone pending your decision.

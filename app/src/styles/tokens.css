@@ -100,15 +100,17 @@
      row reserves it on the trailing side. */
   --codex-scrollbar: 17px;
   /* Where the floating codex controls sit inside the panel.
-     Inline: a corner gutter that grows with the panel — ~17px on a phone,
-     ~25px on a desktop. Flush with the reading pane (11px) turned out to read
-     as *stuck to* the frame; a flat 36px, which is what this replaced, read as
-     a group drifting towards the middle. The trailing side adds the scrollbar
-     so the page-turn arrow stops where the track begins.
-     Block: the same 11px plus an optical correction — a solid dark button
-     crowds the hairline border in a way the pane's transparent edge does not —
-     and it gives that back on a short viewport, where height is the scarce
-     axis. */
-  --codex-ctrl-inset: clamp(1.05rem, 0.9rem + 0.6vw, 1.6rem);
-  --codex-ctrl-inset-block: clamp(0.75rem, 0.55rem + 0.6svh, 1.05rem);
+     Inline: a corner gutter that grows with the panel — ~12px on a phone,
+     ~20px on a desktop. Flush with the reading pane (11px) reads as *stuck
+     to* the frame, and a flat 36px (the original) read as a group drifting
+     towards the middle; a first pass settled further out still (~17–26px)
+     and read as not quite in the corner, so this pulls back in a step closer
+     to the frame. The trailing side adds the scrollbar so the page-turn
+     arrow stops where the track begins.
+     Block: a little more than the inline gutter, because a solid dark
+     button crowds the hairline border in a way the pane's transparent edge
+     does not — and it eases back on a short viewport, where height is the
+     scarce axis. */
+  --codex-ctrl-inset: clamp(0.75rem, 0.55rem + 0.55vw, 1.25rem);
+  --codex-ctrl-inset-block: clamp(0.95rem, 0.75rem + 0.6svh, 1.35rem);
 }

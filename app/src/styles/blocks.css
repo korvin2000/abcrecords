@@ -105,8 +105,34 @@
   align-items: start;
   margin: calc(var(--bio-block) * 0.75) 0;
 }
+/*
+ * A cell is a *new reading column*, so it has to become the query container
+ * for everything inside it.
+ *
+ * This is the invariant the whole article stylesheet is built on: `cqi` means
+ * "1 % of the box this element is actually in". It held while `.bio-measure`
+ * was the only container and nothing between it and the text narrowed the
+ * inline axis. `::: columns` breaks it — it halves, thirds or quarters the
+ * width and, without this rule, declares no container of its own, so every
+ * `cqi` inside a cell keeps answering with the *full* measure.
+ *
+ * A figure is where that lie turns into damage, because its size floors are
+ * `min-inline-size`, and CSS applies min-width *after* max-width: the floor
+ * beats the `max-width: 100%` that would otherwise have contained the print.
+ * Measured on `garcia_lorca` at 1280x720: a `size: large` figure asked for
+ * 62cqi of a 768 px measure = 422 px inside a 370 px cell and got it — 52 px
+ * of photograph over the top of the neighbouring column's text, and a 219 px
+ * scan upscaled 1.9x into the bargain. It gets worse with more tracks: a
+ * `large` figure in a four-track group computes to 279 % of its cell.
+ *
+ * Restoring the invariant fixes every size class at every track count at once,
+ * and it fixes the *other* half of the same lie for free: the float threshold,
+ * the nested `::: columns` track count, the group gap and any nested image
+ * group now all ask the cell rather than the page.
+ */
 .bio-article .bio-columns > * {
   min-width: 0;
+  container: bio / inline-size;
 }
 /* Container, not viewport: a record grid inside a 768 px column should be a
    grid whether the window around it is 800 px or 3840 px wide, and the old
@@ -186,6 +212,13 @@
    ============================================================ */
 .bio-article .bio-frame {
   clear: both;
+  /* Same reason as `.bio-columns > *` above: the notice's own padding is
+     inline space its contents cannot use, so a figure inside it must measure
+     the frame, not the page. Smaller lie than a column cell (9 % of a 332 px
+     measure, 6 % of a 768 px one) but the same kind, and closing it costs one
+     declaration. The padding below is unaffected: an element is never its own
+     query container, so these `cqi` still read the frame's own ancestor. */
+  container: bio / inline-size;
   margin: var(--bio-block) 0;
   padding: clamp(0.7rem, 0.4rem + 2cqi, 1.1rem) clamp(0.8rem, 0.4rem + 2.6cqi, 1.4rem) clamp(0.75rem, 0.45rem + 2cqi, 1.2rem);
   border: 2px solid rgba(184, 144, 42, 0.7);
