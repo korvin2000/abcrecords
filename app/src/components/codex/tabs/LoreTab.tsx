@@ -33,7 +33,10 @@ export function LoreTab({ entry, bundle }: { entry: IndexEntry; bundle: EntryBun
       : null;
 
   return (
-    <div className="mx-auto grid max-w-3xl gap-6 sm:grid-cols-2">
+    // Two panels side by side when the reading pane can hold two, one when
+    // it cannot — the pane's width, not the window's, is what decides (the
+    // codex is the same width at every viewport from ~1250 px up).
+    <div className="lore-grid mx-auto max-w-3xl">
       <Section title={t("lore.identity")}>
         <Row label={t("lore.birthname")}>{meta.birthname}</Row>
         <Row label={t("lore.gender")}>{genderValue(gender, genderKey ? t(genderKey) : undefined)}</Row>
@@ -65,7 +68,7 @@ export function LoreTab({ entry, bundle }: { entry: IndexEntry; bundle: EntryBun
         </Row>
       </Section>
 
-      <div className="sm:col-span-2">
+      <div className="lore-grid-span">
         <Section title={t("lore.relations")}>
           <Row label={t("lore.teachers")}>{listText(splitList(meta.teachers))}</Row>
           <Row label={t("lore.disciples")}>{listText(splitList(meta.disciples))}</Row>
@@ -101,7 +104,7 @@ function Row({ label, children }: { label: string; children: ReactNode }) {
   }
   return (
     <div className="flex items-baseline gap-3 border-b border-sepia-500/20 py-1.5 last:border-b-0">
-      <dt className="w-32 shrink-0 font-heading text-[0.7rem] uppercase tracking-wider text-sepia-600">{label}</dt>
+      <dt className="w-[clamp(4.5rem,32%,8rem)] shrink-0 font-heading text-[0.7rem] uppercase tracking-wider text-sepia-600">{label}</dt>
       <dd className="m-0 min-w-0 font-body text-[0.98rem] text-ink-800">{children}</dd>
     </div>
   );

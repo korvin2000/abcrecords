@@ -31,8 +31,8 @@ interface Props {
  * Layout invariants worth keeping:
  * - The reading pane is `absolute inset-[11px]` (not h-full) so its whole
  *   scrollbar track — top to bottom — stays inside the double border.
- * - The close/nav buttons sit at left-9/right-9, clear of the 44px corner
- *   filigree, so neither covers the other.
+ * - The four controls share one flex row inset past the 44px corner filigree,
+ *   so no amount of narrowing can make two of them overlap.
  * - The body scroll-lock belongs to App (single owner); do not add one here.
  *
  * **One shell, many entries.** App deliberately does *not* key this component
@@ -126,7 +126,7 @@ export function CodexShell({
 
   return (
     <m.div
-      className="fixed inset-0 z-40 flex items-center justify-center p-2 sm:p-6"
+      className="fixed inset-0 z-40 flex items-center justify-center p-[clamp(0.35rem,0.1rem+1.1vw,1.5rem)]"
       initial={{ opacity: 0 }}
       animate={{ opacity: closing ? 0 : 1 }}
       // Nothing is left to fade: `closing` has already taken this to zero.
@@ -142,53 +142,76 @@ export function CodexShell({
       {/* Book panel with 3D page-turn */}
       <div
         className={clsx(
-          "preserve-3d relative z-10 flex h-full max-h-[94vh] w-full max-w-6xl flex-col",
+          // `dvh`, not `vh`: on a phone the URL bar is part of the viewport
+          // `vh` measures and not part of the one the reader can see, so a
+          // 94vh panel stood 6 % taller than the screen it was centred in.
+          // The width cap rises from 72 rem to 84 rem — enough for the gallery
+          // and the documents list to gain a column on a wide screen, and not
+          // so much that the 48 rem reading measure inside starts to look
+          // marooned. A book on a 4K desk is still a book.
+          "preserve-3d relative z-10 flex h-full max-h-[94dvh] w-full max-w-[84rem] flex-col",
           closing ? "page-turn-close" : "page-turn-open",
         )}
       >
         <div className="parchment ornate-border relative flex-1 overflow-hidden rounded-sm">
           {/* Minimal musical corners — same restrained motif as the catalogue cards */}
-          <CornerOrnament className="pointer-events-none absolute left-[5px] top-[5px] z-10 h-7 w-7 opacity-65 sm:h-8 sm:w-8" />
-          <CornerOrnament flipX className="pointer-events-none absolute right-[5px] top-[5px] z-10 h-7 w-7 opacity-65 sm:h-8 sm:w-8" />
+          <CornerOrnament className="pointer-events-none absolute left-[5px] top-[5px] z-20 h-7 w-7 opacity-65 sm:h-8 sm:w-8" />
+          <CornerOrnament flipX className="pointer-events-none absolute right-[5px] top-[5px] z-20 h-7 w-7 opacity-65 sm:h-8 sm:w-8" />
           <CornerOrnament flipY className="pointer-events-none absolute bottom-[5px] left-[5px] z-10 h-7 w-7 opacity-65 sm:h-8 sm:w-8" />
           <CornerOrnament flipX flipY className="pointer-events-none absolute bottom-[5px] right-[5px] z-10 h-7 w-7 opacity-65 sm:h-8 sm:w-8" />
 
-          {/* Close control stays inset past the corner mark. */}
-          <button onClick={handleClose} className="btn-rpg absolute left-9 top-4 z-20" aria-label={t("codex.close")}>
-            <span className="hidden sm:inline">{t("codex.close")}</span>
-            <span className="sm:hidden" aria-hidden>
-              ✕
-            </span>
-          </button>
+          {/* Parchment fade under the control row, so scrolled article lines do
+              not surface half-hidden behind the buttons. */}
+          <div className="codex-topfade" aria-hidden />
 
-          {/* Language of this entry — only when the chronicle exists in
-              several tongues; switches the open page on the fly. */}
-          {langs.length > 1 && (
-            <div className="absolute left-1/2 top-4 z-30 -translate-x-1/2">
-              <LanguageMenu
-                variant="codex"
-                value={contentLang}
-                options={langs}
-                onSelect={onContentLang}
-                title={t("lang.entry")}
-                heading={t("lang.entry")}
-              />
+          {/* One row for all four controls.
+              They used to be three independent absolutely-positioned boxes —
+              close at `left-9`, the language menu centred on `left-1/2`, the
+              page turns at `right-9` — which is a layout that works until the
+              panel is narrow enough for the middle one to reach the right one.
+              Below about 360 px it did, and the edition menu sat on top of the
+              back arrow. A flex row cannot overlap itself. The inset clears the
+              44 px corner filigree; `.codex-ctrl` (index.css) is what makes
+              each control a compact square. */}
+          <div className="absolute inset-x-0 top-0 z-30 flex items-start justify-between gap-2 px-9 pt-2.5">
+            <button onClick={handleClose} className="btn-rpg codex-ctrl" aria-label={t("codex.close")} title={t("codex.close")}>
+              <span className="hidden lg:inline">{t("codex.close")}</span>
+              <span className="lg:hidden" aria-hidden>
+                ✕
+              </span>
+            </button>
+
+            <div className="flex items-start gap-1.5">
+              {/* Language of this entry — only when the chronicle exists in
+                  several tongues; switches the open page on the fly. */}
+              {langs.length > 1 && (
+                <LanguageMenu
+                  variant="codex"
+                  value={contentLang}
+                  options={langs}
+                  onSelect={onContentLang}
+                  title={t("lang.entry")}
+                  heading={t("lang.entry")}
+                />
+              )}
+              <button onClick={() => handleTurn(-1)} className="btn-rpg codex-ctrl" aria-label={t("codex.prev")} title={t("codex.prev")}>
+                ←
+              </button>
+              <button onClick={() => handleTurn(1)} className="btn-rpg codex-ctrl" aria-label={t("codex.next")} title={t("codex.next")}>
+                →
+              </button>
             </div>
-          )}
-
-          {/* Prev / next page turns — inset past the corner filigree */}
-          <div className="absolute right-9 top-4 z-20 flex gap-2">
-            <button onClick={() => handleTurn(-1)} className="btn-rpg !px-3" aria-label={t("codex.prev")} title={t("codex.prev")}>
-              ←
-            </button>
-            <button onClick={() => handleTurn(1)} className="btn-rpg !px-3" aria-label={t("codex.next")} title={t("codex.next")}>
-              →
-            </button>
           </div>
 
           {/* Reading pane — anchored to the frame so the scrollbar track and
               the very last line both live inside the border */}
-          <div ref={scrollRef} className="codex-scroll absolute inset-[11px] overflow-y-auto px-4 pb-6 pt-16 sm:px-9 sm:pt-14">
+          {/* The top inset clears the control row floating over the pane and
+              stops there — a flat 64 px was a quarter of the readable height on
+              a landscape phone. */}
+          <div
+            ref={scrollRef}
+            className="codex-scroll absolute inset-[11px] overflow-y-auto pb-6 px-[clamp(0.65rem,0.1rem+2.2vw,2.25rem)] pt-[clamp(2.9rem,2.4rem+1.8svh,3.9rem)]"
+          >
             <div className="mx-auto max-w-5xl">
               <CodexScrollProvider value={scrollToTop}>{children}</CodexScrollProvider>
 

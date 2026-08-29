@@ -70,7 +70,7 @@ export function BiographyView({ record, bundle, onNavigateEntry }: Props) {
       <CodexTabs value={tab} onChange={setTab} />
 
       {/* leaf-through on switch */}
-      <div key={tab} className="leaf-in min-h-[40vh]">
+      <div key={tab} className="leaf-in min-h-48">
         {bundle === null ? (
           <CodexSkeleton />
         ) : (

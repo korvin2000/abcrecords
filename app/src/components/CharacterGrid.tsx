@@ -49,6 +49,14 @@ interface Props {
  * lies (ornate frames make row heights vary). It is limited to `(hover: none)`
  * because the paint containment it implies would clip the hover glow and lift
  * that only a fine pointer can produce; see `index.css`.
+ *
+ * ## How wide a row is
+ *
+ * Nowhere in here. `.catalog-grid` states a minimum card width and lets
+ * `auto-fill` derive the column count from the space available, so the same
+ * two declarations give two columns on a phone and ten on a 4K panel — see
+ * `index.css`. A column count written here would be re-deciding, worse, what
+ * the grid already knows.
  */
 export function CharacterGrid({ records, nativeCount, onSelect }: Props) {
   const { t } = useI18n();
@@ -120,12 +128,12 @@ export function CharacterGrid({ records, nativeCount, onSelect }: Props) {
 
   return (
     <>
-      <div className="mx-auto grid max-w-6xl grid-cols-2 gap-4 px-4 sm:grid-cols-3 sm:gap-6 lg:grid-cols-4">
+      <div className="catalog-grid page-wide">
         {records.slice(0, nativeShown).map((record, i) => card(record, i, false))}
 
         {hasDivider && (
           <div
-            className="col-span-2 flex items-center justify-center gap-3 py-3 sm:col-span-3 lg:col-span-4"
+            className="catalog-grid-span flex items-center justify-center gap-3 py-3"
             role="separator"
             aria-label={t("search.otherLangs")}
           >
@@ -143,7 +151,7 @@ export function CharacterGrid({ records, nativeCount, onSelect }: Props) {
       </div>
 
       {hasMore ? (
-        <div className="mx-auto mt-8 max-w-6xl px-4 pb-10 text-center">
+        <div className="page-wide mt-6 pb-4 text-center">
           {/* Sits above the button, so the next page is already arriving by the
               time the button would have come into view. */}
           <div ref={sentinel} aria-hidden className="h-px w-full" />
@@ -164,7 +172,7 @@ export function CharacterGrid({ records, nativeCount, onSelect }: Props) {
           </p>
         </div>
       ) : (
-        <div className="pb-10" />
+        <div className="pb-4" />
       )}
     </>
   );

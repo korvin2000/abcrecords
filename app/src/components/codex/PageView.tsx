@@ -40,7 +40,7 @@ export function PageView({ record, bundle, onNavigateEntry }: Props) {
         subtitleParts={[countryName(record.entry.country, locale)]}
       />
 
-      <div className="min-h-[40vh]">
+      <div className="min-h-48">
         {bundle === null ? (
           <CodexSkeleton />
         ) : (

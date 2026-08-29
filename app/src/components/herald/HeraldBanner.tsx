@@ -40,7 +40,7 @@ export function HeraldBanner({
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 1.05 }}
-      className="mx-auto mt-5 w-full max-w-2xl px-4"
+      className="mx-auto mt-stack w-full max-w-2xl px-2"
     >
       <HeraldFrame tone={TONES[message.tone]}>
         {/* polite, so a rotation is announced without interrupting */}

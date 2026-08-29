@@ -72,7 +72,7 @@ export function LanguageMenu({ value, options, onSelect, variant, title, heading
                   ? "border-gold-600/80 bg-gold-500/25 shadow-[0_0_12px_rgba(184,144,42,0.45)]"
                   : "border-gold-600/40 hover:border-gold-600/70 hover:bg-gold-500/15",
               )
-            : "btn-rpg !px-3 !py-[0.4rem]",
+            : "btn-rpg codex-ctrl",
         )}
       >
         <Flag code={current.code} className="h-3.5 w-[1.35rem] drop-shadow-sm" />
@@ -105,8 +105,10 @@ export function LanguageMenu({ value, options, onSelect, variant, title, heading
         {open && (
           <div
             className={clsx(
-              "absolute top-full z-50 pt-2",
-              variant === "codex" ? "left-1/2 -translate-x-1/2" : "right-0",
+              // Both variants drop from the right edge of their trigger: the
+              // codex menu now sits in the top row's right-hand group, and a
+              // centred panel there would hang off the side of the book.
+              "absolute right-0 top-full z-50 pt-2",
             )}
           >
             <m.div
@@ -117,7 +119,8 @@ export function LanguageMenu({ value, options, onSelect, variant, title, heading
               className={clsx(
                 "overflow-hidden rounded-md border border-gold-600/60 bg-paper-50/95 backdrop-blur-sm",
                 "shadow-[0_10px_34px_rgba(51,34,15,0.32),inset_0_0_24px_rgba(138,106,31,0.08)]",
-                variant === "codex" ? "w-48 origin-top" : "w-52 origin-top-right",
+                "origin-top-right",
+                variant === "codex" ? "w-44" : "w-52",
               )}
               role="listbox"
               aria-label={heading}
@@ -127,7 +130,7 @@ export function LanguageMenu({ value, options, onSelect, variant, title, heading
                 {heading}
                 <span className="ml-1.5 text-gold-600" aria-hidden>✦</span>
               </div>
-              <ul className="max-h-[60vh] overflow-y-auto py-1">
+              <ul className="max-h-[min(60dvh,26rem)] overflow-y-auto py-1">
                 {items.map((l) => {
                   const selected = l.code === value;
                   return (

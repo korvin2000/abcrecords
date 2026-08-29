@@ -36,7 +36,7 @@ export function YearRangeField({
   return (
     <div className="flex items-center gap-2" role="group" aria-labelledby={labelledBy}>
       <span className="font-body text-[0.78rem] italic text-sepia-500">{fromLabel}</span>
-      <div className="w-[4.8rem]">
+      <div className="w-[4rem]">
         <TextField
           value={value.from}
           onChange={set("from")}
@@ -48,7 +48,7 @@ export function YearRangeField({
         />
       </div>
       <span className="font-body text-[0.78rem] italic text-sepia-500">{toLabel}</span>
-      <div className="w-[4.8rem]">
+      <div className="w-[4rem]">
         <TextField
           value={value.to}
           onChange={set("to")}

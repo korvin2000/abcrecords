@@ -23,31 +23,32 @@ export function CodexHeader({ kicker, title, secondary, subtitleParts = [] }: Pr
   const subtitle = subtitleParts.filter(Boolean).join(" · ");
   const long = title.length > LONG_TITLE;
 
+  // Every size here is fluid and bounded (`.codex-plate*`, index.css). The
+  // plate used to be a fixed 180–196 px block: on a landscape phone that was
+  // half the reading pane, and the article began below the bottom of it.
   return (
-    <header className="mb-5 text-center">
-      {kicker && <div className="mb-2 font-display text-xs tracking-[0.4em] text-sepia-600/80">{kicker}</div>}
+    <header className="codex-plate text-center">
+      {kicker && <div className="codex-plate-kicker font-display tracking-[0.4em] text-sepia-600/80">{kicker}</div>}
 
       <h1
         className={clsx(
-          "font-display font-bold uppercase text-burgundy-600 [text-shadow:0_1px_0_rgba(251,243,210,0.8),0_2px_3px_rgba(51,34,15,0.25)]",
-          long ? "text-balance text-2xl tracking-[0.06em] sm:text-3xl" : "text-4xl tracking-[0.12em] sm:text-5xl",
+          "codex-plate-title font-display font-bold uppercase text-burgundy-600 [text-shadow:0_1px_0_rgba(251,243,210,0.8),0_2px_3px_rgba(51,34,15,0.25)]",
+          long && "codex-plate-title--long text-balance",
         )}
       >
         {title}
       </h1>
 
       {secondary && secondary !== title && (
-        <h2 className="mt-1 font-display text-3xl font-semibold uppercase tracking-[0.14em] text-burgundy-700 [text-shadow:0_1px_0_rgba(251,243,210,0.8),0_2px_3px_rgba(51,34,15,0.2)] sm:text-4xl">
+        <h2 className="codex-plate-second mt-1 font-display font-semibold uppercase tracking-[0.14em] text-burgundy-700 [text-shadow:0_1px_0_rgba(251,243,210,0.8),0_2px_3px_rgba(51,34,15,0.2)]">
           {secondary}
         </h2>
       )}
 
-      {subtitle && <p className="mt-2 font-body text-base italic text-sepia-600 sm:text-lg">{subtitle}</p>}
+      {subtitle && <p className="codex-plate-sub mt-1 font-body italic text-sepia-600">{subtitle}</p>}
 
-      <div className="divider-ornament mt-4">
-        <span className="text-xl" aria-hidden>
-          ❦
-        </span>
+      <div className="divider-ornament codex-plate-rule">
+        <span aria-hidden>❦</span>
       </div>
     </header>
   );

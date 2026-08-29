@@ -63,7 +63,7 @@ export function AdvancedSearchPanel({
         <span aria-hidden>✦</span>
       </p>
 
-      <div className="grid gap-x-6 gap-y-4 sm:grid-cols-2">
+      <div className="grid gap-x-4 gap-y-2.5 sm:grid-cols-2">
         <Field id={labelId("scope")} label={t("search.scope")}>
           <SegmentedControl<LangScope>
             value={criteria.scope}
@@ -114,21 +114,27 @@ export function AdvancedSearchPanel({
           />
         </Field>
 
-        <Field id={labelId("forename")} label={t("search.forename")}>
-          <TextField
-            value={criteria.forename}
-            onChange={(forename) => onPatch({ forename })}
-            labelledBy={labelId("forename")}
-          />
-        </Field>
+        {/* Two short boxes that each took a full row on a phone, which is a
+            whole line of the panel spent on nothing. They pair up while the
+            panel is one column and dissolve back into the parent grid
+            (`sm:contents`) the moment it is two. */}
+        <div className="grid grid-cols-2 gap-x-3 gap-y-2.5 sm:contents">
+          <Field id={labelId("forename")} label={t("search.forename")}>
+            <TextField
+              value={criteria.forename}
+              onChange={(forename) => onPatch({ forename })}
+              labelledBy={labelId("forename")}
+            />
+          </Field>
 
-        <Field id={labelId("surname")} label={t("search.surname")}>
-          <TextField
-            value={criteria.surname}
-            onChange={(surname) => onPatch({ surname })}
-            labelledBy={labelId("surname")}
-          />
-        </Field>
+          <Field id={labelId("surname")} label={t("search.surname")}>
+            <TextField
+              value={criteria.surname}
+              onChange={(surname) => onPatch({ surname })}
+              labelledBy={labelId("surname")}
+            />
+          </Field>
+        </div>
 
         <Field id={labelId("born")} label={t("search.born")}>
           <YearRangeField

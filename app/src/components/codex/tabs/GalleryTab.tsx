@@ -25,7 +25,7 @@ export function GalleryTab({ record, bundle }: Props) {
   const openImage = useImageViewer();
   const openTab = useAsciiTabViewer();
 
-  const photos: MediaItem[] = [
+  const photos: MediaItem[] = dedupeByTarget([
     // A declared index portrait leads the gallery; the synthetic default
     // portrait is chrome, not a photograph, so it stays out.
     ...(entry.img ? [{ label: display, target: resolveContentPath(entry.img) }] : []),
@@ -33,7 +33,7 @@ export function GalleryTab({ record, bundle }: Props) {
       ...photo,
       target: resolveResourcePath(photo.target),
     })),
-  ];
+  ]);
   const music = bundle.data?.media?.music ?? [];
 
   return (
@@ -41,7 +41,8 @@ export function GalleryTab({ record, bundle }: Props) {
       <h3 className="mb-3 text-center font-heading text-sm uppercase tracking-[0.25em] text-burgundy-700">
         {t("gallery.photos")}
       </h3>
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+      {/* Column count from the pane, the way the catalogue derives its own. */}
+      <div className="gallery-grid">
         {photos.map((p) => (
           <figure
             key={p.target}
@@ -98,6 +99,18 @@ export function GalleryTab({ record, bundle }: Props) {
 
     </div>
   );
+}
+
+/** One figure per file. The index portrait and a media.photos entry may name
+ *  the same image (the two bases resolve to one URL); the first occurrence
+ *  wins, so a declared portrait keeps the lead — and `target` stays a key. */
+function dedupeByTarget(items: MediaItem[]): MediaItem[] {
+  const seen = new Set<string>();
+  return items.filter((item) => {
+    if (seen.has(item.target)) return false;
+    seen.add(item.target);
+    return true;
+  });
 }
 
 /** The entry's generated leitmotif — same name, same melody, every visit. */

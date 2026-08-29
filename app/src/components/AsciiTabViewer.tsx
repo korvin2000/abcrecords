@@ -107,7 +107,7 @@ export function AsciiTabViewer({ tab, onClose }: Props) {
       transition={{ duration: 0.2 }}
     >
       <div className="absolute inset-0 bg-ink-950/70 backdrop-blur-sm" onClick={onClose} />
-      <div className="parchment ornate-border relative z-10 flex h-full max-h-[96vh] w-full max-w-7xl flex-col overflow-hidden rounded-sm shadow-[0_18px_70px_rgba(26,15,8,0.6)]">
+      <div className="parchment ornate-border relative z-10 flex h-full max-h-[96dvh] w-full max-w-7xl flex-col overflow-hidden rounded-sm shadow-[0_18px_70px_rgba(26,15,8,0.6)]">
         <CornerOrnament className="pointer-events-none absolute left-[5px] top-[5px] z-10 h-8 w-8 opacity-60" />
         <CornerOrnament flipX className="pointer-events-none absolute right-[5px] top-[5px] z-10 h-8 w-8 opacity-60" />
 

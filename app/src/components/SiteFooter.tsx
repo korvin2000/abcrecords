@@ -64,44 +64,47 @@ export function SiteFooter({ hasEntry, onOpenEntry }: Props) {
 
   return (
     <m.footer
-      className="relative z-10 mt-8 px-2 pb-4 sm:px-5 sm:pb-6"
+      className="relative z-10 mt-stack px-gutter pb-[max(1rem,env(safe-area-inset-bottom))]"
       initial={reduced ? undefined : { opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.12 }}
       transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
       aria-labelledby="site-footer-title"
     >
-      <div className="site-footer-shell relative mx-auto max-w-7xl overflow-hidden">
+      <div className="site-footer-shell page-wide relative overflow-hidden">
         <CornerOrnament className="pointer-events-none absolute left-1 top-1 h-7 w-7 opacity-55 sm:h-8 sm:w-8" />
         <CornerOrnament flipX className="pointer-events-none absolute right-1 top-1 h-7 w-7 opacity-55 sm:h-8 sm:w-8" />
         <CornerOrnament flipY className="pointer-events-none absolute bottom-1 left-1 h-7 w-7 opacity-40 sm:h-8 sm:w-8" />
         <CornerOrnament flipX flipY className="pointer-events-none absolute bottom-1 right-1 h-7 w-7 opacity-40 sm:h-8 sm:w-8" />
 
-        <div className="relative px-4 pb-5 pt-7 sm:px-8 sm:pb-7 sm:pt-8 lg:px-10">
+        <div className="relative px-3 pb-3 pt-4 sm:px-8 sm:pb-6 sm:pt-7 lg:px-10">
           <div className="footer-string-rule mx-auto max-w-3xl" aria-hidden>
             <span className="footer-rosette">𝄞</span>
           </div>
 
-          <div className="mt-4 text-center">
-            <p className="font-heading text-[0.65rem] uppercase tracking-[0.48em] text-gold-800">
+          <div className="mt-2 text-center">
+            <p className="font-heading text-[0.58rem] uppercase tracking-[clamp(0.2em,0.05em+0.6vw,0.48em)] text-gold-800">
               {t("footer.kicker")}
             </p>
             <h2
               id="site-footer-title"
-              className="mt-1 font-display text-2xl font-bold uppercase tracking-[0.16em] text-burgundy-700 sm:text-3xl"
+              className="mt-0.5 font-display text-[clamp(1.15rem,0.9rem+1.1vw,1.875rem)] font-bold uppercase tracking-[0.16em] text-burgundy-700"
             >
               {t("footer.title")}
             </h2>
-            <p className="mx-auto mt-2 max-w-2xl font-body text-sm italic text-sepia-600 sm:text-base">
+            <p className="mx-auto mt-1.5 max-w-2xl font-body text-[clamp(0.76rem,0.7rem+0.3vw,1rem)] italic text-sepia-600">
               {t("app.footer")}
             </p>
           </div>
 
-          <Divider className="mx-auto my-5 max-w-xl" />
+          <Divider className="mx-auto my-2.5 max-w-xl sm:my-4" />
 
           <nav aria-label={t("footer.navLabel")}>
             <m.ul
-              className="m-0 grid list-none grid-cols-2 gap-2 p-0 sm:grid-cols-3 sm:gap-3 lg:grid-cols-9"
+              // Nine sections. Two columns meant five rows of tiles — the
+              // single largest block of furniture on a phone. Three fits the
+              // longest label ("LITERATURE") at 360 px and costs three rows.
+              className="m-0 grid list-none grid-cols-3 gap-1 p-0 sm:grid-cols-5 sm:gap-2.5 lg:grid-cols-9"
               variants={listVariants}
               initial={reduced ? undefined : "hidden"}
               whileInView="show"
@@ -158,23 +161,23 @@ export function SiteFooter({ hasEntry, onOpenEntry }: Props) {
           </nav>
 
           <div
-            className="mt-3 min-h-5 text-center font-body text-xs italic text-sepia-600"
+            className="mt-2 min-h-4 text-center font-body text-[0.7rem] italic text-sepia-600"
             aria-live="polite"
             aria-atomic="true"
           >
             {announcement}
           </div>
 
-          <div className="footer-colophon mx-auto mt-4 max-w-4xl px-4 py-4 text-center sm:px-8">
-            <p className="font-heading text-[0.68rem] font-semibold uppercase leading-relaxed tracking-[0.1em] text-burgundy-700 sm:text-xs">
+          <div className="footer-colophon mx-auto mt-2 max-w-4xl px-3 py-2.5 text-center sm:px-8 sm:py-4">
+            <p className="font-heading text-[clamp(0.6rem,0.56rem+0.14vw,0.75rem)] font-semibold uppercase leading-snug tracking-[0.06em] text-burgundy-700">
               {t("footer.usageNotice")}
             </p>
-            <div className="mx-auto my-3 flex max-w-md items-center justify-center gap-3 text-gold-700" aria-hidden>
+            <div className="mx-auto my-1.5 flex max-w-md items-center justify-center gap-3 text-gold-700" aria-hidden>
               <span className="h-px flex-1 bg-gradient-to-r from-transparent to-gold-600/60" />
               <span className="text-base">✦</span>
               <span className="h-px flex-1 bg-gradient-to-l from-transparent to-gold-600/60" />
             </div>
-            <p className="font-body text-sm font-semibold text-ink-800 sm:text-base">{t("footer.rights")}</p>
+            <p className="font-body text-[clamp(0.75rem,0.7rem+0.25vw,1rem)] font-semibold text-ink-800">{t("footer.rights")}</p>
           </div>
         </div>
       </div>

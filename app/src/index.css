@@ -58,6 +58,35 @@
   --color-burgundy-600: #7a1f2b;
   --color-burgundy-700: #5e1220;
   --color-burgundy-800: #4a0d18;
+
+  /* ---- Fluid rhythm -------------------------------------------------------
+     Four bounded values the whole page is spaced by. They exist because the
+     furniture used to be a fixed tower the catalogue had to fit around: the
+     distance from the top of the document to the first card measured 627 px on
+     every desktop from 1280 to 3840, and 656–734 px on a phone — which on a
+     390 px-tall landscape phone left *no* card on screen at all.
+
+     `--spacing-stack` is the one vertical step between hero blocks. Its middle
+     term is `svh`, not `vw`, because the thing being economised is height, and
+     `svh` (not `dvh`) so a margin does not resize while the reader scrolls and
+     the mobile URL bar retracts. `--spacing-topbar` clears the 53 px fixed
+     header and no more. Both are named in the `--spacing-*` namespace, so they
+     are ordinary Tailwind spacing utilities: `mt-stack`, `pt-topbar`.
+
+     `--card-min` is the narrowest a catalogue card may be; the grid's column
+     count is derived from it rather than declared (see `.catalog-grid`). Its
+     ceiling is deliberately low: the portrait sources are the legacy archive's
+     thumbnails (measured 150×200 … 410×677), so a card wider than ~15 rem is
+     upscaling a small JPEG, not showing more of it. Its floor is set by the
+     narrowest viewport that must still show two cards side by side — 320 CSS
+     px, the WCAG reflow width — and not by taste. */
+  --spacing-stack: clamp(0.75rem, 0.5rem + 1.2svh, 1.75rem);
+  --spacing-topbar: clamp(3.6rem, 3.2rem + 1.5svh, 5rem);
+  --spacing-gutter: clamp(0.5rem, 0.25rem + 1vw, 1.5rem);
+  --card-min: clamp(8.75rem, 7rem + 4vw, 15rem);
+  /* One size for the four controls floating over the codex, read by both the
+     buttons and the scrim behind them. */
+  --codex-ctrl-size: clamp(1.7rem, 1.5rem + 0.8vw, 2.1rem);
 }
 
 /* ============================================================
@@ -149,6 +178,119 @@ body {
 }
 
 /* ============================================================
+   The frontispiece — title, rule, herald plaque
+   ============================================================ */
+
+/* One fluid size instead of the old 36 / 60 / 72 px ladder, which put a 72 px
+   headline on a 1280 px laptop and spent a fifth of the first screen on it. */
+.hero-title {
+  font-size: clamp(1.9rem, 1.15rem + 3.2vw, 4.25rem);
+}
+
+/*
+ * The short-viewport band: a landscape phone (390 CSS px of height), a small
+ * old portrait phone (568), a half-height desktop window. There the
+ * frontispiece was the whole screen — the first catalogue card began 627 px
+ * down, so the reader was shown a title page and nothing to leaf through.
+ *
+ * The query is on height alone, because height alone is the constraint: the
+ * same 390 px width in portrait has 844 px to spend and no such problem. What
+ * goes is the volume line and the rule under the name, two ornaments already
+ * read once. The name, the plaque, the search box and every facet stay.
+ */
+@media (max-height: 36rem) {
+  /* The rhythm itself tightens, which is what carries the compression into
+     every gap on the page at once — the title, the plaque, the facets and the
+     grid all sit on `--spacing-stack`. */
+  :root {
+    --spacing-stack: 0.5rem;
+    --spacing-topbar: 3.4rem;
+  }
+
+  .hero-kicker,
+  .hero-rule {
+    display: none;
+  }
+  .hero-title {
+    font-size: clamp(1.5rem, 1.05rem + 1.9vw, 2.4rem);
+  }
+  .herald {
+    padding-block: 0.4rem;
+  }
+  .herald-body {
+    min-height: 1.6rem;
+  }
+  .herald::before,
+  .herald::after {
+    display: none;
+  }
+}
+
+/* ============================================================
+   Page width and the catalogue grid
+   ============================================================ */
+
+/*
+ * One width for every full-bleed band on the page (catalogue grid, colophon).
+ * `max-w-6xl` used to cap it at 1152 px, which is the right measure for a
+ * paragraph and the wrong one for a picture index: at 2560 and 3840 the
+ * catalogue was the same four columns it had at 1280.
+ *
+ * 90 rem is not a taste: it is five cards of ~270 px plus their gaps. A card
+ * wider than that is upscaling a 400 px archive scan, and five is the row the
+ * catalogue reads best at — so the page stops there and the margins grow
+ * instead, on a 4K desk as on an 8K one.
+ */
+.page-wide {
+  /* `main` already carries the page gutter; subtracting it a second time here
+     cost 32 px of a 320 px screen, which was the difference between two cards
+     in a row and one. */
+  width: min(100%, 90rem);
+  margin-inline: auto;
+}
+
+/*
+ * The catalogue grid derives its column count from the space available rather
+ * than declaring one — but between two hard bounds, both written into the
+ * track size rather than into a breakpoint:
+ *
+ *   at least two   `min(--card-min, (100% - 1 gap) / 2)` — the track can never
+ *                  be so wide that a single card fills the row, which is what
+ *                  a phone under ~305 px used to get.
+ *   at most five   `max(…, (100% - 4 gaps) / 5)` — the track is never smaller
+ *                  than a fifth of the row, so `auto-fill` cannot fit a sixth.
+ *
+ * Between them `--card-min` decides, and the card grows with the room: two on
+ * a phone at 127–202 px, three from ~470, four from ~730, five from ~880 and
+ * up to 269 px wide. Nothing here is a device; every number is a width at
+ * which the previous arrangement stopped being the better one.
+ *
+ * `auto-fill` rather than `auto-fit`: a search that returns three results
+ * should leave them at card size on the left, not stretch three of them across
+ * the whole row.
+ */
+.catalog-grid {
+  --grid-gap: clamp(0.6rem, 0.3rem + 0.9vw, 1.5rem);
+  display: grid;
+  gap: var(--grid-gap);
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(
+      max(
+        (100% - 4 * var(--grid-gap)) / 5,
+        min(var(--card-min), (100% - var(--grid-gap)) / 2)
+      ),
+      1fr
+    )
+  );
+}
+
+/* The "found in another tongue" rule spans whatever the row turned out to be. */
+.catalog-grid > .catalog-grid-span {
+  grid-column: 1 / -1;
+}
+
+/* ============================================================
    Catalogue grid cell — off-screen work the browser may skip
    ============================================================ */
 
@@ -158,6 +300,11 @@ body {
    keeps one reflow from walking the whole grid. */
 .grid-cell {
   contain: layout style;
+  /* …and it is the card's own width, not the viewport's, that decides how big
+     the lettering on it should be. With the column count now derived from
+     `--card-min`, a card is 152 px on a phone and 250-odd on a wide monitor;
+     the name plate below reads that off `cqi` instead of guessing from `sm:`. */
+  container-type: inline-size;
 }
 
 /*
@@ -183,8 +330,37 @@ body {
 @media (hover: none) {
   .grid-cell {
     content-visibility: auto;
-    contain-intrinsic-size: auto 26rem;
+    /* The opening estimate only, for a cell that has never been on screen;
+       `auto` lets each cell's own last rendered size replace it. 18 rem is
+       what a two-column phone card now measures (was 26 rem when a card was
+       half again as tall). */
+    contain-intrinsic-size: auto 18rem;
   }
+}
+
+/* ---- The name plate under a portrait ------------------------------------
+   Three sizes, all read from the card's own inline size (`cqi` = 1 % of the
+   container's inline axis). One declaration each replaces a `text-lg sm:text-xl`
+   pair that knew about the viewport and nothing about the card it was on. */
+.card-name {
+  /* Russian patronymics are long — "Владимир Павлович Машкевич" ran to three
+     lines and made its card half again as tall as its neighbours, which is
+     what broke the rhythm of the grid. Smaller type fits most names in two,
+     and the clamp below guarantees the rest: every card in a row is then the
+     same height. The full name stays in the card's `aria-label` and `title`. */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  min-block-size: 2.1em;
+  font-size: clamp(0.76rem, 0.44rem + 3.3cqi, 1.08rem);
+}
+.card-sub {
+  font-size: clamp(0.6rem, 0.46rem + 1.35cqi, 0.74rem);
+}
+.card-badge {
+  font-size: clamp(0.48rem, 0.4rem + 0.85cqi, 0.58rem);
 }
 
 /* ============================================================
@@ -275,9 +451,10 @@ body {
    ============================================================ */
 .search-panel {
   position: relative;
-  max-height: min(72vh, 40rem);
+  max-height: min(76svh, 40rem);
   overflow-y: auto;
-  padding: 1.15rem 1.35rem 1rem;
+  padding: clamp(0.6rem, 0.3rem + 1.4vw, 1.15rem) clamp(0.6rem, 0.25rem + 1.6vw, 1.35rem)
+    clamp(0.55rem, 0.3rem + 1.2vw, 1rem);
   border: 1.5px solid rgba(184, 144, 42, 0.7);
   outline: 1px solid rgba(84, 56, 30, 0.35);
   outline-offset: -5px;
@@ -296,8 +473,8 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0.6rem;
-  margin: 0 0 0.95rem;
-  padding-bottom: 0.5rem;
+  margin: 0 0 clamp(0.5rem, 0.3rem + 0.7vw, 0.95rem);
+  padding-bottom: 0.35rem;
   border-bottom: 1px solid rgba(184, 144, 42, 0.4);
   color: var(--color-sepia-600);
   font-family: var(--font-heading);
@@ -310,8 +487,47 @@ body {
   color: var(--color-gold-600);
 }
 
-@media (max-width: 480px) {
-  .search-panel { padding: 0.95rem 0.9rem 0.85rem; }
+/* The panel's padding is fluid above; nothing left to override. */
+
+/* ============================================================
+   Facet chips (components/form/Chip) — the quick facets under the search box
+   and the craft selector inside the panel are the same control.
+   ============================================================ */
+
+/* Five Russian craft labels wrapped onto three rows at 320 px, which is 60 px
+   of chrome above the catalogue for five words. Fluid padding and lettering
+   put them back on two. */
+.chip {
+  padding: 0.2rem clamp(0.45rem, 0.2rem + 0.8vw, 0.75rem);
+  font-size: clamp(0.58rem, 0.53rem + 0.16vw, 0.7rem);
+}
+.chip--sm {
+  padding: 0.1rem clamp(0.4rem, 0.2rem + 0.6vw, 0.625rem);
+  font-size: clamp(0.55rem, 0.5rem + 0.15vw, 0.64rem);
+}
+
+/* ============================================================
+   Country facet — a row of flags (components/search/CountryFilter)
+   ============================================================ */
+
+/* The flags shrink with the viewport, so the same eighteen nations take two
+   rows on a phone instead of three. */
+.country-flag {
+  block-size: clamp(1.15rem, 1rem + 0.45vw, 1.45rem);
+  inline-size: clamp(1.7rem, 1.45rem + 0.7vw, 2.15rem);
+}
+
+/*
+ * Expanded, the row was every nation in the catalogue at once — six rows of
+ * flags on a phone, taller than the search box it belongs to, and with no way
+ * back: the counter button only ever expanded. It is a toggle now, and the
+ * open state is a bounded, scrollable panel rather than an unbounded block.
+ */
+.country-row--open {
+  max-block-size: clamp(5rem, 2rem + 16svh, 11rem);
+  overflow-y: auto;
+  padding-block: 0.25rem;
+  border-block: 1px solid rgba(184, 144, 42, 0.28);
 }
 
 /* ============================================================
@@ -320,13 +536,17 @@ body {
    ============================================================ */
 .form-ink {
   width: 100%;
-  padding: 0.4rem 0.65rem;
+  padding: 0.26rem 0.5rem;
   border: 1px solid rgba(184, 144, 42, 0.45);
   border-radius: 3px;
   color: var(--color-ink-900);
   background: rgba(250, 245, 230, 0.75);
   font-family: var(--font-body);
-  font-size: 0.95rem;
+  /* 16 px exactly, and not a hair under: iOS Safari zooms the whole page when a
+     control smaller than that takes focus, and there is no way back out of that
+     zoom except pinching. The main search box was already 18 px; these seven
+     were 15.2 px. */
+  font-size: 1rem;
   line-height: 1.35;
   transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
 }
@@ -385,15 +605,15 @@ body {
   background: rgba(250, 245, 230, 0.7);
 }
 .form-segment {
-  padding: 0.32rem 0.8rem;
+  padding: 0.24rem clamp(0.45rem, 0.2rem + 0.85vw, 0.8rem);
   border: none;
   border-left: 1px solid rgba(184, 144, 42, 0.28);
   color: var(--color-sepia-600);
   background: transparent;
   font-family: var(--font-heading);
-  font-size: 0.66rem;
+  font-size: clamp(0.56rem, 0.51rem + 0.16vw, 0.66rem);
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: clamp(0.05em, 0.02em + 0.1vw, 0.12em);
   text-transform: uppercase;
   cursor: pointer;
   transition: color 0.2s, background 0.2s;
@@ -401,12 +621,12 @@ body {
 /* The extra padding is the curve's own room: without it the first and last
    labels sit against the bend instead of inside it. */
 .form-segment:first-child {
-  padding-left: 1rem;
+  padding-left: clamp(0.6rem, 0.3rem + 1vw, 1rem);
   border-left: none;
   border-radius: 999px 0 0 999px;
 }
 .form-segment:last-child {
-  padding-right: 1rem;
+  padding-right: clamp(0.6rem, 0.3rem + 1vw, 1rem);
   border-radius: 0 999px 999px 0;
 }
 .form-segment:hover {
@@ -438,7 +658,10 @@ body {
    ============================================================ */
 .herald {
   position: relative;
-  padding: 1.15rem 2.1rem;
+  /* Both axes bounded: the plaque is a decorative frame around one line of
+     text, so on a short screen it gives back height and on a narrow one it
+     gives back width, without ever collapsing onto the lettering. */
+  padding: clamp(0.7rem, 0.45rem + 1svh, 1.15rem) clamp(0.9rem, 0.2rem + 2.6vw, 2.1rem);
   border: 1px solid rgba(184, 144, 42, 0.5);
   outline: 1px solid rgba(84, 56, 30, 0.22);
   outline-offset: -5px;
@@ -467,15 +690,15 @@ body {
 .herald::after {
   content: "";
   position: absolute;
-  left: 2.2rem;
-  right: 2.2rem;
+  left: clamp(0.9rem, 0.2rem + 2.6vw, 2.2rem);
+  right: clamp(0.9rem, 0.2rem + 2.6vw, 2.2rem);
   height: 1px;
   pointer-events: none;
   background: linear-gradient(90deg, transparent, rgba(184, 144, 42, 0.5), transparent);
   transition: background 0.7s ease;
 }
-.herald::before { top: 0.5rem; }
-.herald::after { bottom: 0.5rem; }
+.herald::before { top: 0.4rem; }
+.herald::after { bottom: 0.4rem; }
 
 .herald-corner {
   position: absolute;
@@ -492,7 +715,10 @@ body {
 .herald-body {
   position: relative;
   display: flex;
-  min-height: 3.5rem;
+  /* A settled height so a short saying after a long sentence does not make the
+     page jump — but settled *relative to the screen*, not at a flat 3.5 rem
+     that a landscape phone can least afford. */
+  min-height: clamp(2.2rem, 1.6rem + 2.4svh, 3.5rem);
   flex-direction: column;
   justify-content: center;
   text-align: center;
@@ -503,7 +729,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.3rem;
   font-family: var(--font-heading);
   font-size: 0.58rem;
   font-weight: 700;
@@ -514,12 +740,9 @@ body {
 .herald-line {
   margin: 0;
   font-family: var(--font-body);
-  font-size: 1.02rem;
+  font-size: clamp(0.94rem, 0.86rem + 0.35vw, 1.12rem);
   line-height: 1.5;
   text-wrap: balance;
-}
-@media (min-width: 640px) {
-  .herald-line { font-size: 1.12rem; }
 }
 
 /* The anniversary line leads into the codex, so it is a button — styled as
@@ -620,10 +843,10 @@ body {
   background: linear-gradient(90deg, transparent, rgba(138, 106, 31, 0.45), transparent);
 }
 
+/* Only the corner marks still need a narrow-screen size; the padding and the
+   inner rules above are fluid and no longer have anything to override. */
 @media (max-width: 480px) {
-  .herald { padding: 1rem 1.2rem; }
-  .herald::before, .herald::after { left: 1.1rem; right: 1.1rem; }
-  .herald-corner { width: 1.1rem; height: 1.1rem; }
+  .herald-corner { width: 1.05rem; height: 1.05rem; }
 }
 
 /* ============================================================
@@ -651,19 +874,19 @@ body {
 .site-footer-shell::after {
   content: "";
   position: absolute;
-  left: 2.5rem;
-  right: 2.5rem;
+  left: clamp(1.1rem, 0.3rem + 3vw, 2.5rem);
+  right: clamp(1.1rem, 0.3rem + 3vw, 2.5rem);
   height: 1px;
   pointer-events: none;
   background: linear-gradient(90deg, transparent, rgba(184, 144, 42, 0.55), transparent);
 }
-.site-footer-shell::before { top: 0.65rem; }
-.site-footer-shell::after { bottom: 0.65rem; }
+.site-footer-shell::before { top: 0.5rem; }
+.site-footer-shell::after { bottom: 0.5rem; }
 
 /* Six fine rules evoke guitar strings without turning into a literal icon. */
 .footer-string-rule {
   position: relative;
-  height: 18px;
+  height: 14px;
   background: repeating-linear-gradient(
     to bottom,
     transparent 0,
@@ -679,8 +902,8 @@ body {
   left: 50%;
   top: 50%;
   display: grid;
-  width: 2.25rem;
-  height: 2.25rem;
+  width: clamp(1.7rem, 1.4rem + 1vw, 2.25rem);
+  height: clamp(1.7rem, 1.4rem + 1vw, 2.25rem);
   place-items: center;
   transform: translate(-50%, -50%);
   border: 1px solid rgba(184, 144, 42, 0.7);
@@ -695,21 +918,23 @@ body {
   position: relative;
   isolation: isolate;
   display: flex;
-  min-height: 4.25rem;
+  /* Nine tiles at a flat 4.25 rem made the colophon 850 px tall on a phone —
+     more than one whole screen of furniture under the catalogue. */
+  min-height: clamp(3rem, 2.4rem + 1.9vw, 4.25rem);
   width: 100%;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  padding: 1.2rem 0.45rem 0.8rem;
+  padding: clamp(0.85rem, 0.6rem + 0.9vw, 1.2rem) 0.4rem clamp(0.55rem, 0.4rem + 0.6vw, 0.8rem);
   border: 1px solid rgba(184, 144, 42, 0.48);
   border-radius: 2px;
   color: var(--color-ink-800);
   background: linear-gradient(155deg, rgba(250, 245, 230, 0.82), rgba(236, 223, 192, 0.76));
   box-shadow: inset 0 0 0 1px rgba(250, 245, 230, 0.6);
   font-family: var(--font-heading);
-  font-size: 0.72rem;
+  font-size: clamp(0.64rem, 0.6rem + 0.15vw, 0.72rem);
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: clamp(0.04em, 0.01em + 0.09vw, 0.08em);
   text-align: center;
   text-transform: uppercase;
   cursor: pointer;
@@ -791,13 +1016,10 @@ body {
   background: linear-gradient(90deg, transparent, rgba(244, 236, 214, 0.72) 12%, rgba(244, 236, 214, 0.72) 88%, transparent);
 }
 
+/* The tile's size and lettering are fluid above; only the inner gutter still
+   needs a narrow-screen value. */
 @media (max-width: 420px) {
-  .footer-menu-item {
-    min-height: 3.9rem;
-    padding-inline: 0.3rem;
-    font-size: 0.66rem;
-    letter-spacing: 0.045em;
-  }
+  .footer-menu-item { padding-inline: 0.25rem; }
 }
 
 /* ============================================================
@@ -830,6 +1052,150 @@ body {
 .codex-scroll {
   scrollbar-width: auto; /* Firefox: `thin` was too skinny for the design */
   scrollbar-color: #b8902a transparent;
+}
+
+/* ============================================================
+   Codex tab bodies — gallery and lore
+   ============================================================ */
+
+/* Both grids used to switch on a 640 px *viewport*, but they live inside the
+   reading pane, whose width stops tracking the window at about 1250 px. Stating
+   a minimum cell and letting the count fall out of it is the same rule the
+   catalogue grid follows, and it needs no threshold at all. */
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(9rem, 100%), 1fr));
+  gap: 1rem;
+}
+.lore-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(18rem, 100%), 1fr));
+  gap: 1.25rem;
+}
+.lore-grid > .lore-grid-span {
+  grid-column: 1 / -1;
+}
+
+/* ============================================================
+   Codex plate and tab strip
+   ============================================================ */
+
+/*
+ * The name plate at the top of an open codex.
+ *
+ * It used to be a fixed block of `text-4xl sm:text-5xl` steps and flat
+ * margins, and it cost the same 180–196 px whatever the pane could spare. At
+ * 844x390 that was more than half the reading height: the article's first line
+ * landed at y=374 inside a pane that ended at y=354, so opening a biography
+ * showed the reader no words of it.
+ *
+ * Every size below is bounded on both ends and carries an `svh` term as well
+ * as a `vw` one, because the plate is squeezed by *either* dimension running
+ * short — a landscape phone is wide and has no height at all.
+ */
+.codex-plate {
+  margin-bottom: clamp(0.7rem, 0.35rem + 1.4svh, 1.25rem);
+}
+.codex-plate-kicker {
+  margin-bottom: clamp(0.25rem, 0.1rem + 0.5svh, 0.5rem);
+  font-size: clamp(0.62rem, 0.56rem + 0.2vw, 0.75rem);
+}
+.codex-plate-title {
+  font-size: clamp(1.55rem, 0.9rem + 2.1vw + 0.9svh, 3rem);
+  letter-spacing: 0.12em;
+  line-height: 1.1;
+}
+/* Past ~24 characters the "title" is a comma-list roster, not a name. */
+.codex-plate-title--long {
+  font-size: clamp(1.15rem, 0.85rem + 1.1vw + 0.6svh, 1.875rem);
+  letter-spacing: 0.06em;
+}
+.codex-plate-second {
+  font-size: clamp(1.3rem, 0.8rem + 1.7vw + 0.7svh, 2.25rem);
+  line-height: 1.1;
+}
+.codex-plate-sub {
+  font-size: clamp(0.85rem, 0.78rem + 0.35vw, 1.125rem);
+}
+.codex-plate-rule {
+  margin-top: clamp(0.4rem, 0.15rem + 1.1svh, 1rem);
+  font-size: clamp(0.95rem, 0.8rem + 0.6svh, 1.25rem);
+}
+
+/* Four labels on one row from about 340 px of pane width. The old
+   `px-3 sm:px-5` pair wrapped them onto two rows at every phone width — 73 px
+   of tab bar above an article that had none of the pane left. `flex-wrap` is
+   still on the strip, so anything narrower than that degrades rather than
+   overflows. */
+.codex-tabstrip {
+  gap: clamp(0.125rem, 0.05rem + 0.2vw, 0.5rem);
+}
+.codex-tab {
+  padding: 0.35rem clamp(0.3rem, 0.02rem + 1.4vw, 1.25rem);
+  font-size: clamp(0.59rem, 0.5rem + 0.29vw, 0.8rem);
+  letter-spacing: clamp(0.055em, 0.005em + 0.16vw, 0.18em);
+}
+
+/*
+ * The four controls float over a pane that scrolls under them, so without this
+ * the article's lines slid out from behind the buttons half-covered. A soft
+ * parchment fade the height of the control row gives them something to sit on
+ * — the same paper, so nothing new appears on the page, and it dissolves
+ * before it reaches the first full line of text.
+ */
+.codex-topfade {
+  position: absolute;
+  inset: 11px 11px auto;
+  z-index: 15;
+  block-size: calc(var(--codex-ctrl-size) + 2rem);
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgba(246, 239, 219, 0.97) 0%,
+    rgba(246, 239, 219, 0.93) 52%,
+    rgba(246, 239, 219, 0) 100%
+  );
+}
+
+/*
+ * The four controls floating over the top of the reading pane: close, the
+ * edition menu, and the two page turns.
+ *
+ * One square-ish size for all of them, so the row reads as a set rather than
+ * as three unrelated buttons of three widths. `min-inline-size` equal to the
+ * height is what makes an icon-only control a square while the one that still
+ * carries a word ("Close codex", from `lg` up) simply grows past it. The
+ * numbers replace `btn-rpg`'s own 0.45rem/1.1rem padding, which was sized for
+ * a standalone action button and is far too generous for a row of four
+ * floating over the text.
+ */
+.codex-ctrl {
+  display: inline-grid;
+  grid-auto-flow: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  min-inline-size: var(--codex-ctrl-size);
+  block-size: var(--codex-ctrl-size);
+  padding: 0 0.42rem;
+  border-radius: 3px;
+  font-size: clamp(0.6rem, 0.54rem + 0.2vw, 0.72rem);
+  line-height: 1;
+}
+
+/* The same short-viewport band. The reading pane is ~300 px tall there, so the
+   plate hands back everything that is not the name. */
+@media (max-height: 36rem) {
+  .codex-plate-kicker,
+  .codex-plate-rule {
+    display: none;
+  }
+  .codex-plate {
+    margin-bottom: 0.5rem;
+  }
+  :root {
+    --codex-ctrl-size: 1.6rem;
+  }
 }
 
 /* ============================================================
@@ -897,10 +1263,47 @@ body {
 /* ============================================================
    Article (BioMD) typography
    ============================================================ */
+/*
+ * `.bio-measure` is the reading column and the **query container** for
+ * everything in it. Every decision inside an article — "is there room beside
+ * this paragraph", "how big should this type be" — asks the column, not the
+ * window: the column is 332 px at a 390 px viewport and 768 px at every
+ * viewport from ~1150 px up, so a viewport query was answering a different
+ * question than the one being asked. The container sits on the wrapper rather
+ * than on `.bio-article` itself, because an element cannot read its own `cqi`.
+ * See `.bio-fig--*`, `.bio-images--*` and `.bio-cols-*` below.
+ */
+.bio-measure {
+  container: bio / inline-size;
+  max-inline-size: 48rem;
+  margin-inline: auto;
+}
+
+/*
+ * Two variables carry the article's whole vertical economy: the leading and
+ * the gap between block constructs. A phone column gets the tight pair, a
+ * full-width one the roomy pair, and every rule below spends them — so
+ * changing how dense an article reads is two numbers, not twenty.
+ *
+ * `overflow-wrap` is not cosmetic: an unbroken legacy URL or a long compound
+ * name in a 332 px column had nothing to break on and simply ran out of the
+ * text box.
+ */
 .bio-article {
-  font-size: 1.13rem;
-  line-height: 1.75;
+  --bio-lead: 1.6;
+  --bio-block: 1.05em;
+  --bio-cell: 0.2em 0.4em;
+  font-size: clamp(0.85rem, 0.73rem + 0.82cqi, 1.13rem);
+  line-height: var(--bio-lead);
   color: var(--color-ink-900);
+  overflow-wrap: break-word;
+}
+@container bio (min-width: 34rem) {
+  .bio-article {
+    --bio-lead: 1.75;
+    --bio-block: 1.6em;
+    --bio-cell: 0.4em 0.6em;
+  }
 }
 .bio-article p {
   margin: 0 0 0.4em;
@@ -912,11 +1315,11 @@ body {
   letter-spacing: 0.12em;
   color: var(--color-burgundy-600);
   border-bottom: 1px solid rgba(184, 144, 42, 0.45);
-  padding-bottom: 0.3rem;
-  margin: 1.6em 0 0.7em;
+  padding-bottom: 0.25rem;
+  margin: var(--bio-block) 0 0.5em;
 }
-.bio-article h2 { font-size: 1.35rem; }
-.bio-article h3 { font-size: 1.15rem; }
+.bio-article h2 { font-size: clamp(1.15rem, 1.05rem + 0.4vw, 1.35rem); }
+.bio-article h3 { font-size: clamp(1.02rem, 0.96rem + 0.28vw, 1.15rem); }
 
 /* The article's own title line(s), printed only when the codex plate above is
    naming something else (lib/biomd/headings.ts). It is a title, not a section
@@ -929,14 +1332,14 @@ body {
   margin: 0;
   padding: 0;
   border: none;
-  font-size: 2rem;
+  font-size: clamp(1.45rem, 1.1rem + 1.5vw, 2rem);
   letter-spacing: 0.14em;
   text-align: center;
   text-wrap: balance;
 }
 .bio-article .bio-title--second {
   margin-top: 0.15em;
-  font-size: 1.6rem;
+  font-size: clamp(1.2rem, 0.95rem + 1.1vw, 1.6rem);
   color: var(--color-burgundy-700);
 }
 
@@ -985,7 +1388,7 @@ body {
 
 .bio-article blockquote {
   border-left: 3px solid #d4af37;
-  margin: 1.2em 0;
+  margin: calc(var(--bio-block) * 0.75) 0;
   padding: 0.2em 0 0.2em 1.1em;
   font-style: italic;
   color: var(--color-sepia-700);
@@ -1000,7 +1403,7 @@ body {
    than a fence sits to the prose around it. */
 .bio-article .bio-verse {
   clear: both;
-  margin: 1.2em 0;
+  margin: calc(var(--bio-block) * 0.75) 0;
   padding: 0.1em 0 0.1em 1.1em;
   border-left: 2px solid rgba(184, 144, 42, 0.45);
   font-family: var(--font-body);
@@ -1025,7 +1428,7 @@ body {
 .bio-article pre {
   clear: both;
   overflow-x: auto;
-  margin: 1.2em 0;
+  margin: calc(var(--bio-block) * 0.75) 0;
   padding: 0.7em 0.9em;
   border-left: 2px solid rgba(184, 144, 42, 0.45);
   background: rgba(226, 209, 168, 0.35);
@@ -1065,16 +1468,30 @@ body {
 .bio-article hr {
   border: none;
   height: 1px;
-  margin: 1.6em auto;
+  margin: var(--bio-block) auto;
   max-width: 20rem;
   background: linear-gradient(90deg, transparent, rgba(184, 144, 42, 0.7), transparent);
 }
 
+/* `width: 100%` meant a table could never be wider than the box that was
+   supposed to scroll it, so a six-column table did not scroll — it squashed,
+   every cell wrapping to three or four lines. `min-width: 100%` keeps a narrow
+   table filling the column; `width: auto` plus a floor under each cell lets a
+   wide one overflow into the scroller that ScrollableTable already provides. */
 .bio-article table {
-  width: 100%;
+  width: auto;
+  min-width: 100%;
   border-collapse: collapse;
-  font-size: 0.95em;
-  margin: 0.2em 0 2em 0;
+  font-size: 0.92em;
+  margin: 0.2em 0 var(--bio-block) 0;
+}
+/* Row height is cell padding twice over, so this is where a long table gets
+   its length back on a phone: `--bio-cell` is 0.2em/0.4em in a narrow column
+   and the original 0.4em/0.6em once there is room. The floor under a cell is
+   what lets a wide table overflow into its scroller instead of squashing. */
+.bio-article :is(th, td) {
+  min-width: 5rem;
+  padding: var(--bio-cell);
 }
 .bio-article th {
   font-family: var(--font-heading);
@@ -1083,12 +1500,10 @@ body {
   font-size: 0.82em;
   color: var(--color-burgundy-700);
   border-bottom: 1.5px solid rgba(184, 144, 42, 0.6);
-  padding: 0.4em 0.6em;
   text-align: left;
 }
 .bio-article td {
   border-bottom: 1px solid rgba(138, 111, 77, 0.25);
-  padding: 0.4em 0.6em;
   vertical-align: top;
 }
 
@@ -1152,6 +1567,99 @@ body {
 }
 
 /* ============================================================
+   Article figures and image groups — sized by the column, not the window
+   (see the `container` declaration on `.bio-article`)
+   ============================================================ */
+
+/*
+ * A figure is as wide as its picture, and no wider.
+ *
+ * `inline-size: fit-content` is the whole point. The archive's scans are small
+ * — measured 150x200, 194x255, 196x271, 410x677 — and a figure stretched to
+ * the column was *upscaling* them: a 194 px photograph blown up to 332 px on a
+ * phone and 768 px on a desktop, which is exactly why the article pictures
+ * read as coarse and disproportionately large. Now the box shrinks to the
+ * image's own size, the ceilings below only ever shrink it further, and a
+ * picture narrower than the column is centred rather than left with an empty
+ * half beside it.
+ */
+.bio-article .bio-figure {
+  inline-size: fit-content;
+  /* A picture that has not loaded yet reports no intrinsic width, and a
+     shrink-wrapped box around nothing is a hairline that jumps when the bytes
+     arrive. The floor keeps the reflow small. */
+  min-inline-size: min(100%, 6rem);
+  max-inline-size: 100%;
+  margin-block: calc(var(--bio-block) * 0.6);
+  margin-inline: auto;
+}
+
+/*
+ * A declared size is a *proportion of the column with a ceiling*, not a fixed
+ * pixel width that switches on at one viewport. `cqi` is 1 % of the container's
+ * inline axis, so a `small` figure is capped at 133 px in a 332 px phone column
+ * and at 200 px in a 768 px one, with every width in between — no threshold,
+ * no cliff. The ceilings are the sizes the spec has always meant.
+ */
+.bio-article .bio-fig--small { max-inline-size: min(40cqi, 200px); }
+.bio-article .bio-fig--medium { max-inline-size: min(52cqi, 320px); }
+.bio-article .bio-fig--large { max-inline-size: min(66cqi, 460px); }
+
+/*
+ * Wrapping text around a picture needs a real threshold, because a float is
+ * either worth it or ruinous: below ~28 rem of column the text beside a figure
+ * is four or five words wide. Above it the figure floats and the prose runs
+ * past, which is what the source documents were written for.
+ */
+/*
+ * Wrapping text around a picture needs a real threshold, because a float is
+ * either worth it or ruinous: below ~28 rem of column the text beside a figure
+ * is four or five words wide. Below that the figure is simply centred (see
+ * `.bio-figure` above) — a left-aligned picture with a column of empty paper
+ * beside it and the prose starting underneath is the worst of both.
+ *
+ * Physical `left`/`right`, as the utilities these replace were: every content
+ * language the catalogue carries is left-to-right, and `float: inline-start`
+ * is a good deal newer than the rest of the baseline this file targets.
+ */
+@container bio (min-width: 28rem) {
+  .bio-article .bio-fig--left {
+    float: left;
+    margin: 0 1.5rem 0.5rem 0;
+  }
+  .bio-article .bio-fig--right {
+    float: right;
+    margin: 0 0 0.5rem 1.5rem;
+  }
+}
+
+/* An `::: images` group narrows a track at a time rather than falling straight
+   from N columns to one: four prints become two before they become a stack. */
+.bio-article .bio-images {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(0.5rem, 0.2rem + 1.6cqi, 1rem);
+  margin: calc(var(--bio-block) * 0.8) 0;
+}
+/* Stacked, a group of prints must not become a column of full-width ones: each
+   keeps a sane ceiling and the paper shows down both sides. */
+.bio-article .bio-images .bio-figure {
+  max-inline-size: min(100%, 18rem);
+}
+@container bio (min-width: 24rem) {
+  .bio-article .bio-images--2,
+  .bio-article .bio-images--3,
+  .bio-article .bio-images--4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@container bio (min-width: 34rem) {
+  .bio-article .bio-images--3,
+  .bio-article .bio-images--4 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@container bio (min-width: 44rem) {
+  .bio-article .bio-images--4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+/* ============================================================
    Lifted Curl — photo-print frame for article & gallery images
    Adapted from prototypes/snippets/image_effects ("Lifted Curl"),
    re-toned from the snippet's black/white to the warm manuscript
@@ -1184,9 +1692,12 @@ body {
   overflow: hidden;
   border-radius: 3px;
 }
+/* `max-width`, never `width`. A forced `width: 100%` is what made every
+   article picture stretch to its column and every small archive scan blur; the
+   gallery's own cells still ask for `w-full` explicitly and are unaffected. */
 .fx-curl .inner img {
   display: block;
-  width: 100%;
+  max-width: 100%;
   height: auto;
   background: #ecdfc0;
   filter: sepia(0.2);
@@ -1291,7 +1802,7 @@ body {
    ============================================================ */
 .bio-article .bio-nav {
   clear: both;
-  margin: 1.4em 0;
+  margin: var(--bio-block) 0;
 }
 .bio-article .bio-nav-title {
   font-family: var(--font-heading);
@@ -1369,28 +1880,68 @@ body {
   grid-template-columns: minmax(0, 1fr);
   gap: 0.5rem 2rem;
   align-items: start;
-  margin: 1.2em 0;
+  margin: calc(var(--bio-block) * 0.75) 0;
 }
 .bio-article .bio-columns > * {
   min-width: 0;
 }
-@media (min-width: 48rem) {
+/* Container, not viewport: a record grid inside a 768 px column should be a
+   grid whether the window around it is 800 px or 3840 px wide, and the old
+   `min-width: 48rem` viewport pair kept it stacked in an 684 px column on a
+   landscape phone. The stacked form is the base rule above, so the divider
+   below only has to describe the case the tracks did not appear. */
+@container bio (min-width: 30rem) {
   .bio-article .bio-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@container bio (min-width: 40rem) {
   .bio-article .bio-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@container bio (min-width: 50rem) {
   .bio-article .bio-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  /* The rule sits on each cell's leading edge; its own padding matches the
-     column gap, so the line lands midway between the two texts. */
-  .bio-article .bio-cols-2.bio-columns--divided > *:not(:nth-child(2n + 1)),
-  .bio-article .bio-cols-3.bio-columns--divided > *:not(:nth-child(3n + 1)),
-  .bio-article .bio-cols-4.bio-columns--divided > *:not(:nth-child(4n + 1)) {
+}
+
+/* Stacked: a meaningful vertical rule becomes a horizontal separator. */
+.bio-article .bio-columns--divided > * + * {
+  border-block-start: 1px solid rgba(184, 144, 42, 0.4);
+  padding-block-start: 0.8em;
+}
+
+/* In tracks: the rule sits on each cell's leading edge, with its own padding
+   matching the column gap so the line lands midway between the two texts. The
+   horizontal separator above is cancelled for every cell that now starts a
+   column rather than a row. */
+@container bio (min-width: 30rem) {
+  .bio-article .bio-cols-2.bio-columns--divided > * + * {
+    border-block-start: none;
+    padding-block-start: 0;
+  }
+  .bio-article .bio-cols-2.bio-columns--divided > *:not(:nth-child(2n + 1)) {
     border-inline-start: 1px solid rgba(184, 144, 42, 0.45);
     padding-inline-start: 2rem;
   }
 }
-@media (max-width: 47.999rem) {
-  .bio-article .bio-columns--divided > * + * {
-    border-block-start: 1px solid rgba(184, 144, 42, 0.4);
-    padding-block-start: 0.8em;
+@container bio (min-width: 40rem) {
+  .bio-article .bio-cols-3.bio-columns--divided > * + * {
+    border-block-start: none;
+    padding-block-start: 0;
+    border-inline-start: none;
+    padding-inline-start: 0;
+  }
+  .bio-article .bio-cols-3.bio-columns--divided > *:not(:nth-child(3n + 1)) {
+    border-inline-start: 1px solid rgba(184, 144, 42, 0.45);
+    padding-inline-start: 2rem;
+  }
+}
+@container bio (min-width: 50rem) {
+  .bio-article .bio-cols-4.bio-columns--divided > * + * {
+    border-block-start: none;
+    padding-block-start: 0;
+    border-inline-start: none;
+    padding-inline-start: 0;
+  }
+  .bio-article .bio-cols-4.bio-columns--divided > *:not(:nth-child(4n + 1)) {
+    border-inline-start: 1px solid rgba(184, 144, 42, 0.45);
+    padding-inline-start: 2rem;
   }
 }
 
@@ -1403,8 +1954,8 @@ body {
    ============================================================ */
 .bio-article .bio-frame {
   clear: both;
-  margin: 1.6em 0;
-  padding: 1.1rem 1.4rem 1.2rem;
+  margin: var(--bio-block) 0;
+  padding: clamp(0.7rem, 0.4rem + 2cqi, 1.1rem) clamp(0.8rem, 0.4rem + 2.6cqi, 1.4rem) clamp(0.75rem, 0.45rem + 2cqi, 1.2rem);
   border: 2px solid rgba(184, 144, 42, 0.7);
   border-radius: 2px;
 }
@@ -1463,7 +2014,7 @@ body {
 .bio-article .bio-signature p {
   margin-bottom: 0.3em;
 }
-@media (min-width: 40rem) {
+@container bio (min-width: 30rem) {
   .bio-article .bio-signature {
     text-align: right;
   }
@@ -1479,7 +2030,7 @@ body {
   display: block;
   width: 100%;
   aspect-ratio: 3 / 4;
-  max-height: 70vh;
+  max-height: min(70svh, 44rem);
   border: 1px solid rgba(184, 144, 42, 0.5);
   background: var(--color-paper-100);
 }

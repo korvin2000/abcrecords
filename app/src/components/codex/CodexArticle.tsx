@@ -30,8 +30,10 @@ export function CodexArticle({
     return <p className="text-center font-body italic text-sepia-600">{t(missing)}</p>;
   }
 
+  // `.bio-measure` is both the reading measure and the query container every
+  // rule inside the article asks (index.css).
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="bio-measure">
       <BioArticle doc={doc} titles={titles} onNavigateEntry={onNavigateEntry} />
     </div>
   );
