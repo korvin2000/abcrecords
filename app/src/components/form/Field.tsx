@@ -25,7 +25,7 @@ export function Field({
   children: ReactNode;
 }) {
   return (
-    <div className={clsx("flex flex-col gap-1", className)}>
+    <div className={clsx("flex flex-col gap-[0.15rem]", className)}>
       <span
         id={id}
         className="font-heading text-[0.56rem] font-bold uppercase tracking-[0.18em] text-sepia-600"

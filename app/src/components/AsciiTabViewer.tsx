@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { m } from "framer-motion";
 import clsx from "clsx";
 import {
@@ -29,6 +29,34 @@ const COLUMN_WIDTH = 10;
 const STRING_GAP = 22;
 const LEFT = 50;
 const RIGHT = 20;
+const MIN_ZOOM = 0.3;
+const MAX_ZOOM = 2;
+/**
+ * How far "fit the pane" is allowed to shrink the score before it stops.
+ *
+ * Fitting to the *widest* system guarantees that nothing ever scrolls
+ * sideways, but one unusually long line then decides the size of all ninety
+ * others: this archive's typical system is 610 units wide and its longest is
+ * 800, so a 333 px phone pane would draw everything at 42 % — a 4.6 px note
+ * head. Half size is the floor. Below it the handful of systems that are
+ * wider than the rest keep their own scrollbar, which is the right trade:
+ * a few lines to drag instead of every line unreadable.
+ *
+ * 0.4 is where the two archives tested (`da_8lz`, `da_etcz`, 92 and 11
+ * systems) fit end to end on a 360 px phone. It sounds severe as a percentage
+ * and is not one in practice: such a phone reports 360 CSS px at a device
+ * ratio of 3, so a note head drawn at 4.4 CSS px is 13 real ones.
+ */
+const MIN_FIT = 0.4;
+
+/** How wide the widest system draws, in SVG units — the divisor for "fit". */
+function widestSystemWidth(document: TabDocument): number {
+  let widest = 0;
+  for (const system of document.systems) {
+    widest = Math.max(widest, LEFT + Math.max(12, system.widthColumns) * COLUMN_WIDTH + RIGHT);
+  }
+  return widest;
+}
 
 export function AsciiTabViewer({ tab, onClose }: Props) {
   const { t } = useI18n();
@@ -37,8 +65,27 @@ export function AsciiTabViewer({ tab, onClose }: Props) {
     return cached ? { status: "ready", document: cached } : { status: "loading" };
   });
   const [mode, setMode] = useState<"score" | "raw">("score");
-  const [zoom, setZoom] = useState(1);
+  /**
+   * `null` means "whatever fits the pane" — the state the viewer opens in, and
+   * the one that makes it usable on a phone at all. A system of this archive's
+   * typical width draws 610 px; the reading pane on a 360 px screen is 322,
+   * so every one of a document's ninety-odd systems had its own horizontal
+   * scrollbar and the reader had to drag each of them separately. Once the
+   * zoom buttons are touched the number is theirs and the pane stops deciding.
+   */
+  const [zoom, setZoom] = useState<number | null>(null);
+  const scoreRef = useRef<HTMLElement>(null);
+  const [paneWidth, setPaneWidth] = useState(0);
   const tabDocument = load.status === "ready" ? load.document : null;
+  const widestSystem = tabDocument ? widestSystemWidth(tabDocument) : 0;
+  /* Never above 1: fitting is for making a wide system readable, not for
+     blowing a short one up to fill a desktop. */
+  const fitZoom = paneWidth && widestSystem ? clamp(paneWidth / widestSystem, MIN_FIT, 1) : 1;
+  const scale = zoom ?? fitZoom;
+  const nudgeZoom = useCallback(
+    (delta: number) => setZoom((value) => clamp((value ?? fitZoom) + delta, MIN_ZOOM, MAX_ZOOM)),
+    [fitZoom],
+  );
   const playback = useAsciiTabPlayback(tabDocument);
   const name = tab.download ?? filename(tab.src);
   const label = tab.label ?? name;
@@ -82,18 +129,30 @@ export function AsciiTabViewer({ tab, onClose }: Props) {
         onClose();
       } else if (mode === "score" && (event.key === "+" || event.key === "=")) {
         event.preventDefault();
-        setZoom((value) => clamp(value + 0.15, 0.65, 2));
+        nudgeZoom(0.15);
       } else if (mode === "score" && (event.key === "-" || event.key === "_")) {
         event.preventDefault();
-        setZoom((value) => clamp(value - 0.15, 0.65, 2));
+        nudgeZoom(-0.15);
       } else if (mode === "score" && event.key === "0") {
         event.preventDefault();
-        setZoom(1);
+        setZoom(null);
       }
     };
     window.addEventListener("keydown", onKey, { capture: true });
     return () => window.removeEventListener("keydown", onKey, { capture: true });
-  }, [mode, onClose]);
+  }, [mode, nudgeZoom, onClose]);
+
+  // What the score has to fit into. Observed rather than measured once: the
+  // pane changes with an orientation flip and with the toolbar rewrapping.
+  useLayoutEffect(() => {
+    const element = scoreRef.current;
+    if (!element) return;
+    const read = () => setPaneWidth(element.clientWidth - horizontalPadding(element));
+    read();
+    const observer = new ResizeObserver(read);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [load.status]);
 
   return (
     <m.div
@@ -111,13 +170,18 @@ export function AsciiTabViewer({ tab, onClose }: Props) {
         <CornerOrnament className="pointer-events-none absolute left-[5px] top-[5px] z-10 h-8 w-8 opacity-60" />
         <CornerOrnament flipX className="pointer-events-none absolute right-[5px] top-[5px] z-10 h-8 w-8 opacity-60" />
 
-        <header className="relative shrink-0 border-b border-gold-600/45 px-14 pb-3 pt-4 text-center sm:px-28">
-          <p className="font-display text-[0.65rem] uppercase tracking-[0.3em] text-sepia-600">{t("tab.title")}</p>
-          <h1 className="truncate font-heading text-xl font-semibold tracking-wide text-burgundy-700 sm:text-2xl" title={heading}>
+        {/* The plate. Its side padding has to clear the close control on the
+            right and the corner filigree on the left, so it is stated once as
+            a fluid pair rather than as `px-14 sm:px-28` — 56 px of a 360 px
+            screen was a third of the title's own room, and the heading ran
+            under the button anyway. */}
+        <header className="tabview-plate relative shrink-0 border-b border-gold-600/45 text-center">
+          <p className="tabview-kicker font-display uppercase tracking-[0.3em] text-sepia-600">{t("tab.title")}</p>
+          <h1 className="tabview-title truncate font-heading font-semibold tracking-wide text-burgundy-700" title={heading}>
             {heading}
           </h1>
-          <p className="truncate font-body text-xs italic text-sepia-600">{name}</p>
-          <button type="button" onClick={onClose} className="btn-rpg absolute right-9 top-4 z-20 !px-3" aria-label={t("viewer.close")} title={t("viewer.close")}>
+          <p className="tabview-meta truncate font-body italic text-sepia-600">{name}</p>
+          <button type="button" onClick={onClose} className="btn-rpg codex-ctrl tabview-close z-20" aria-label={t("viewer.close")} title={t("viewer.close")}>
             ✕
           </button>
         </header>
@@ -132,20 +196,22 @@ export function AsciiTabViewer({ tab, onClose }: Props) {
               document={load.document}
               mode={mode}
               setMode={setMode}
-              zoom={zoom}
-              setZoom={setZoom}
+              scale={scale}
+              fitted={zoom === null}
+              onNudge={nudgeZoom}
+              onFit={() => setZoom(null)}
               playback={playback}
               src={tab.src}
               name={name}
               t={t}
             />
-            <main className="min-h-0 flex-1 overflow-y-auto px-3 py-4 sm:px-7">
+            <main ref={scoreRef} className="tabview-body min-h-0 flex-1 overflow-y-auto">
               {mode === "raw" ? (
                 <pre className="tab-raw mx-auto max-w-full rounded-sm border border-gold-600/45 bg-paper-50/80 p-4 text-[0.72rem] leading-[1.35] text-ink-900 sm:text-[0.8rem]">
                   {load.document.rawText}
                 </pre>
               ) : (
-                <TabScore document={load.document} zoom={zoom} activeSystem={playback.activeSystem} t={t} />
+                <TabScore document={load.document} zoom={scale} activeSystem={playback.activeSystem} t={t} />
               )}
             </main>
           </>
@@ -173,6 +239,11 @@ async function fetchTab(src: string, sourceName: string, signal: AbortSignal): P
   });
 }
 
+function horizontalPadding(element: HTMLElement): number {
+  const style = getComputedStyle(element);
+  return parseFloat(style.paddingLeft) + parseFloat(style.paddingRight);
+}
+
 function charsetOf(contentType: string): string | undefined {
   return /;\s*charset\s*=\s*([^;]+)/i.exec(contentType)?.[1].trim();
 }
@@ -181,8 +252,10 @@ function TabToolbar({
   document,
   mode,
   setMode,
-  zoom,
-  setZoom,
+  scale,
+  fitted,
+  onNudge,
+  onFit,
   playback,
   src,
   name,
@@ -191,8 +264,12 @@ function TabToolbar({
   document: TabDocument;
   mode: "score" | "raw";
   setMode: (mode: "score" | "raw") => void;
-  zoom: number;
-  setZoom: React.Dispatch<React.SetStateAction<number>>;
+  /** The scale actually in force, fitted or chosen. */
+  scale: number;
+  /** Is that scale the pane's own answer rather than the reader's? */
+  fitted: boolean;
+  onNudge: (delta: number) => void;
+  onFit: () => void;
   playback: ReturnType<typeof useAsciiTabPlayback>;
   src: string;
   name: string;
@@ -201,23 +278,31 @@ function TabToolbar({
   const playing = playback.status === "playing";
   const progress = playback.duration ? (playback.currentTime / playback.duration) * 100 : 0;
   return (
-    <div className="shrink-0 border-b border-gold-600/35 bg-paper-100/70 px-3 py-2.5 sm:px-6">
-      <div className="flex flex-wrap items-center justify-center gap-2">
+    <div className="tabview-toolbar shrink-0 border-b border-gold-600/35 bg-paper-100/70">
+      <div className="flex flex-wrap items-center justify-center gap-1.5">
         <ControlButton active={mode === "score"} onClick={() => setMode("score")} label={t("tab.graphical")} />
         <ControlButton active={mode === "raw"} onClick={() => setMode("raw")} label={t("tab.raw")} />
 
         {mode === "score" && (
           <>
             <Separator />
-            <SmallButton onClick={() => setZoom((value) => clamp(value - 0.15, 0.65, 2))} label={t("viewer.zoomOut")}>
+            <SmallButton onClick={() => onNudge(-0.15)} label={t("viewer.zoomOut")}>
               −
             </SmallButton>
-            <span className="w-12 text-center font-heading text-xs tabular-nums text-ink-800">{Math.round(zoom * 100)}%</span>
-            <SmallButton onClick={() => setZoom((value) => clamp(value + 0.15, 0.65, 2))} label={t("viewer.zoomIn")}>
+            {/* The percentage is annotated, not merely shown: "53 %" with no
+                explanation reads as a fault on a phone, where the pane and not
+                the reader chose it. */}
+            <span
+              className="tabview-zoom text-center font-heading tabular-nums text-ink-800"
+              title={fitted ? t("viewer.fitWidth") : undefined}
+            >
+              {Math.round(scale * 100)}%{fitted && <span aria-hidden> ⤡</span>}
+            </span>
+            <SmallButton onClick={() => onNudge(0.15)} label={t("viewer.zoomIn")}>
               +
             </SmallButton>
-            <SmallButton onClick={() => setZoom(1)} label={t("viewer.actualSize")}>
-              1:1
+            <SmallButton onClick={onFit} label={t("viewer.fitWidth")}>
+              ⤡
             </SmallButton>
           </>
         )}
@@ -227,7 +312,7 @@ function TabToolbar({
           type="button"
           onClick={playback.toggle}
           disabled={!playback.hasNotes || playback.status === "error"}
-          className="btn-rpg !px-3 !py-1.5 !text-[0.68rem] disabled:cursor-not-allowed disabled:opacity-45"
+          className="btn-rpg tabview-btn disabled:cursor-not-allowed disabled:opacity-45"
         >
           {playing ? `Ⅱ ${t("audio.pause")}` : `▶ ${t("audio.play")}`}
         </button>
@@ -235,16 +320,16 @@ function TabToolbar({
           type="button"
           onClick={playback.stop}
           disabled={playback.status === "idle"}
-          className="btn-rpg !px-3 !py-1.5 !text-[0.68rem] disabled:cursor-not-allowed disabled:opacity-45"
+          className="btn-rpg tabview-btn disabled:cursor-not-allowed disabled:opacity-45"
         >
           ■ {t("tab.stop")}
         </button>
-        <a href={src} download={name} className="btn-rpg !px-3 !py-1.5 !text-[0.68rem] no-underline" onClick={(event) => event.stopPropagation()}>
+        <a href={src} download={name} className="btn-rpg tabview-btn no-underline" onClick={(event) => event.stopPropagation()}>
           ⇩ {t("audio.download")}
         </a>
       </div>
 
-      <div className="mx-auto mt-2 flex max-w-4xl flex-wrap items-center justify-center gap-x-3 gap-y-1 font-body text-xs text-sepia-600">
+      <div className="tabview-meta mx-auto mt-1.5 flex max-w-4xl flex-wrap items-center justify-center gap-x-3 gap-y-0.5 font-body text-sepia-600">
         <span>{t("tab.systemCount", { count: document.systems.length })}</span>
         {document.meter && <span>· {t("tab.meter")}: {document.meter}</span>}
         <span>· {t("tab.tuning")}: {t(`tab.tuning.${document.tuning.kind}`)}</span>
@@ -254,11 +339,11 @@ function TabToolbar({
         </span>
       </div>
 
-      <div className="mx-auto mt-2 max-w-3xl">
+      <div className="mx-auto mt-1.5 max-w-3xl">
         <div className="h-1 overflow-hidden rounded-full bg-paper-300" aria-hidden>
           <div className="h-full bg-burgundy-600 transition-[width] duration-100" style={{ width: `${progress}%` }} />
         </div>
-        <div className="mt-0.5 flex justify-between gap-3 font-body text-[0.68rem] text-sepia-600">
+        <div className="tabview-meta mt-0.5 flex justify-between gap-3 font-body text-sepia-600">
           <span>{t("tab.approximate")}</span>
           <span className="shrink-0 tabular-nums">{formatTime(playback.currentTime)} / {formatTime(playback.duration)}</span>
         </div>
@@ -295,14 +380,34 @@ function TabScore({ document, zoom, activeSystem, t }: { document: TabDocument; 
 function ProseSection({ text }: { text: string }) {
   const visible = text.replace(/^\s*\n|\n\s*$/g, "").trimEnd();
   if (!visible.trim()) return null;
-  const diagram = /(?:[|:-].*){3}/.test(visible) && /[-|]{6}/.test(visible);
+  const diagram = looksLikeDiagram(visible);
   return diagram ? (
     <pre className="tab-raw overflow-x-auto rounded-sm border border-gold-600/35 bg-paper-100/60 p-3 text-xs leading-snug text-sepia-700">{visible}</pre>
   ) : (
-    <div className="whitespace-pre-wrap break-words rounded-sm border-l-2 border-gold-600/45 bg-paper-100/35 px-4 py-2 font-body text-[1rem] leading-relaxed text-ink-800">
+    <div className="tabview-prose whitespace-pre-wrap break-words rounded-sm border-l-2 border-gold-600/45 bg-paper-100/35 font-body leading-relaxed text-ink-800">
       {visible}
     </div>
   );
+}
+
+/**
+ * Is this stretch of plain text a tab fragment or a chord chart — something
+ * whose columns are data and which must therefore keep its line breaks and
+ * scroll rather than wrap?
+ *
+ * A staff line is the conjunction of two things: a bar `|` and a run of rule.
+ * The test used to be "three lines containing any of `|:-` anywhere, plus six
+ * rule characters somewhere", which every legacy file's `#-------PLEASE
+ * NOTE-------` header satisfies — so the English preamble of half the archive
+ * was put in a horizontal scroller and read four words at a time on a phone.
+ */
+function looksLikeDiagram(text: string): boolean {
+  let staffLines = 0;
+  for (const line of text.split("\n")) {
+    if (line.includes("|") && /-{4,}/.test(line)) staffLines += 1;
+    if (staffLines >= 3) return true;
+  }
+  return false;
 }
 
 function TabSystemSvg({
@@ -500,18 +605,18 @@ function LoadError({ tab, name, detail, t }: { tab: ViewerTab; name: string; det
 
 function ControlButton({ active, onClick, label }: { active: boolean; onClick: () => void; label: string }) {
   return (
-    <button type="button" aria-pressed={active} onClick={onClick} className={clsx("rounded border px-3 py-1 font-heading text-[0.7rem] uppercase tracking-wider transition-colors", active ? "border-burgundy-600 bg-burgundy-600 text-paper-50" : "border-gold-600/45 bg-paper-50/50 text-sepia-700 hover:bg-paper-200")}>
+    <button type="button" aria-pressed={active} onClick={onClick} className={clsx("tabview-btn rounded border font-heading uppercase tracking-wider transition-colors", active ? "border-burgundy-600 bg-burgundy-600 text-paper-50" : "border-gold-600/45 bg-paper-50/50 text-sepia-700 hover:bg-paper-200")}>
       {label}
     </button>
   );
 }
 
 function SmallButton({ onClick, label, children }: { onClick: () => void; label: string; children: React.ReactNode }) {
-  return <button type="button" onClick={onClick} aria-label={label} title={label} className="grid h-7 min-w-7 place-items-center rounded border border-gold-600/45 bg-paper-50/60 px-1.5 font-heading text-xs font-semibold text-gold-800 hover:bg-gold-200/50">{children}</button>;
+  return <button type="button" onClick={onClick} aria-label={label} title={label} className="tabview-small grid place-items-center rounded border border-gold-600/45 bg-paper-50/60 font-heading font-semibold text-gold-800 hover:bg-gold-200/50">{children}</button>;
 }
 
 function Separator() {
-  return <span className="mx-0.5 h-6 w-px bg-gold-600/35" aria-hidden />;
+  return <span className="mx-0.5 h-5 w-px bg-gold-600/35" aria-hidden />;
 }
 
 function filename(url: string): string {

@@ -31,8 +31,9 @@ interface Props {
  * Layout invariants worth keeping:
  * - The reading pane is `absolute inset-[11px]` (not h-full) so its whole
  *   scrollbar track — top to bottom — stays inside the double border.
- * - The four controls share one flex row inset past the 44px corner filigree,
- *   so no amount of narrowing can make two of them overlap.
+ * - The four controls share one flex row, aligned with that pane and pushed
+ *   `--codex-scrollbar` clear of it on the trailing side, so no amount of
+ *   narrowing can make two of them overlap or put one on the scrollbar.
  * - The body scroll-lock belongs to App (single owner); do not add one here.
  *
  * **One shell, many entries.** App deliberately does *not* key this component
@@ -170,10 +171,11 @@ export function CodexShell({
               page turns at `right-9` — which is a layout that works until the
               panel is narrow enough for the middle one to reach the right one.
               Below about 360 px it did, and the edition menu sat on top of the
-              back arrow. A flex row cannot overlap itself. The inset clears the
-              44 px corner filigree; `.codex-ctrl` (index.css) is what makes
-              each control a compact square. */}
-          <div className="absolute inset-x-0 top-0 z-30 flex items-start justify-between gap-2 px-9 pt-2.5">
+              back arrow. A flex row cannot overlap itself. `.codex-ctrl` (index.css) is what makes
+              each control a compact square, and `.codex-ctrl-row` is what puts
+              the row in the panel's corners and keeps the trailing arrow clear
+              of the reading pane's scrollbar. */}
+          <div className="codex-ctrl-row">
             <button onClick={handleClose} className="btn-rpg codex-ctrl" aria-label={t("codex.close")} title={t("codex.close")}>
               <span className="hidden lg:inline">{t("codex.close")}</span>
               <span className="lg:hidden" aria-hidden>

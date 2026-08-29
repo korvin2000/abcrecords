@@ -115,6 +115,7 @@ export const ja: Record<MsgKey, Message> = {
   "viewer.rotateRight": "右に回転",
   "viewer.fit": "画面に合わせる",
   "viewer.actualSize": "実寸大",
+  "viewer.fitWidth": "幅に合わせる",
   "viewer.download": "ダウンロード",
   "viewer.close": "閉じる",
   "viewer.error": "画像を読み込めませんでした",

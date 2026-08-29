@@ -273,14 +273,17 @@ export default function App() {
       {/* fixed top control bar */}
       {/* `viewport-fit=cover` is declared in index.html, so on a notched phone
           held sideways the safe area is what keeps these controls reachable. */}
-      <header className="fixed inset-x-0 top-0 z-30 flex items-center justify-between border-b border-gold-600/25 bg-paper-100/70 py-2 pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] backdrop-blur-sm">
-        <div className="flex items-center gap-2">
-          <span className="anim-floaty text-base text-gold-700" aria-hidden>
+      {/* Every size in the bar is fluid — see the `--topbar-*` family and the
+          `.topbar*` classes in index.css. `pt-topbar` on <main> below is derived
+          from the same tokens, so the clearance follows the bar automatically. */}
+      <header className="topbar fixed inset-x-0 top-0 z-30 flex items-center justify-between border-b border-gold-600/25 bg-paper-100/70 backdrop-blur-sm">
+        <div className="topbar-group">
+          <span className="anim-floaty topbar-mark text-gold-700" aria-hidden>
             ✦
           </span>
-          <span className="font-display text-sm font-bold tracking-[0.25em] text-burgundy-700">{t("app.brand")}</span>
+          <span className="topbar-brand font-display font-bold tracking-[0.25em] text-burgundy-700">{t("app.brand")}</span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="topbar-group">
           <LanguageMenu
             variant="header"
             value={lang}
@@ -291,9 +294,7 @@ export default function App() {
           />
           {EFFECTS.enabled && (
             <CtrlButton active={fx.on} onClick={toggleEffects} title={fx.on ? t("fx.on") : t("fx.off")}>
-              <span className="text-sm" aria-hidden>
-                ✨
-              </span>
+              <span aria-hidden>✨</span>
             </CtrlButton>
           )}
           {/* Muting silences the ambience without forgetting that it was
@@ -304,14 +305,10 @@ export default function App() {
             onClick={toggleAmbient}
             title={ambient ? t("ambient.on") : t("ambient.off")}
           >
-            <span className="text-sm" aria-hidden>
-              {ambient && sound ? "🎼" : "🎵"}
-            </span>
+            <span aria-hidden>{ambient && sound ? "🎼" : "🎵"}</span>
           </CtrlButton>
           <CtrlButton active={sound} onClick={toggleSound} title={sound ? t("sound.on") : t("sound.off")}>
-            <span className="text-sm" aria-hidden>
-              {sound ? "🔊" : "🔇"}
-            </span>
+            <span aria-hidden>{sound ? "🔊" : "🔇"}</span>
           </CtrlButton>
         </div>
       </header>
@@ -423,7 +420,7 @@ function CtrlButton({
       onClick={onClick}
       title={title}
       aria-label={title}
-      className={`grid h-9 w-9 place-items-center rounded-full border transition-all ${
+      className={`topbar-ctrl topbar-ctrl--square grid place-items-center rounded-full border transition-all ${
         active
           ? "border-gold-600/80 bg-gold-500/25 shadow-[0_0_12px_rgba(184,144,42,0.45)]"
           : "border-gold-600/40 hover:border-gold-600/70 hover:bg-gold-500/15"

@@ -115,6 +115,7 @@ export const zh: Record<MsgKey, Message> = {
   "viewer.rotateRight": "向右旋转",
   "viewer.fit": "适应屏幕",
   "viewer.actualSize": "实际大小",
+  "viewer.fitWidth": "适应宽度",
   "viewer.download": "下载",
   "viewer.close": "关闭",
   "viewer.error": "无法加载图像",

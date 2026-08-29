@@ -33,10 +33,15 @@ export function YearRangeField({
     if (YEAR_INPUT.test(next)) onChange({ ...value, [key]: next });
   };
 
+  // The boxes share whatever the row has instead of claiming a fixed 4 rem
+  // each: that is what lets the two year ranges sit side by side on a phone
+  // (`min-w-0 flex-1`, capped so they do not sprawl on a wide panel).
+  const box = "min-w-0 flex-1 max-w-[4.75rem]";
+
   return (
-    <div className="flex items-center gap-2" role="group" aria-labelledby={labelledBy}>
-      <span className="font-body text-[0.78rem] italic text-sepia-500">{fromLabel}</span>
-      <div className="w-[4rem]">
+    <div className="flex items-center gap-1.5" role="group" aria-labelledby={labelledBy}>
+      <span className="shrink-0 font-body text-[0.72rem] italic text-sepia-500">{fromLabel}</span>
+      <div className={box}>
         <TextField
           value={value.from}
           onChange={set("from")}
@@ -47,8 +52,8 @@ export function YearRangeField({
           className="text-center"
         />
       </div>
-      <span className="font-body text-[0.78rem] italic text-sepia-500">{toLabel}</span>
-      <div className="w-[4rem]">
+      <span className="shrink-0 font-body text-[0.72rem] italic text-sepia-500">{toLabel}</span>
+      <div className={box}>
         <TextField
           value={value.to}
           onChange={set("to")}

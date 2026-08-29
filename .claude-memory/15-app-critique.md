@@ -96,7 +96,7 @@ had a hardening pass.
 - **Four copies of the look-ahead scheduler** and **two near-verbatim viewer providers** (image / ascii-tab) — extractable into one utility / one factory each.
 
 ### Structure / styling 🟡
-- `index.css` is ~700 unlayered lines mixing tokens/base/components/utilities; moving the semantic rules into `@layer components` would both organize it and **end the "unlayered beats utilities" footgun**.
+- ✅ **The stylesheet is split (2026-08-29).** `index.css` had reached 2 528 lines mixing tokens/base/components; it is now the import list and the rules live in fourteen `src/styles/*.css` files of 47–318 lines each. The **`@layer` half of this item is still open**: the files are still unlayered, so the "unlayered beats utilities" footgun is unchanged — splitting made the rules findable, not the cascade safer.
 - `App.tsx` is a single large orchestrator (search + route + audio + scroll-lock + modal). Fine now; watch it as features grow.
 
 ## Prioritized improvement backlog
@@ -110,5 +110,5 @@ had a hardening pass.
 7. 🟠 **ASCII-tab hardening**: charset fallback (CP1251/KOI8-R) for legacy tabs; fix the `r(n)` glyph; `React.memo`/virtualize `TabSystemSvg`; add a focus trap.
 8. 🟠 **Content robustness**: sanitize block-derived `src`; retry/invalidate negative fetch cache; surface parser warnings in prod (dev overlay or a `pages/` content-lint script); reconsider comma-lists vs arrays in the data model.
 9. ✅ **Search scaling — done (Step 5).** Prebuilt weighted corpus, hoisted variants, ranking, `useDeferredValue`; **0.398 ms/query at 1249 docs**. Still open by choice: the `ё` collapse and single-character transliteration (no `кс`→`x`).
-10. 🟡 **Structure/a11y polish**: split `index.css` and move rules into `@layer`; extract one shared look-ahead scheduler + one viewer-provider factory; unify the reduced-motion policy (framer vs CSS); make BioMD figures keyboard-operable. **[`CodexModal` is done — 271 → 45 lines across 10 focused files (Step 6). `App.tsx` remains the large one.]**
+10. 🟡 **Structure/a11y polish**: ~~split `index.css`~~ (done 2026-08-29 — fourteen files under `src/styles/`) and move rules into `@layer`; extract one shared look-ahead scheduler + one viewer-provider factory; unify the reduced-motion policy (framer vs CSS); make BioMD figures keyboard-operable. **[`CodexModal` is done — 271 → 45 lines across 10 focused files (Step 6). `App.tsx` remains the large one.]**
 11. 🟠 **[v2, Step 7]** **Content validation**: `scripts/lint-content.mjs` — the guard-rail for the two-file index split (dangling ids, duplicate slugs, drifted `born`/`died`, untranslated editions). The repo has no content validation at all today.

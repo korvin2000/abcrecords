@@ -1,0 +1,275 @@
+/* ============================================================
+   Codex interior scroll area — a golden "ribbon" scrollbar.
+   The scroll container is inset from the parchment border, so the
+   whole track (top to bottom) lives inside the double frame.
+   Track is transparent; the thumb is a slim gold rod inside a wider
+   12px grab gutter (transparent borders + padding-box clip).
+   ============================================================ */
+/* Literal, not `var(--codex-scrollbar)`: Chromium does not resolve custom
+   properties inside `::-webkit-scrollbar`, and the invalid declaration silently
+   falls back to the platform's 15px. Keep the two in sync by hand. */
+.codex-scroll::-webkit-scrollbar {
+  width: 12px;
+}
+.codex-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.codex-scroll::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #d4af37, #b8902a 45%, #8a6a1f);
+  background-clip: padding-box;
+  border: 3px solid transparent;
+  border-radius: 99px;
+  box-shadow: inset 0 0 0 1px rgba(110, 84, 25, 0.55);
+  min-height: 40px;
+}
+.codex-scroll::-webkit-scrollbar-thumb:hover,
+.codex-scroll::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(180deg, #efd585, #d4af37 45%, #b8902a);
+  background-clip: padding-box;
+  border-width: 2px;
+}
+.codex-scroll {
+  scrollbar-width: auto; /* Firefox: `thin` was too skinny for the design */
+  scrollbar-color: #b8902a transparent;
+}
+
+/* ============================================================
+   Codex tab bodies — gallery and lore
+   ============================================================ */
+
+/* Both grids used to switch on a 640 px *viewport*, but they live inside the
+   reading pane, whose width stops tracking the window at about 1250 px. Stating
+   a minimum cell and letting the count fall out of it is the same rule the
+   catalogue grid follows, and it needs no threshold at all. */
+/* `auto-fit` with a ceiling, not `auto-fill` with `1fr`: an entry with two
+   photographs was laying them into the first two of four full-width tracks and
+   leaving a third of the pane empty on the right, under a plate, a tab strip
+   and a heading that are all centred. Empty tracks now collapse, the prints
+   keep a sane maximum instead of stretching, and what is left over becomes
+   equal margins. A full gallery is unchanged: the tracks are already narrower
+   than the ceiling, so there is no free space to centre. */
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(9rem, 100%), 12rem));
+  justify-content: center;
+  gap: 1rem;
+}
+.lore-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(18rem, 100%), 1fr));
+  gap: 1.25rem;
+}
+.lore-grid > .lore-grid-span {
+  grid-column: 1 / -1;
+}
+
+/* ============================================================
+   Codex plate and tab strip
+   ============================================================ */
+
+/*
+ * The name plate at the top of an open codex.
+ *
+ * It used to be a fixed block of `text-4xl sm:text-5xl` steps and flat
+ * margins, and it cost the same 180–196 px whatever the pane could spare. At
+ * 844x390 that was more than half the reading height: the article's first line
+ * landed at y=374 inside a pane that ended at y=354, so opening a biography
+ * showed the reader no words of it.
+ *
+ * Every size below is bounded on both ends and carries an `svh` term as well
+ * as a `vw` one, because the plate is squeezed by *either* dimension running
+ * short — a landscape phone is wide and has no height at all.
+ */
+.codex-plate {
+  margin-bottom: clamp(0.7rem, 0.35rem + 1.4svh, 1.25rem);
+}
+.codex-plate-kicker {
+  margin-bottom: clamp(0.25rem, 0.1rem + 0.5svh, 0.5rem);
+  font-size: clamp(0.62rem, 0.56rem + 0.2vw, 0.75rem);
+}
+.codex-plate-title {
+  font-size: clamp(1.55rem, 0.9rem + 2.1vw + 0.9svh, 3rem);
+  letter-spacing: 0.12em;
+  line-height: 1.1;
+}
+/* Past ~24 characters the "title" is a comma-list roster, not a name. */
+.codex-plate-title--long {
+  font-size: clamp(1.15rem, 0.85rem + 1.1vw + 0.6svh, 1.875rem);
+  letter-spacing: 0.06em;
+}
+.codex-plate-second {
+  font-size: clamp(1.3rem, 0.8rem + 1.7vw + 0.7svh, 2.25rem);
+  line-height: 1.1;
+}
+.codex-plate-sub {
+  font-size: clamp(0.85rem, 0.78rem + 0.35vw, 1.125rem);
+}
+.codex-plate-rule {
+  margin-top: clamp(0.4rem, 0.15rem + 1.1svh, 1rem);
+  font-size: clamp(0.95rem, 0.8rem + 0.6svh, 1.25rem);
+}
+
+/* Four labels on one row from about 340 px of pane width. The old
+   `px-3 sm:px-5` pair wrapped them onto two rows at every phone width — 73 px
+   of tab bar above an article that had none of the pane left. `flex-wrap` is
+   still on the strip, so anything narrower than that degrades rather than
+   overflows. */
+.codex-tabstrip {
+  gap: clamp(0.125rem, 0.05rem + 0.2vw, 0.5rem);
+}
+.codex-tab {
+  padding: 0.35rem clamp(0.3rem, 0.02rem + 1.4vw, 1.25rem);
+  font-size: clamp(0.59rem, 0.5rem + 0.29vw, 0.8rem);
+  letter-spacing: clamp(0.055em, 0.005em + 0.16vw, 0.18em);
+}
+
+/*
+ * The four controls float over a pane that scrolls under them, so without this
+ * the article's lines slid out from behind the buttons half-covered. A soft
+ * parchment fade the height of the control row gives them something to sit on
+ * — the same paper, so nothing new appears on the page, and it dissolves
+ * before it reaches the first full line of text.
+ */
+.codex-topfade {
+  position: absolute;
+  inset: 11px 11px auto;
+  z-index: 15;
+  block-size: calc(var(--codex-ctrl-size) + 2rem);
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgba(246, 239, 219, 0.97) 0%,
+    rgba(246, 239, 219, 0.93) 52%,
+    rgba(246, 239, 219, 0) 100%
+  );
+}
+
+/*
+ * The four controls floating over the top of the reading pane: close, the
+ * edition menu, and the two page turns.
+ *
+ * One square-ish size for all of them, so the row reads as a set rather than
+ * as three unrelated buttons of three widths. `min-inline-size` equal to the
+ * height is what makes an icon-only control a square while the one that still
+ * carries a word ("Close codex", from `lg` up) simply grows past it. The
+ * numbers replace `btn-rpg`'s own 0.45rem/1.1rem padding, which was sized for
+ * a standalone action button and is far too generous for a row of four
+ * floating over the text.
+ */
+/*
+ * Where the row sits. Corners, not "somewhere near the top middle".
+ *
+ * It used to be `inset-x-0 top-0 px-9 pt-2.5`, which pulled all four controls
+ * 36px in from the panel's edge and left them only 10px below it — reading as
+ * a group drifting towards the centre, half over the panel's own top border.
+ * The geometry is now derived from the frame instead of chosen: see
+ * `--codex-ctrl-inset` and `--codex-ctrl-inset-block` in the theme block.
+ */
+.codex-ctrl-row {
+  position: absolute;
+  inset: 0 0 auto 0;
+  z-index: 30;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding-block-start: var(--codex-ctrl-inset-block);
+  padding-inline: var(--codex-ctrl-inset) calc(var(--codex-ctrl-inset) + var(--codex-scrollbar));
+  /* The row spans the full width but is mostly empty air over the article —
+     only the controls themselves should swallow a click. */
+  pointer-events: none;
+}
+.codex-ctrl-row > * {
+  pointer-events: auto;
+}
+
+.codex-ctrl {
+  display: inline-grid;
+  grid-auto-flow: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  min-inline-size: var(--codex-ctrl-size);
+  block-size: var(--codex-ctrl-size);
+  padding: 0 0.42rem;
+  border-radius: 3px;
+  font-size: clamp(0.6rem, 0.54rem + 0.2vw, 0.72rem);
+  line-height: 1;
+}
+
+/* The same short-viewport band. The reading pane is ~300 px tall there, so the
+   plate hands back everything that is not the name. */
+@media (max-height: 36rem) {
+  .codex-plate-kicker,
+  .codex-plate-rule {
+    display: none;
+  }
+  .codex-plate {
+    margin-bottom: 0.5rem;
+  }
+  :root {
+    --codex-ctrl-size: 1.6rem;
+  }
+}
+
+/* ============================================================
+   Page-turn 3D animations (from Copendum, tuned)
+   ============================================================ */
+@keyframes page-turn-open {
+  0% {
+    transform: rotateY(-90deg) scale(0.92);
+    opacity: 0;
+    filter: blur(6px);
+  }
+  60% {
+    transform: rotateY(-8deg) scale(1.015);
+    opacity: 1;
+    filter: blur(0);
+  }
+  100% {
+    transform: rotateY(0deg) scale(1);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+.page-turn-open {
+  transform-origin: left center;
+  animation: page-turn-open 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
+  backface-visibility: hidden;
+}
+
+@keyframes page-turn-close {
+  0% {
+    transform: rotateY(0deg) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: rotateY(84deg) scale(0.92);
+    opacity: 0;
+  }
+}
+/* 0.32s, and it must stay in step with CLOSE_MS in CodexShell.tsx — the panel
+   turn and the backdrop fade are one movement now, not a turn followed by a
+   fade. Shutting a book should not take longer than opening one. */
+.page-turn-close {
+  transform-origin: right center;
+  animation: page-turn-close 0.32s cubic-bezier(0.55, 0, 1, 0.45) both;
+}
+
+/* Leaf-through effect for tab switches */
+@keyframes leaf-in {
+  0% {
+    transform: perspective(1400px) rotateY(-14deg) translateX(24px);
+    opacity: 0;
+    filter: blur(3px);
+  }
+  100% {
+    transform: perspective(1400px) rotateY(0) translateX(0);
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+.leaf-in {
+  transform-origin: left center;
+  animation: leaf-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}

@@ -95,9 +95,10 @@ export function InlineAudioPlayer({ src, label, kind }: Props) {
   const { status, currentTime, toggle } = useAudioPlayback(src, kind);
   const playing = status === "playing";
   const error = status === "error";
+  const format = formatWord(label, src);
 
   return (
-    <span className="mx-0.5 inline-flex items-center gap-1 rounded border border-gold-600/50 bg-paper-100/80 px-1.5 py-0.5 align-baseline leading-none">
+    <span className="audio-pill">
       <button
         onClick={toggle}
         disabled={error}
@@ -106,7 +107,11 @@ export function InlineAudioPlayer({ src, label, kind }: Props) {
       >
         {playing ? <PauseIcon small /> : <PlayIcon small />}
       </button>
-      <span className="font-heading text-[0.85em] tracking-wide text-ink-800">{label}</span>
+      {format ? (
+        <FormatIcon kind={kind} format={format} />
+      ) : (
+        <span className="font-heading text-[0.85em] tracking-wide text-ink-800">{label}</span>
+      )}
       {playing && (
         <span className="font-body text-[0.72em] tabular-nums text-sepia-600">{formatTime(currentTime)}</span>
       )}
@@ -150,15 +155,17 @@ export function AudioDownload({ src, label, kind }: { src: string; label: string
 /** The inline pill for the same case. */
 export function InlineAudioDownload({ src, label }: { src: string; label: string }) {
   const { t } = useI18n();
+  const format = formatWord(label, src);
   return (
-    <span
-      className="mx-0.5 inline-flex items-center gap-1 rounded border border-gold-600/40 bg-paper-100/70 px-1.5 py-0.5 align-baseline leading-none"
-      title={t("audio.noCodec")}
-    >
+    <span className="audio-pill audio-pill--mute" title={t("audio.noCodec")}>
       <span aria-hidden className="text-[0.85em] text-sepia-500">
         ♪
       </span>
-      <span className="font-heading text-[0.85em] tracking-wide text-ink-800">{label}</span>
+      {format ? (
+        <FormatIcon kind="native" format={format} />
+      ) : (
+        <span className="font-heading text-[0.85em] tracking-wide text-ink-800">{label}</span>
+      )}
       <DownloadLink
         src={src}
         label={label}
@@ -193,6 +200,49 @@ function DownloadLink({
     >
       {children}
     </a>
+  );
+}
+
+/**
+ * Formats the archive links a recording *as*, rather than by name: the legacy
+ * tables are full of `[MIDI](…)` and `[MP3](…)`, so the pill's label is the
+ * word "MIDI" — set in small caps between a play triangle and a download
+ * arrow, three pieces of chrome around one redundant word, inside a table cell
+ * that has to fit on a phone. Where the label says nothing the icon does not,
+ * the word is drawn as its sign and moves into the accessible name.
+ *
+ * A label that carries real information ("Tico-Tico, Duo Hill/Wilczynski")
+ * is never replaced.
+ */
+const FORMAT_WORD = /^(midi?|rmi|kar|mp3|mp4|m4a|m4b|aac|wma|wav|wave|ogg|oga|opus|flac|aiff?|ra|ram|rm|au|snd|audio)$/i;
+
+function formatWord(label: string, src: string): string | null {
+  const word = label.trim().replace(/^[[({]+|[\])}.]+$/g, "");
+  if (!word) return null;
+  const extension = src.split(/[?#]/, 1)[0].split(".").pop() ?? "";
+  if (FORMAT_WORD.test(word) || word.toLowerCase() === extension.toLowerCase()) {
+    return word.toUpperCase();
+  }
+  return null;
+}
+
+/** Two signs, not eight: what a reader needs from this glyph is "synthesised
+ *  or recorded", and the exact container is in the tooltip and the accessible
+ *  name where it belongs. */
+function FormatIcon({ kind, format }: { kind: AudioKind; format: string }) {
+  const shared = { viewBox: "0 0 24 24", className: "audio-format-icon", role: "img" as const };
+  return kind === "midi" ? (
+    <svg {...shared} fill="none" stroke="currentColor" strokeWidth="2">
+      <title>{format}</title>
+      <rect x="3" y="5.5" width="18" height="13" rx="1.6" />
+      <path d="M8.5 5.5v7.5M15.5 5.5v7.5" />
+    </svg>
+  ) : (
+    <svg {...shared} fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round">
+      <title>{format}</title>
+      <path d="M4 9.5h3.5L12 5.5v13L7.5 14.5H4z" fill="currentColor" />
+      <path d="M16 9a4.5 4.5 0 0 1 0 6" strokeLinecap="round" />
+    </svg>
   );
 }
 

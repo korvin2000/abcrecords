@@ -117,6 +117,7 @@ export const it: Record<MsgKey, Message> = {
   "viewer.rotateRight": "Ruota a destra",
   "viewer.fit": "Adatta allo schermo",
   "viewer.actualSize": "Dimensioni reali",
+  "viewer.fitWidth": "Adatta alla larghezza",
   "viewer.download": "Scarica",
   "viewer.close": "Chiudi",
   "viewer.error": "Impossibile caricare l'immagine",

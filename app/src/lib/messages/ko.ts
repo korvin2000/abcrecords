@@ -115,6 +115,7 @@ export const ko: Record<MsgKey, Message> = {
   "viewer.rotateRight": "오른쪽으로 회전",
   "viewer.fit": "화면에 맞추기",
   "viewer.actualSize": "실제 크기",
+  "viewer.fitWidth": "너비에 맞춤",
   "viewer.download": "다운로드",
   "viewer.close": "닫기",
   "viewer.error": "이미지를 불러올 수 없습니다",

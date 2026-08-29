@@ -1,0 +1,47 @@
+/* ============================================================
+   The fixed top bar (App.tsx header)
+   Geometry only — the state colours stay on the elements, because they are
+   conditional. Every number comes from the `--topbar-*` family in `@theme`.
+   ============================================================ */
+.topbar {
+  gap: var(--topbar-gap);
+  padding-block: var(--topbar-pad-block);
+  padding-inline: max(var(--spacing-gutter), env(safe-area-inset-left))
+    max(var(--spacing-gutter), env(safe-area-inset-right));
+}
+.topbar-group {
+  display: flex;
+  align-items: center;
+  gap: var(--topbar-gap);
+}
+.topbar-mark {
+  font-size: calc(var(--topbar-text) * 1.35);
+}
+.topbar-brand {
+  font-size: calc(var(--topbar-text) * 1.18);
+}
+/* Shared by the three toggles and by the language trigger, so the row keeps
+   one height whatever is in it. */
+.topbar-ctrl {
+  block-size: var(--topbar-ctrl);
+  font-size: var(--topbar-icon);
+  line-height: 1;
+}
+.topbar-ctrl--square {
+  inline-size: var(--topbar-ctrl);
+}
+.topbar-ctrl--wide {
+  padding-inline: calc(var(--topbar-ctrl) * 0.24);
+  gap: calc(var(--topbar-ctrl) * 0.16);
+}
+.topbar-flag {
+  block-size: calc(var(--topbar-ctrl) * 0.39);
+  inline-size: calc(var(--topbar-ctrl) * 0.6);
+}
+.topbar-code {
+  font-size: var(--topbar-text);
+}
+.topbar-chevron {
+  block-size: calc(var(--topbar-ctrl) * 0.17);
+  inline-size: calc(var(--topbar-ctrl) * 0.28);
+}

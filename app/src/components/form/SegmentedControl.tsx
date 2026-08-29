@@ -4,6 +4,10 @@ import { audio } from "@/lib/audio";
 export interface Segment<T extends string> {
   readonly value: T;
   readonly label: string;
+  /** Drawn instead of the label, which then becomes the accessible name.
+   *  For choices whose words are long and whose signs are universal — the
+   *  three genders spell out to 24 characters and draw in three. */
+  readonly icon?: string;
 }
 
 /**
@@ -40,9 +44,11 @@ export function SegmentedControl<T extends string>({
               onChange(segment.value);
             }}
             onMouseEnter={() => audio.hover()}
-            className={clsx("form-segment", active && "form-segment--on")}
+            aria-label={segment.icon ? segment.label : undefined}
+            title={segment.icon ? segment.label : undefined}
+            className={clsx("form-segment", segment.icon && "form-segment--icon", active && "form-segment--on")}
           >
-            {segment.label}
+            {segment.icon ? <span aria-hidden>{segment.icon}</span> : segment.label}
           </button>
         );
       })}

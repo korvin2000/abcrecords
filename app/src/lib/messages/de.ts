@@ -117,6 +117,7 @@ export const de: Record<MsgKey, Message> = {
   "viewer.rotateRight": "Nach rechts drehen",
   "viewer.fit": "An Bildschirm anpassen",
   "viewer.actualSize": "Originalgröße",
+  "viewer.fitWidth": "An Breite anpassen",
   "viewer.download": "Herunterladen",
   "viewer.close": "Schließen",
   "viewer.error": "Das Bild konnte nicht geladen werden",

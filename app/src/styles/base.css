@@ -1,0 +1,87 @@
+/* ============================================================
+   Base
+   ============================================================ */
+:root {
+  color-scheme: light;
+}
+
+html {
+  background-color: #f4ecd6;
+  scroll-behavior: smooth;
+}
+
+/* `body` must stay transparent. The page's backdrop layers (`Background`,
+   `MusicalDrift`) sit at `z-index: -10`, and negative stacking contexts paint
+   *before* the in-flow backgrounds of the root's descendants — so an opaque
+   colour here covers them completely. `html` already carries the flat paper
+   colour, which is what fills the canvas (and the overscroll gutter). */
+body {
+  margin: 0;
+  color: var(--color-ink-900);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: rgba(212, 175, 55, 0.4);
+  color: #1a0f08;
+}
+
+/* Custom scrollbar — dark track, gold thumb (design brief) */
+::-webkit-scrollbar {
+  width: 11px;
+  height: 11px;
+}
+::-webkit-scrollbar-track {
+  background: #e2d1a8;
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #b8902a, #8a6a1f);
+  border-radius: 99px;
+  border: 2px solid #e2d1a8;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #d4af37, #b8902a);
+}
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #b8902a #e2d1a8;
+}
+
+/* ============================================================
+   Utilities
+   ============================================================ */
+@layer utilities {
+  .font-display { font-family: var(--font-display); }
+  .font-heading { font-family: var(--font-heading); }
+  .font-body { font-family: var(--font-body); }
+
+  .preserve-3d { transform-style: preserve-3d; }
+
+  /* Aged-paper page background */
+  .bg-manuscript {
+    background:
+      radial-gradient(1100px 600px at 50% -8%, rgba(212, 175, 55, 0.13), transparent 60%),
+      radial-gradient(900px 700px at 100% 100%, rgba(139, 38, 53, 0.06), transparent 55%),
+      radial-gradient(800px 600px at 0% 100%, rgba(107, 74, 42, 0.09), transparent 55%),
+      linear-gradient(180deg, #f6efdb 0%, #f4ecd6 45%, #ecdfc0 100%);
+  }
+
+  /* Fine paper grain (SVG turbulence, data URI — zero requests) */
+  .bg-grain {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  }
+
+  /* Burgundy title lettering — engraved, not glowing */
+  .burgundy-gradient-text {
+    background: linear-gradient(180deg, #8b2635 0%, #7a1f2b 45%, #5e1220 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: none;
+  }
+
+  .drop-glow-gold { filter: drop-shadow(0 1px 4px rgba(138, 106, 31, 0.35)); }
+}

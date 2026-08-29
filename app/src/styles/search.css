@@ -1,0 +1,218 @@
+/* ============================================================
+   Search refinement panel (components/search/AdvancedSearchPanel)
+   A parchment leaf that slides out from under the search bar: the codex's
+   double frame, a gold-lit heading rule, and a scroll of its own on short
+   screens so it never pushes the grid around.
+
+   NB: `position` is owned here (the heading rules are ::before/::after), so
+   this element must not also carry a Tailwind position utility.
+   ============================================================ */
+.search-panel {
+  position: relative;
+  max-height: min(76svh, 40rem);
+  overflow-y: auto;
+  padding: clamp(0.5rem, 0.25rem + 1.3vw, 1.15rem) clamp(0.5rem, 0.2rem + 1.5vw, 1.35rem)
+    clamp(0.45rem, 0.25rem + 1.1vw, 1rem);
+  border: 1.5px solid rgba(184, 144, 42, 0.7);
+  outline: 1px solid rgba(84, 56, 30, 0.35);
+  outline-offset: -5px;
+  border-radius: 10px;
+  background:
+    radial-gradient(600px 200px at 50% 0%, rgba(212, 175, 55, 0.14), transparent 70%),
+    linear-gradient(180deg, rgba(250, 245, 230, 0.98), rgba(240, 230, 203, 0.97));
+  box-shadow:
+    inset 0 0 30px rgba(138, 106, 31, 0.1),
+    0 14px 40px rgba(51, 34, 15, 0.28);
+  backdrop-filter: blur(3px);
+}
+
+.search-panel-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  margin: 0 0 clamp(0.4rem, 0.25rem + 0.55vw, 0.95rem);
+  padding-bottom: 0.28rem;
+  border-bottom: 1px solid rgba(184, 144, 42, 0.4);
+  color: var(--color-sepia-600);
+  font-family: var(--font-heading);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+.search-panel-title > span {
+  color: var(--color-gold-600);
+}
+
+/* The panel's padding is fluid above; nothing left to override. */
+
+/* ============================================================
+   Facet chips (components/form/Chip) — the quick facets under the search box
+   and the craft selector inside the panel are the same control.
+   ============================================================ */
+
+/* Five Russian craft labels wrapped onto three rows at 320 px, which is 60 px
+   of chrome above the catalogue for five words. Fluid padding and lettering
+   put them back on two. */
+.chip {
+  padding: 0.2rem clamp(0.45rem, 0.2rem + 0.8vw, 0.75rem);
+  font-size: clamp(0.58rem, 0.53rem + 0.16vw, 0.7rem);
+}
+.chip--sm {
+  padding: 0.1rem clamp(0.4rem, 0.2rem + 0.6vw, 0.625rem);
+  font-size: clamp(0.55rem, 0.5rem + 0.15vw, 0.64rem);
+}
+
+/* ============================================================
+   Country facet — a row of flags (components/search/CountryFilter)
+   ============================================================ */
+
+/* The flags shrink with the viewport, so the same eighteen nations take two
+   rows on a phone instead of three. */
+.country-flag {
+  block-size: clamp(1.15rem, 1rem + 0.45vw, 1.45rem);
+  inline-size: clamp(1.7rem, 1.45rem + 0.7vw, 2.15rem);
+}
+
+/*
+ * Expanded, the row was every nation in the catalogue at once — six rows of
+ * flags on a phone, taller than the search box it belongs to, and with no way
+ * back: the counter button only ever expanded. It is a toggle now, and the
+ * open state is a bounded, scrollable panel rather than an unbounded block.
+ */
+.country-row--open {
+  max-block-size: clamp(5rem, 2rem + 16svh, 11rem);
+  overflow-y: auto;
+  padding-block: 0.25rem;
+  border-block: 1px solid rgba(184, 144, 42, 0.28);
+}
+
+/* ============================================================
+   Form atoms (components/form/) — ink on paper, gold hairlines.
+   Shared by the search refinement panel and anything built after it.
+   ============================================================ */
+.form-ink {
+  width: 100%;
+  padding: 0.2rem 0.45rem;
+  border: 1px solid rgba(184, 144, 42, 0.45);
+  border-radius: 3px;
+  color: var(--color-ink-900);
+  background: rgba(250, 245, 230, 0.75);
+  font-family: var(--font-body);
+  /* 16 px exactly, and not a hair under: iOS Safari zooms the whole page when a
+     control smaller than that takes focus, and there is no way back out of that
+     zoom except pinching. The main search box was already 18 px; these seven
+     were 15.2 px. */
+  font-size: 1rem;
+  /* The type cannot get smaller (see above), so the box gets shorter: leading
+     and padding are the only two dials left, and together they take ~4 px off
+     every one of the panel's seven controls. */
+  line-height: 1.2;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+.form-ink::placeholder {
+  color: rgba(138, 111, 77, 0.6);
+  font-style: italic;
+}
+.form-ink:hover {
+  border-color: rgba(184, 144, 42, 0.75);
+}
+.form-ink:focus {
+  outline: none;
+  border-color: var(--color-gold-600);
+  background: rgba(251, 243, 210, 0.9);
+  box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.18);
+}
+
+/* Native select: only the closed control is restyled; the open list stays the
+   platform's, which is the right trade on a phone and with a screen reader. */
+.form-select-shell {
+  position: relative;
+  display: block;
+}
+.form-select {
+  appearance: none;
+  padding-right: 1.9rem;
+  cursor: pointer;
+}
+.form-select-chevron {
+  position: absolute;
+  top: 50%;
+  right: 0.6rem;
+  width: 0.6rem;
+  height: 0.4rem;
+  transform: translateY(-50%);
+  color: var(--color-gold-700);
+  pointer-events: none;
+}
+
+/* Segmented one-of-few strip.
+
+   The strip sits in a `flex flex-col` field, where a child stretches to the
+   full column width by default — `inline-flex` does not stop that. It would
+   then be wider than its own buttons, so the pill's rounded right end floated
+   away from the last segment while the segment itself ended square: the exact
+   left/right asymmetry the plaque is meant not to have. It hugs its buttons
+   instead, and the end segments carry the pill's radius themselves, so the
+   selected fill is rounded at whichever end it sits. */
+.form-segments {
+  display: inline-flex;
+  align-self: flex-start;
+  max-width: 100%;
+  overflow: hidden;
+  border: 1px solid rgba(184, 144, 42, 0.45);
+  border-radius: 999px;
+  background: rgba(250, 245, 230, 0.7);
+}
+.form-segment {
+  padding: 0.24rem clamp(0.45rem, 0.2rem + 0.85vw, 0.8rem);
+  border: none;
+  border-left: 1px solid rgba(184, 144, 42, 0.28);
+  color: var(--color-sepia-600);
+  background: transparent;
+  font-family: var(--font-heading);
+  font-size: clamp(0.56rem, 0.51rem + 0.16vw, 0.66rem);
+  font-weight: 700;
+  letter-spacing: clamp(0.05em, 0.02em + 0.1vw, 0.12em);
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 0.2s, background 0.2s;
+}
+/* The extra padding is the curve's own room: without it the first and last
+   labels sit against the bend instead of inside it. */
+.form-segment:first-child {
+  padding-left: clamp(0.6rem, 0.3rem + 1vw, 1rem);
+  border-left: none;
+  border-radius: 999px 0 0 999px;
+}
+.form-segment:last-child {
+  padding-right: clamp(0.6rem, 0.3rem + 1vw, 1rem);
+  border-radius: 0 999px 999px 0;
+}
+/* A sign, not a word: squared off so the three of them read as one plaque of
+   equal cells, and drawn from the symbol stack because ⚥ (U+26A5) is missing
+   from the text faces. Slightly larger than the labels it replaces — a glyph
+   at caption size is a smudge. */
+.form-segment--icon {
+  min-inline-size: 1.6rem;
+  padding-inline: 0.3rem;
+  font-family: var(--font-music);
+  font-size: 0.9rem;
+  letter-spacing: 0;
+}
+.form-segment--icon:first-child { padding-left: 0.45rem; }
+.form-segment--icon:last-child { padding-right: 0.45rem; }
+.form-segment:hover {
+  color: var(--color-ink-800);
+  background: rgba(212, 175, 55, 0.14);
+}
+.form-segment--on,
+.form-segment--on:hover {
+  color: var(--color-paper-50);
+  background: linear-gradient(180deg, var(--color-burgundy-500), var(--color-burgundy-700));
+}
+.form-segment:focus-visible {
+  outline: 2px solid var(--color-gold-600);
+  outline-offset: -2px;
+}

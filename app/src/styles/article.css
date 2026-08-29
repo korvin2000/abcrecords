@@ -1,0 +1,318 @@
+/* ============================================================
+   Article (BioMD) typography
+   ============================================================ */
+/*
+ * `.bio-measure` is the reading column and the **query container** for
+ * everything in it. Every decision inside an article — "is there room beside
+ * this paragraph", "how big should this type be" — asks the column, not the
+ * window: the column is 332 px at a 390 px viewport and 768 px at every
+ * viewport from ~1150 px up, so a viewport query was answering a different
+ * question than the one being asked. The container sits on the wrapper rather
+ * than on `.bio-article` itself, because an element cannot read its own `cqi`.
+ * See `.bio-fig--*`, `.bio-images--*` and `.bio-cols-*` below.
+ */
+.bio-measure {
+  container: bio / inline-size;
+  max-inline-size: 48rem;
+  margin-inline: auto;
+}
+
+/*
+ * Two variables carry the article's whole vertical economy: the leading and
+ * the gap between block constructs. A phone column gets the tight pair, a
+ * full-width one the roomy pair, and every rule below spends them — so
+ * changing how dense an article reads is two numbers, not twenty.
+ *
+ * `overflow-wrap` is not cosmetic: an unbroken legacy URL or a long compound
+ * name in a 332 px column had nothing to break on and simply ran out of the
+ * text box.
+ */
+.bio-article {
+  --bio-lead: 1.6;
+  --bio-block: 1.05em;
+  --bio-cell: 0.2em 0.4em;
+  /* Letter-spacing on the uppercase headings. Tracking is width, and in a
+     304 px column an uppercase title spends more of it on the gaps between the
+     letters than a narrow column can afford — halving it is what turns a
+     three-line section heading back into two. */
+  --bio-track: 0.06em;
+  --bio-track-title: 0.085em;
+  font-size: clamp(0.85rem, 0.73rem + 0.82cqi, 1.13rem);
+  line-height: var(--bio-lead);
+  color: var(--color-ink-900);
+  overflow-wrap: break-word;
+}
+@container bio (min-width: 34rem) {
+  .bio-article {
+    --bio-lead: 1.75;
+    --bio-block: 1.6em;
+    --bio-cell: 0.4em 0.6em;
+    --bio-track: 0.12em;
+    --bio-track-title: 0.14em;
+  }
+}
+.bio-article p {
+  margin: 0 0 0.4em;
+}
+.bio-article h2,
+.bio-article h3 {
+  font-family: var(--font-heading);
+  text-transform: uppercase;
+  letter-spacing: var(--bio-track);
+  color: var(--color-burgundy-600);
+  border-bottom: 1px solid rgba(184, 144, 42, 0.45);
+  padding-bottom: 0.25rem;
+  margin: var(--bio-block) 0 0.5em;
+}
+/* `cqi`, not `vw`, like every other size in the article: a heading in a 304 px
+   column was being sized by a 1080 px window and came out 1.3x the body text,
+   uppercase and widely tracked, which is how a section title spent three lines.
+   Reading the column instead keeps the ratio to the body text roughly constant
+   (~1.18x for h2, ~1.06x for h3) at every width. */
+.bio-article h2 { font-size: clamp(1rem, 0.88rem + 0.85cqi, 1.4rem); }
+.bio-article h3 { font-size: clamp(0.92rem, 0.82rem + 0.72cqi, 1.2rem); }
+
+/* The article's own title line(s), printed only when the codex plate above is
+   naming something else (lib/biomd/headings.ts). It is a title, not a section
+   heading: centered, at the plate's scale, and without the rule that separates
+   one section from the next. */
+.bio-titles {
+  margin: 0 0 1.4rem;
+}
+.bio-article .bio-title {
+  margin: 0;
+  padding: 0;
+  border: none;
+  font-size: clamp(1.1rem, 0.88rem + 2.3cqi, 1.95rem);
+  letter-spacing: var(--bio-track-title);
+  text-align: center;
+  text-wrap: balance;
+}
+.bio-article .bio-title--second {
+  margin-top: 0.15em;
+  font-size: clamp(0.98rem, 0.8rem + 1.75cqi, 1.55rem);
+  color: var(--color-burgundy-700);
+}
+
+/* Spec 6.2: a following heading or separator ends an earlier left/right image
+   wrap. Without this a heading keeps its full-width box but its LINE boxes are
+   squeezed into the gap beside the float, so the title renders as a narrow
+   column next to the picture instead of starting below it. The other block
+   constructs named by 6.2 (centered/full figure, image group, columns, nav,
+   align) clear in their own rules / component classes. */
+.bio-article h1,
+.bio-article h2,
+.bio-article h3,
+.bio-article h4,
+.bio-article h5,
+.bio-article h6,
+.bio-article hr {
+  clear: both;
+}
+
+/* `.bio-jump` is an in-document jump (spec 19). It is a <button>, because the
+   hash is the router — see lib/biomd/anchors.ts — so it has to be told to look
+   and sit exactly like the prose link it stands for. */
+.bio-article a,
+.bio-article .bio-jump {
+  color: var(--color-burgundy-600);
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 3px;
+  transition: color 0.2s;
+}
+.bio-article a:hover,
+.bio-article .bio-jump:hover {
+  color: var(--color-burgundy-400);
+}
+.bio-article .bio-jump {
+  font: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  /* A button's own defaults for these two differ per engine; a jump has to read
+     as running text, and a long label inside a ::: nav pill has to wrap. */
+  text-align: inherit;
+  white-space: normal;
+  cursor: pointer;
+}
+
+.bio-article blockquote {
+  border-left: 3px solid #d4af37;
+  margin: calc(var(--bio-block) * 0.75) 0;
+  padding: 0.2em 0 0.2em 1.1em;
+  font-style: italic;
+  color: var(--color-sepia-700);
+  font-size: 1.1em;
+}
+
+/* Verse, song text, programme lines (spec 3.9) — a fence with no language.
+   Read as a quotation's quieter cousin: the same gold rule, one weight lighter,
+   italic serif instead of the browser's monospace, and lines that wrap instead
+   of running off the page. A stanza is a paragraph; `<br>` holds the lineation.
+   Consecutive fences are the stanzas of one poem, so they sit closer together
+   than a fence sits to the prose around it. */
+.bio-article .bio-verse {
+  clear: both;
+  margin: calc(var(--bio-block) * 0.75) 0;
+  padding: 0.1em 0 0.1em 1.1em;
+  border-left: 2px solid rgba(184, 144, 42, 0.45);
+  font-family: var(--font-body);
+  font-style: italic;
+  color: var(--color-sepia-700);
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+.bio-article .bio-verse + .bio-verse {
+  margin-top: -0.5em;
+}
+.bio-article .bio-verse p {
+  margin: 0 0 0.6em;
+}
+.bio-article .bio-verse p:last-child {
+  margin-bottom: 0;
+}
+
+/* A fence that names a language really is code: keep it monospaced and let it
+   scroll inside its own box — never the page (same contract as a wide table,
+   spec 3.8). */
+.bio-article pre {
+  clear: both;
+  overflow-x: auto;
+  margin: calc(var(--bio-block) * 0.75) 0;
+  padding: 0.7em 0.9em;
+  border-left: 2px solid rgba(184, 144, 42, 0.45);
+  background: rgba(226, 209, 168, 0.35);
+  font-size: 0.82em;
+  line-height: 1.5;
+}
+.bio-article code {
+  font-size: 0.86em;
+  background: rgba(226, 209, 168, 0.45);
+  padding: 0.05em 0.3em;
+  border-radius: 2px;
+}
+.bio-article pre code {
+  font-size: inherit;
+  background: none;
+  padding: 0;
+}
+
+/* An in-document anchor (::: anchor, spec 19): a named place, not content. It
+   holds no box of its own; the offset keeps the line it introduces clear of the
+   codex controls floating over the top of the reading pane. */
+.bio-article .bio-anchor {
+  display: block;
+  height: 0;
+}
+.bio-article .bio-anchor,
+.bio-article .bio-anchor-target {
+  scroll-margin-top: 4rem;
+}
+
+.bio-article mark {
+  background: linear-gradient(180deg, transparent 35%, rgba(212, 175, 55, 0.45) 35%, rgba(212, 175, 55, 0.45) 92%, transparent 92%);
+  color: inherit;
+  padding: 0 0.15em;
+}
+
+.bio-article hr {
+  border: none;
+  height: 1px;
+  margin: var(--bio-block) auto;
+  max-width: 20rem;
+  background: linear-gradient(90deg, transparent, rgba(184, 144, 42, 0.7), transparent);
+}
+
+/* `width: 100%` meant a table could never be wider than the box that was
+   supposed to scroll it, so a six-column table did not scroll — it squashed,
+   every cell wrapping to three or four lines. `min-width: 100%` keeps a narrow
+   table filling the column; `width: auto` plus a floor under each cell lets a
+   wide one overflow into the scroller that ScrollableTable already provides. */
+.bio-article table {
+  width: auto;
+  min-width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92em;
+  margin: 0.2em 0 var(--bio-block) 0;
+}
+/* Row height is cell padding twice over, so this is where a long table gets
+   its length back on a phone: `--bio-cell` is 0.2em/0.4em in a narrow column
+   and the original 0.4em/0.6em once there is room. The floor under a cell is
+   what lets a wide table overflow into its scroller instead of squashing. */
+.bio-article :is(th, td) {
+  min-width: 5rem;
+  padding: var(--bio-cell);
+}
+.bio-article th {
+  font-family: var(--font-heading);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.82em;
+  color: var(--color-burgundy-700);
+  border-bottom: 1.5px solid rgba(184, 144, 42, 0.6);
+  text-align: left;
+}
+.bio-article td {
+  border-bottom: 1px solid rgba(138, 111, 77, 0.25);
+  vertical-align: top;
+}
+
+/* Tailwind's preflight resets `list-style` to none, which would silently strip
+   the markers off every article list (spec 3.4) — restore them here. `.bio-nav`
+   opts out again with its own rule. */
+.bio-article ol,
+.bio-article ul {
+  padding-left: 1.4em;
+  margin: 0 0 0em;
+  list-style-position: outside;
+}
+.bio-article ul { list-style-type: disc; }
+.bio-article ol { list-style-type: decimal; }
+.bio-article li {
+  margin-bottom: 0.15em;
+}
+.bio-article li::marker {
+  color: var(--color-gold-700);
+  font-weight: 600;
+}
+/* Source-faithful zero-padded ordered markers — `01.`, `02.`, … (spec 3.4).
+   The padding is a marker style, so copy, `start` and screen readers keep the
+   plain numbers (see remarkZeroPaddedLists). */
+.bio-article ol.bio-ol-zero {
+  list-style-type: decimal-leading-zero;
+}
+
+/* Red drop capital for lead paragraphs (design brief) */
+.drop-cap > p:first-of-type::first-letter {
+  font-family: var(--font-display);
+  float: left;
+  font-size: 3.1em;
+  line-height: 0.82;
+  padding: 0.06em 0.12em 0 0;
+  color: var(--color-burgundy-600);
+  font-weight: 700;
+}
+
+/* Lead block — emphasized intro.
+
+   The emphasis is the red drop capital above and nothing else. It deliberately
+   does NOT set a type size: the spec only *permits* larger type ("MAY render it
+   with larger type or a drop capital", Biography-Markup §4), and setting one
+   made the lead's own sentences a different size from the paragraph that
+   follows them, so a `::: lead` acted as a font-size switch in the middle of an
+   article. Inheriting `.bio-article`'s size keeps one measure down the page. */
+.bio-lead {
+  color: var(--color-ink-800);
+}
+
+/* Article & gallery images are framed by the Lifted-Curl effect (`.fx-curl`,
+   defined below); the figure itself now only carries caption styling. */
+.bio-figure figcaption {
+  font-style: italic;
+  font-size: 0.9rem;
+  color: var(--color-sepia-600);
+  text-align: center;
+  margin-top: 0.45rem;
+  line-height: 1.4;
+}

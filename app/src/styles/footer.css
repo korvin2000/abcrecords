@@ -1,0 +1,187 @@
+/* ============================================================
+   Project footer / archival colophon
+   ============================================================ */
+.site-footer-shell {
+  background:
+    radial-gradient(700px 220px at 50% 0%, rgba(212, 175, 55, 0.16), transparent 70%),
+    radial-gradient(420px 240px at 0% 100%, rgba(122, 31, 43, 0.07), transparent 70%),
+    repeating-linear-gradient(
+      96deg,
+      rgba(107, 74, 42, 0.025) 0,
+      rgba(107, 74, 42, 0.025) 1px,
+      transparent 1px,
+      transparent 5px
+    ),
+    linear-gradient(180deg, rgba(250, 245, 230, 0.96), rgba(226, 209, 168, 0.94));
+  border: 1px solid rgba(184, 144, 42, 0.56);
+  box-shadow:
+    inset 0 0 32px rgba(138, 106, 31, 0.08),
+    0 5px 18px rgba(51, 34, 15, 0.13);
+}
+
+.site-footer-shell::before,
+.site-footer-shell::after {
+  content: "";
+  position: absolute;
+  left: clamp(1.1rem, 0.3rem + 3vw, 2.5rem);
+  right: clamp(1.1rem, 0.3rem + 3vw, 2.5rem);
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(184, 144, 42, 0.55), transparent);
+}
+.site-footer-shell::before { top: 0.5rem; }
+.site-footer-shell::after { bottom: 0.5rem; }
+
+/* Six fine rules evoke guitar strings without turning into a literal icon.
+ *
+ * The strings and their fade live on a pseudo-element, not on the box itself,
+ * because a mask brings `mask-clip: border-box` with it — and that clips the
+ * element's whole rendering, descendants included. The rosette below is a 31 px
+ * child of this 14 px band, so masking the parent sliced the clef's head and
+ * tail off. The pseudo-element is masked; the rosette is not. */
+.footer-string-rule {
+  position: relative;
+  height: 14px;
+}
+.footer-string-rule::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 2px,
+    rgba(138, 106, 31, 0.32) 2px,
+    rgba(138, 106, 31, 0.32) 3px
+  );
+  mask-image: linear-gradient(90deg, transparent, black 12%, black 88%, transparent);
+}
+
+.footer-rosette {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  display: grid;
+  width: clamp(1.7rem, 1.4rem + 1vw, 2.25rem);
+  height: clamp(1.7rem, 1.4rem + 1vw, 2.25rem);
+  place-items: center;
+  transform: translate(-50%, -50%);
+  border: 1px solid rgba(184, 144, 42, 0.7);
+  border-radius: 999px;
+  color: var(--color-burgundy-700);
+  background: var(--color-paper-100);
+  box-shadow: 0 0 0 4px rgba(244, 236, 214, 0.88);
+  /* U+1D11E is not in the text fonts; without this the glyph falls through to
+     whatever generic serif the platform substitutes. */
+  font-family: var(--font-music);
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.footer-menu-item {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  /* Nine tiles at a flat 4.25 rem made the colophon 850 px tall on a phone —
+     more than one whole screen of furniture under the catalogue. */
+  min-height: clamp(3rem, 2.4rem + 1.9vw, 4.25rem);
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: clamp(0.85rem, 0.6rem + 0.9vw, 1.2rem) 0.4rem clamp(0.55rem, 0.4rem + 0.6vw, 0.8rem);
+  border: 1px solid rgba(184, 144, 42, 0.48);
+  border-radius: 2px;
+  color: var(--color-ink-800);
+  background: linear-gradient(155deg, rgba(250, 245, 230, 0.82), rgba(236, 223, 192, 0.76));
+  box-shadow: inset 0 0 0 1px rgba(250, 245, 230, 0.6);
+  font-family: var(--font-heading);
+  font-size: clamp(0.64rem, 0.6rem + 0.15vw, 0.72rem);
+  font-weight: 700;
+  letter-spacing: clamp(0.04em, 0.01em + 0.09vw, 0.08em);
+  text-align: center;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    color 0.25s,
+    border-color 0.25s,
+    background 0.25s,
+    box-shadow 0.25s;
+}
+
+.footer-menu-item::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: -30% auto -30% -45%;
+  width: 34%;
+  transform: skewX(-18deg) translateX(-190%);
+  background: linear-gradient(90deg, transparent, rgba(251, 243, 210, 0.85), transparent);
+  transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.footer-menu-item::after {
+  content: "";
+  position: absolute;
+  inset: auto 16% 0.42rem;
+  height: 1px;
+  transform: scaleX(0.35);
+  background: linear-gradient(90deg, transparent, var(--color-gold-600), transparent);
+  transition: transform 0.35s ease;
+}
+
+.footer-menu-item:hover,
+.footer-menu-item:focus-visible {
+  color: var(--color-burgundy-700);
+  border-color: rgba(138, 106, 31, 0.85);
+  background: linear-gradient(155deg, rgba(251, 243, 210, 0.96), rgba(226, 209, 168, 0.82));
+  box-shadow:
+    inset 0 0 0 1px rgba(184, 144, 42, 0.28),
+    0 6px 18px rgba(84, 56, 30, 0.18);
+}
+.footer-menu-item:hover::before,
+.footer-menu-item:focus-visible::before { transform: skewX(-18deg) translateX(520%); }
+.footer-menu-item:hover::after,
+.footer-menu-item:focus-visible::after { transform: scaleX(1); }
+.footer-menu-item:focus-visible {
+  outline: 2px solid var(--color-burgundy-600);
+  outline-offset: 3px;
+}
+
+.footer-menu-numeral {
+  position: absolute;
+  left: 0.35rem;
+  top: 0.25rem;
+  color: rgba(138, 106, 31, 0.78);
+  font-family: var(--font-body);
+  font-size: 0.6rem;
+  font-style: italic;
+  letter-spacing: 0;
+}
+
+.footer-menu-flourish {
+  position: absolute;
+  right: 0.35rem;
+  top: 0.18rem;
+  color: rgba(122, 31, 43, 0.4);
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  transition: color 0.25s, transform 0.35s;
+}
+.footer-menu-item:hover .footer-menu-flourish,
+.footer-menu-item:focus-visible .footer-menu-flourish {
+  color: rgba(122, 31, 43, 0.8);
+  transform: rotate(12deg) scale(1.15);
+}
+
+.footer-colophon {
+  border-top: 1px solid rgba(184, 144, 42, 0.55);
+  border-bottom: 1px solid rgba(184, 144, 42, 0.45);
+  background: linear-gradient(90deg, transparent, rgba(244, 236, 214, 0.72) 12%, rgba(244, 236, 214, 0.72) 88%, transparent);
+}
+
+/* The tile's size and lettering are fluid above; only the inner gutter still
+   needs a narrow-screen value. */
+@media (max-width: 420px) {
+  .footer-menu-item { padding-inline: 0.25rem; }
+}

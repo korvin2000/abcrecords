@@ -254,7 +254,7 @@ viewport listener: one scroll, on one click.
 | **Container queries for the refinement panel's two-column switch** | The panel's width is `min(viewport − gutters, 672 px)`, so viewport and container coincide over the whole range that matters. A container query would be machinery with no behavioural difference. Kept `sm:`. |
 | **New i18n keys for the country facet toggle** | Would mean editing ten dictionaries for one label. Used the existing `facet.country.group` as the accessible name plus `aria-expanded` for state, with a `+33` / `−` glyph carrying it visually. Correct ARIA, zero translation churn. |
 | **Icon-only close button at every width** | Considered for compactness. Kept the word "Close codex" from `lg` up — the label is part of the RPG chrome and there is room for it there. Icon below. |
-| **Splitting `index.css`** | It is now 2232 lines, which is genuinely large. But the single stylesheet with semantic component classes is the project's documented convention and one of its real strengths; splitting it is an architectural change with no responsive benefit, and the task says not to make unrelated cleanup changes. Flagged as future work instead. |
+| ~~**Splitting `index.css`**~~ — **reversed on 2026-08-29, and the reasoning here was wrong.** | I wrote that the single stylesheet was "the project's documented convention". It was not: nothing in `docs/` or `.claude-memory/` required it, and `15-app-critique.md`'s own backlog item 10 had asked for the split. Deferring it was defensible on scope grounds; calling it a convention was not. The sheet is now fourteen files under `src/styles/`, imported in cascade order by `index.css`. |
 | **Modal focus trap / `inert` background** | A real defect (≈40 controls stay tabbable behind an open codex) and flagged by the audit. Rejected for this branch: it is accessibility semantics, not responsive layout, it touches focus management rather than CSS, and mixing it in would make the diff hard to review. Flagged in §11. |
 | **Adding intrinsic `width`/`height` to article images** | Would fix the remaining load-time reflow, but the dimensions are not in the content and cannot be known at render time. This is a content problem (the `pages/` corpus), not a renderer problem. |
 | **The audit's five-band breakpoint scheme** | `RESPONSIVE-RWD-AUDIT.md` §5.2 proposes three width regimes plus a height modifier. Implemented as one height query plus intrinsic sizing instead: the width regimes turned out to be unnecessary once the grid derived its own columns. Fewer special cases, per the task's decision rule. |
@@ -456,7 +456,6 @@ across all four audits).
 | **Modal focus is not trapped; background is not `inert`** | ≈40 controls stay tabbable behind an open codex, and arrow keys turn catalogue pages instead of moving between tabs. Real defect; accessibility semantics rather than responsive layout, so deliberately left to its own change. |
 | **320 × 568 is usable, not comfortable** | 425 px of chrome in a 568 px screen. Below the stated target range; further gain would mean dropping the herald, which is a feature. |
 | **Lazy article images still shift on load** | The corpus carries no intrinsic dimensions, so a shrink-wrapped figure cannot reserve its exact box. A `min-inline-size: min(100%, 6rem)` floor keeps the reflow small. Real fix belongs in the content. |
-| **`index.css` is 2232 lines** | At the size where splitting (tokens / page / codex / article) is worth considering — as separate work, not smuggled into this branch. |
 | **Column count is a single number** | `5` in the `.catalog-grid` formula. If the five-per-row decision is ever revisited, that and the 90 rem page cap are the only two values to change. |
 | **No lint or test script** | Nothing to run in CI beyond `tsc -b` and `vite build`. Worth adding, out of scope here. |
 
@@ -465,17 +464,32 @@ across all four audits).
 ## 12. Token reference
 
 ```css
-/* app/src/index.css — @theme */
+/* app/src/styles/tokens.css — @theme */
 --spacing-stack:   clamp(0.75rem, 0.5rem + 1.2svh, 1.75rem);  /* hero vertical step   */
---spacing-topbar:  clamp(3.6rem,  3.2rem + 1.5svh, 5rem);     /* clears fixed header  */
 --spacing-gutter:  clamp(0.5rem,  0.25rem + 1vw,  1.5rem);    /* page gutter          */
 --card-min:        clamp(8.75rem, 7rem + 4vw,     15rem);     /* narrowest card       */
---codex-ctrl-size: clamp(1.7rem,  1.5rem + 0.8vw, 2.1rem);    /* codex control square */
+
+/* the fixed top bar, and the page clearance derived from it */
+--topbar-ctrl:       clamp(1.75rem, 1.45rem + 0.75vw, 2.6rem);
+--topbar-pad-block:  clamp(0.25rem, 0.15rem + 0.3vw, 0.7rem);
+--topbar-gap:        clamp(0.3rem,  0.18rem + 0.35vw, 0.8rem);
+--topbar-icon:       clamp(0.78rem, 0.66rem + 0.38vw, 1.3rem);
+--topbar-text:       clamp(0.62rem, 0.54rem + 0.26vw, 1rem);
+--topbar-height:     calc(var(--topbar-ctrl) + 2 * var(--topbar-pad-block) + 1px);
+--spacing-topbar:    calc(var(--topbar-height) + var(--spacing-stack));
+
+/* the codex's floating control row */
+--codex-ctrl-size:        clamp(1.7rem,  1.5rem + 0.8vw, 2.1rem);
+--codex-ctrl-inset:       clamp(1.05rem, 0.9rem + 0.6vw, 1.6rem);
+--codex-ctrl-inset-block: clamp(0.75rem, 0.55rem + 0.6svh, 1.05rem);
+--codex-scrollbar:        17px;  /* replaced at start-up by lib/scrollbar.ts */
 
 /* .bio-article — switched once at a 34 rem container */
 --bio-lead:  1.6   → 1.75;    /* leading            */
 --bio-block: 1.05em → 1.6em;  /* block gap          */
 --bio-cell:  0.2em 0.4em → 0.4em 0.6em;  /* table cell padding */
+--bio-track: 0.06em → 0.12em;            /* uppercase heading tracking */
+--bio-track-title: 0.085em → 0.14em;
 ```
 
 Page band `min(100%, 90rem)`. Codex panel `max-w-[84rem]`, `max-h-[94dvh]`. Reading measure
@@ -486,3 +500,310 @@ Float threshold 28 rem of column. Short-viewport band `max-height: 36rem`.
 
 *Summary report published as an artifact:*
 <https://claude.ai/code/artifact/73b8ab21-8691-4049-82e3-613daefbd346>
+
+---
+
+# Round 2 — fine tuning (2026-08-29)
+
+Ten defects and refinements reported after reading the first pass on real screens.
+Everything below was again measured in the running app at emulated viewports, with DOM
+geometry treated as authoritative.
+
+## 13. What was wrong, and what was done
+
+### 13.1 The print frame was drawn around the caption, not around the picture 🔴
+
+*Reported with three screenshots (`images/abiton_page_image_artifact_01.png`,
+`…barbosa_lima…_02.png`, `…albeniz…_03.png`), each with the artefact ringed in red.*
+
+A regression from pass 1, and the diagnosis is a two-step one. `.bio-figure` shrink-wraps
+(`inline-size: fit-content`) — but its content is the picture **and the caption**, so a
+caption longer than a small scan makes the figure wider than the photograph. Pass 1 then
+changed `.fx-curl .inner img` from `width: 100%` to `max-width: 100%`, which was right (it
+stopped 150 px scans being blown up to the column) and which is what made the mismatch
+visible: the frame — a `display: block` span — still filled the figure, so its drop shadow
+and its two curled-corner shadows were painted against empty paper beside the print.
+
+Measured on `abiton`: figure 160 px, frame 160 px, picture **150 px**. On `barbosa_lima`:
+figure 288, picture 125.
+
+Fixed by shrink-wrapping the frame too, scoped to the article so the gallery's deliberately
+uniform `w-full` crops keep filling their cells:
+
+```css
+.bio-article .fx-curl { inline-size: fit-content; max-inline-size: 100%; margin-inline: auto; }
+```
+
+Verified across the three reported pages: 13 figures, frame width equal to picture width to
+within a pixel in every one. The picture now centres under a caption that is allowed to be
+wider — which is the right relationship, and better than forcing a 70-character caption
+into a 125 px column.
+
+### 13.2 The codex controls sat towards the middle, and on the scrollbar 🟠
+
+The row was `inset-x-0 top-0 px-9 pt-2.5`: 36 px in from the panel edge and 10 px below it.
+You supplied a "should be" mock-up but told me — correctly — not to take it literally, so
+the geometry is derived from the panel instead of matched to the image:
+
+| | derivation | result |
+|---|---|---|
+| leading inset | a corner gutter that grows with the panel | `clamp(1.05rem, 0.9rem + 0.6vw, 1.6rem)` → 17 px phone, 26 px desktop |
+| trailing inset | the same, **plus the scrollbar track** | leading + `--codex-scrollbar` |
+| top | the same gutter plus an optical correction — a solid dark button crowds a hairline border in a way the reading pane's transparent edge does not — given back on a short viewport | `clamp(0.75rem, 0.55rem + 0.6svh, 1.05rem)` |
+
+Two intermediate values were rejected in front of you: 11 px (flush with the reading pane —
+"pressed against the edges") and the original 36 px.
+
+**The scrollbar had to be measured, not assumed.** `.codex-scroll` sets both
+`::-webkit-scrollbar { width: 12px }` and the standard `scrollbar-width`/`scrollbar-color`,
+and in Chromium the standard properties *disable* the legacy pseudo-element — so the track
+was never 12 px, it was the platform's 15. It also is not a constant: 15 in Chromium, 17 in
+Firefox on Windows, **0** where scrollbars overlay (iOS, Android, macOS). `lib/scrollbar.ts`
+measures a probe styled exactly like the pane, once at start-up, and publishes
+`--codex-scrollbar`; the CSS keeps 17 px as the fallback so a failure errs towards *clear of
+the track*. Confirmed live: 15 px on desktop Chromium, 0 under device emulation (where the
+row then becomes symmetrical, which is correct).
+
+Checked at 320 / 360 / 390 / 768 / 844×390 / 1024 / 1920 / 2560 / 3840: the buttons never
+overlap each other, never overlap the track (9 px of daylight at 1024), and the language
+menu still opens from inside the row despite its `pointer-events: none` (the row is mostly
+empty air over the article; only the controls take a click).
+
+### 13.3 Two photographs became two rows far too early 🟠
+
+"About 1080 pixels width" is a phone panel, not a window: 1080 device pixels at DPR 3 is a
+**360 CSS px** viewport, whose reading column measures 304 px — under the 24 rem (384 px)
+container query that switched `::: images` to two tracks. So a pair of 210 px scans that
+would sit side by side at 148 px each was stacked into two full-width prints, one screen
+each.
+
+Replaced the three declared thresholds (24 / 34 / 44 rem) with the formula the catalogue
+grid already uses — a ceiling from the declared `columns: N`, a floor from what a print may
+shrink to, and the track decides everything between:
+
+```css
+grid-template-columns: repeat(auto-fill, minmax(
+  max((100% - (var(--bio-images-n) - 1) * var(--bio-images-gap)) / var(--bio-images-n),
+      min(9rem, 100%)), 1fr));
+```
+
+Two prints now stay a row down to ~296 px of column, and 4 → 3 → 2 → 1 is continuous rather
+than three steps. Verified on `alfonso` at 360 px: two 148 px prints on one row.
+
+`::: columns` keeps container queries — its `--divided` rules address cells by `nth-child`
+and therefore have to know the count — but the thresholds move to one ~9 rem column each
+(30/40/50 → **18/28/38 rem**). Two consequences: the only shape in the corpus (153 blocks,
+every one a two-cell record row of a title and a year or a photograph) stays a row on a
+360 px phone, and `bio-cols-4` becomes reachable **at all** — it was asking for 50 rem of a
+column that `.bio-measure` caps at 48.
+
+### 13.4 The refinement panel: 598 → 426 px on a phone 🟠
+
+All four of your suggestions, plus the general tightening:
+
+| | | |
+|---|---|---|
+| a | gender as signs (`⚥ ♂ ♀`), scope and gender sharing one line | −50 px |
+| b | inputs and selects shorter — leading 1.35 → 1.2, padding 0.26 → 0.2 rem (the **type** cannot shrink: 16 px is the floor below which iOS Safari zooms the page on focus and never zooms back) | 31.5 → 27.2 px each |
+| c | the two year ranges paired on one row; the boxes share the row instead of claiming 4 rem each | −59 px |
+| d | reset and hide smaller and tighter | −20 px |
+| — | field label gap, grid row gap, divider, panel padding and title all tightened | −30 px |
+
+Result at 360×800: **426 px, no inner scrolling**; at 390×844 it ends 21 px above the fold.
+The two-column desktop layout is unchanged — every pairing is a wrapper that dissolves with
+`sm:contents`.
+
+`flex-wrap`, not a two-track grid, for the scope/gender pair: below ~330 px of panel the
+scope strip takes its own line again rather than being clipped by its own `overflow: hidden`.
+
+### 13.5 The top bar was one size at every width 🟠
+
+A 36 px control, a 14 px glyph, a 14 px wordmark and 8 px of padding — 53 px tall on a
+320 px phone and 53 px tall on a 4K display. Now one bounded fluid family
+(`--topbar-*`), and **`--spacing-topbar` is derived from it** rather than guessed:
+
+```css
+--topbar-height:  calc(var(--topbar-ctrl) + 2 * var(--topbar-pad-block) + 1px);
+--spacing-topbar: calc(var(--topbar-height) + var(--spacing-stack));
+```
+
+`pt-topbar` can no longer under- or over-clear a bar whose size it does not know, and the
+short-viewport band's override of it could be deleted — tightening the step now tightens
+the clearance by itself.
+
+| viewport | bar height | control |
+|---|---|---|
+| 360 | 36.8 px | 28 px |
+| 1920 | 54.7 px | 37.6 px |
+| 3840 | 64.8 px | 41.6 px |
+
+### 13.6 The tablature viewer was built at desktop sizes throughout 🔴
+
+Measured at 360×800 before: plate 56 px of side padding with the title running under the
+close button, a toolbar of eight controls wrapping onto **four rows**, and — the real
+problem — every one of the document's **92 systems** drawn at 610 px inside a 322 px pane,
+each with its own horizontal scrollbar to drag.
+
+- **The score fits the pane.** Zoom state is now `number | null`, where `null` means "what
+  fits": the pane is observed (`ResizeObserver`), the widest system measured, and the ratio
+  clamped to `[0.4, 1]` — never above 1, because fitting is for making a wide system
+  readable, not for blowing a short one up on a desktop. The moment the reader touches
+  `+`/`−` the number is theirs; a new `⤡` button hands it back. The percentage carries the
+  `⤡` mark while it is the pane's answer, because "43 %" with no explanation reads as a
+  fault. New i18n key `viewer.fitWidth` in all ten dictionaries.
+- **0.4 is a floor, not a target.** Fitting to the widest system guarantees nothing ever
+  scrolls, but one long line then sizes all ninety others. Below 0.4 the handful of unusually
+  wide systems keep their own scrollbar. It sounds severe and is not: a phone reporting
+  360 CSS px does so at DPR 3, so a 4.4 px note head is 13 real pixels.
+- **Chrome halved.** Plate, kicker, title, toolbar, buttons, zoom readout and body padding
+  are all fluid. The toolbar is two rows on a phone instead of four.
+- **The English preamble is prose again.** The "is this a diagram?" test was "three lines
+  containing any of `|:-`, plus six rule characters somewhere", which every legacy file's
+  `#--------PLEASE NOTE--------` header satisfies — so half the archive's introductions were
+  put in a horizontal scroller and read four words at a time. A staff line is the
+  *conjunction* of a bar and a run of rule: three lines with `|` **and** `-{4,}`.
+
+Verified on both files you named. `da_8lz.txt` (92 systems) at 360 px: 43 %, 2 systems
+scroll, 0 stray scrollers in the prose. `da_etcz.txt` (11 systems): same. At 1440 px: 100 %,
+nothing scrolls.
+
+### 13.7 The audio pill was wider than the link it replaced 🟡
+
+The archive's score tables link a recording *as* its format — `[MIDI](…)`, `[MP3](…)` — so
+the pill's label was the word "MIDI", set in small caps between a play triangle and a
+download arrow: three pieces of chrome around one redundant word, in a table cell that has
+to fit a phone.
+
+Where the label says nothing the icon does not, it is drawn as a sign — two of them, a
+keyboard for MIDI and a speaker for a recording — and the word moves into the `<title>` and
+the accessible name. A label that carries real information ("Tico-Tico, Duo
+Hill/Wilczynski") is never touched. Pill padding and gaps tightened at the same time.
+
+Measured on `abreu` at 360 px: three pills at **62 px** each, and the three-column score
+table now fits the 304 px column with no horizontal scrolling at all.
+
+### 13.8 `index.css` split into fourteen files 🟡
+
+2 528 lines → an import list plus `src/styles/*.css` at 47–318 lines each: `tokens` ·
+`base` · `chrome` · `topbar` · `home` · `search` · `herald` · `footer` · `codex` ·
+`article` · `figures` · `blocks` · `viewers` · `effects`.
+
+The sheet is unlayered, so **the import order is the cascade** — `index.css` now says so and
+names the two orderings that are load-bearing (`tokens` first; `chrome`'s `btn-rpg` above
+everything that narrows it). The split preserved the original order exactly except for two
+blocks moved earlier after checking that no rule between them touches their selectors
+(`chrome`, and the new `topbar`), and a normalised-whitespace equality assertion guarded
+against anything being lost or duplicated.
+
+**On the reasoning in §6.2 of this document: it was wrong, and I have corrected it there.**
+I wrote that the single stylesheet was "the project's documented convention". It was not —
+nothing in `docs/` or `.claude-memory/` required it, and `15-app-critique.md`'s own backlog
+item 10 had asked for exactly this split. Deferring it was defensible on scope grounds;
+calling it a convention was not. `12-app-architecture.md`, `13-app-code-map.md`,
+`14-app-patterns-and-gotchas.md` and `15-app-critique.md` have been updated. The `@layer`
+half of critique item 10 remains open: splitting made the rules findable, not the cascade
+safer.
+
+### 13.9 Two photographs, left-aligned under a centred page 🟡
+
+`adamjan`'s gallery laid its two portraits into the first two of four full-width tracks and
+left a third of the pane empty on the right, under a plate, a tab strip and a heading that
+are all centred. `auto-fit` with a ceiling instead of `auto-fill` with `1fr`: empty tracks
+collapse, prints keep a 12 rem maximum rather than stretching, and what is left becomes
+equal margins. A full gallery is unaffected — its tracks are already narrower than the
+ceiling, so there is no free space to centre.
+
+### 13.10 The footer's treble clef was clipped 🟢
+
+Not a font problem — a containment one. `.footer-string-rule` is a 14 px band carrying a
+`mask-image` for the fade at its ends, and a mask brings `mask-clip: border-box` with it:
+that clips the **element's whole rendering, descendants included**. The rosette is a 31 px
+absolutely-positioned child of that 14 px band, so the clef lost its head and its tail.
+
+The strings and their fade moved to a `::before`; the rosette is no longer inside anything
+masked. It also now asks for `--font-music` (U+1D11E is in none of the text faces, so the
+glyph had been falling through to whatever generic serif the platform substituted).
+
+### 13.11 Markdown headings were sized by the window 🟡
+*(raised mid-session)*
+
+`h2`/`h3` were the last things in the article still measured in `vw`, while everything
+around them reads the reading column. A heading in a 304 px column was therefore being
+sized by a 1080 px window — 18.4 px against 14.2 px body text, uppercase, tracked at
+0.12 em — which is how "Nicolas Alfonso: Verzeichnis der veröffentlichten Werke" spent
+three lines.
+
+Sizes moved to `cqi`, keeping the ratio to the body text roughly constant (~1.18× for `h2`,
+~1.06× for `h3`) at every width, and tracking became a variable on the existing 34 rem
+switch (`--bio-track` 0.06 → 0.12 em, `--bio-track-title` 0.085 → 0.14 em) — tracking is
+width, and an uppercase title in a narrow column cannot afford it. The same for the promoted
+`# ` title lines. That heading is now **two lines**.
+
+## 14. Verification
+
+`tsc -b` clean, `vite build` clean (one 102 kB CSS bundle). Geometry checked at 320, 360,
+390, 768, 844×390, 1024, 1440, 1920, 2560 and 3840; no element escapes the viewport at any
+of them, and no document-level horizontal scroll. Frame-to-picture width equality asserted
+across every figure on the reported pages.
+
+## 15. Still open after this round
+
+Unchanged from §11, minus the stylesheet row: modal focus trapping, 320×568 comfort, lazy
+image reflow (a content problem), and the absence of lint/test scripts. Newly noted:
+
+- **`--codex-scrollbar` is measured once at start-up.** Correct for real devices, where the
+  scrollbar mode does not change; it does *not* follow a mid-session switch between device
+  emulation and a desktop window in DevTools.
+- **Eleven of `da_8lz`'s 92 systems still scroll sideways** at 360 px. That is the 0.4 floor
+  doing its job; wrapping a long system onto two staves is the real fix and is a parser
+  change, not a CSS one.
+- **The stylesheet is still unlayered.** Fourteen files, same footgun.
+
+---
+
+## 16. Session state as of 2026-08-29 (end of round 2)
+
+**Repository state.** Working tree, not committed — branch `RWD_AWD_optimized`, still one
+commit ahead of `72f2d10` (the round-1 work is committed; round 2 above is uncommitted).
+`git status` shows, beyond round 2's own edits:
+
+- `pages/de|en|ru/*` deletions and index edits that **pre-date this session** — present in
+  the working tree before round 2 began, not touched by it. Left alone; not this branch's
+  concern unless you ask.
+- `images/*.png` — the five screenshots you supplied for this round's reports (three
+  artefact captures, two button-position mock-ups). Untracked; kept as evidence, not
+  referenced by app code.
+
+**Files changed by round 2**, beyond what §5's table already lists for round 1:
+
+| File | Change |
+|---|---|
+| `app/src/index.css` | Reduced to an import list; owns the cascade-order contract (§13.8). |
+| `app/src/styles/*.css` *(new, 14 files)* | The stylesheet itself, moved out of `index.css` verbatim. |
+| `app/src/lib/scrollbar.ts` *(new)* | Measures the platform's real scrollbar width once at start-up, publishes `--codex-scrollbar`. |
+| `app/src/main.tsx` | Calls `publishScrollbarWidth()` before the first render. |
+| `app/src/components/codex/CodexShell.tsx` | Control row → `.codex-ctrl-row`, geometry derived from the frame (§13.2). |
+| `app/src/components/AsciiTabViewer.tsx` | Fit-to-width zoom, halved chrome, fixed diagram heuristic (§13.6). |
+| `app/src/components/AudioPlayer.tsx` | `InlineAudioPlayer`/`InlineAudioDownload` draw a format icon instead of the format word when the label carries no other information (§13.7). |
+| `app/src/components/LanguageMenu.tsx`, `App.tsx` | Header controls rebuilt on the new `--topbar-*` token family (§13.5). |
+| `app/src/components/form/{Field,SegmentedControl,YearRangeField}.tsx`, `search/AdvancedSearchPanel.tsx` | Refinement panel compaction (§13.4): gender as signs, paired rows, tighter everything. |
+| `app/src/lib/messages/*.ts` (all 10) | New key `viewer.fitWidth`. |
+| `.claude-memory/{12,13,14,15}-*.md` | Corrected to reflect the CSS split (§13.8) and the docs error in the old §6.2 reasoning. |
+
+**Verification run at the end of the round**: `npx tsc -b` clean, `npm run build` clean (one
+102 kB CSS bundle, 20 s). Manual geometry checks at 320/360/390/768/844×390/1024/1440/1920/
+2560/3840 CSS px, both orientations where relevant; zero elements escaping the viewport;
+zero document-level horizontal scroll; the `.fx-curl`/picture width equality re-checked on
+all three reported artefact pages after the fix.
+
+**What is left for a future session** (§15's list stands): modal focus trap, 320×568
+comfort ceiling, lazy-image reflow (needs intrinsic dimensions in the content, not a CSS
+fix), lint/test tooling, the eleven still-wide ASCII-tab systems in `da_8lz.txt`, and moving
+the fourteen `src/styles/*.css` files into `@layer`. Nothing in this round introduced a new
+regression that a later session needs to chase — every fix above was verified against the
+symptom it was reported for, not just against its own unit.
+
+**Not done, and deliberately not attempted**: no commit was made. The round-1 commit
+(`17be472`) and its follow-up (`72f2d10`) are the only commits on this branch; round 2's
+work sits in the working tree pending your review, per the standing instruction to commit
+only when asked.

@@ -6,6 +6,7 @@ import { I18nProvider } from "./lib/i18n";
 import { ImageViewerProvider } from "./lib/imageViewer";
 import { AsciiTabViewerProvider } from "./lib/asciiTabViewer";
 import { ErrorBoundary } from "./components/ErrorBoundary";
+import { publishScrollbarWidth } from "./lib/scrollbar";
 import App from "./App";
 
 // LazyMotion + `m` components keep the motion runtime slim (low-end friendly).
@@ -14,6 +15,9 @@ import App from "./App";
 // language) but *over* the two viewer providers: they mount their overlays as
 // siblings of `children`, so a boundary around <App /> alone would not catch a
 // throw from the image or ascii-tab viewer.
+// The codex's control row needs the platform's scrollbar width (see the module).
+publishScrollbarWidth();
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <LazyMotion features={domAnimation} strict>

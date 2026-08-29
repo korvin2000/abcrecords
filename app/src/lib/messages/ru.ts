@@ -131,6 +131,7 @@ export const ru = {
   "viewer.rotateRight": "Повернуть вправо",
   "viewer.fit": "Вписать в экран",
   "viewer.actualSize": "Реальный размер",
+  "viewer.fitWidth": "По ширине",
   "viewer.download": "Скачать",
   "viewer.close": "Закрыть",
   "viewer.error": "Не удалось загрузить изображение",

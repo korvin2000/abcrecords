@@ -63,31 +63,39 @@ export function AdvancedSearchPanel({
         <span aria-hidden>✦</span>
       </p>
 
-      <div className="grid gap-x-4 gap-y-2.5 sm:grid-cols-2">
-        <Field id={labelId("scope")} label={t("search.scope")}>
-          <SegmentedControl<LangScope>
-            value={criteria.scope}
-            onChange={(scope) => onPatch({ scope })}
-            labelledBy={labelId("scope")}
-            segments={[
-              { value: "all", label: t("search.scope.all") },
-              { value: "current", label: t("search.scope.current") },
-            ]}
-          />
-        </Field>
+      <div className="grid gap-x-4 gap-y-1.5 sm:grid-cols-2">
+        {/* Two strips that each owned a whole row on a phone. The three genders
+            draw as signs rather than as 24 characters of German, which frees
+            enough width for the pair to share one line; `flex-wrap` — not a
+            two-track grid — is what makes that graceful, because below ~330 px
+            of panel the scope strip simply takes its own line again instead of
+            being clipped by its own `overflow: hidden`. */}
+        <div className="flex flex-wrap items-start gap-x-3 gap-y-1.5 sm:contents">
+          <Field id={labelId("scope")} label={t("search.scope")} className="grow basis-[12.5rem]">
+            <SegmentedControl<LangScope>
+              value={criteria.scope}
+              onChange={(scope) => onPatch({ scope })}
+              labelledBy={labelId("scope")}
+              segments={[
+                { value: "all", label: t("search.scope.all") },
+                { value: "current", label: t("search.scope.current") },
+              ]}
+            />
+          </Field>
 
-        <Field id={labelId("gender")} label={t("search.gender")}>
-          <SegmentedControl<GenderFilter>
-            value={criteria.gender}
-            onChange={(gender) => onPatch({ gender })}
-            labelledBy={labelId("gender")}
-            segments={[
-              { value: "any", label: t("search.gender.any") },
-              { value: "m", label: t("lore.gender.m") },
-              { value: "f", label: t("lore.gender.f") },
-            ]}
-          />
-        </Field>
+          <Field id={labelId("gender")} label={t("search.gender")}>
+            <SegmentedControl<GenderFilter>
+              value={criteria.gender}
+              onChange={(gender) => onPatch({ gender })}
+              labelledBy={labelId("gender")}
+              segments={[
+                { value: "any", label: t("search.gender.any"), icon: "⚥" },
+                { value: "m", label: t("lore.gender.m"), icon: "♂" },
+                { value: "f", label: t("lore.gender.f"), icon: "♀" },
+              ]}
+            />
+          </Field>
+        </div>
 
         <Field id={labelId("type")} label={t("facet.type")} className="sm:col-span-2">
           <ChipGroup
@@ -118,7 +126,7 @@ export function AdvancedSearchPanel({
             whole line of the panel spent on nothing. They pair up while the
             panel is one column and dissolve back into the parent grid
             (`sm:contents`) the moment it is two. */}
-        <div className="grid grid-cols-2 gap-x-3 gap-y-2.5 sm:contents">
+        <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 sm:contents">
           <Field id={labelId("forename")} label={t("search.forename")}>
             <TextField
               value={criteria.forename}
@@ -136,32 +144,37 @@ export function AdvancedSearchPanel({
           </Field>
         </div>
 
-        <Field id={labelId("born")} label={t("search.born")}>
-          <YearRangeField
-            value={criteria.born}
-            onChange={(born) => onPatch({ born })}
-            labelledBy={labelId("born")}
-            fromLabel={t("search.yearFrom")}
-            toLabel={t("search.yearTo")}
-          />
-        </Field>
+        {/* Same trick as the name boxes: two short ranges that each took a row
+            pair up while the panel is one column. The year boxes share the row
+            rather than claiming 4 rem apiece (see YearRangeField). */}
+        <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 sm:contents">
+          <Field id={labelId("born")} label={t("search.born")}>
+            <YearRangeField
+              value={criteria.born}
+              onChange={(born) => onPatch({ born })}
+              labelledBy={labelId("born")}
+              fromLabel={t("search.yearFrom")}
+              toLabel={t("search.yearTo")}
+            />
+          </Field>
 
-        <Field id={labelId("died")} label={t("search.died")}>
-          <YearRangeField
-            value={criteria.died}
-            onChange={(died) => onPatch({ died })}
-            labelledBy={labelId("died")}
-            fromLabel={t("search.yearFrom")}
-            toLabel={t("search.yearTo")}
-          />
-        </Field>
+          <Field id={labelId("died")} label={t("search.died")}>
+            <YearRangeField
+              value={criteria.died}
+              onChange={(died) => onPatch({ died })}
+              labelledBy={labelId("died")}
+              fromLabel={t("search.yearFrom")}
+              toLabel={t("search.yearTo")}
+            />
+          </Field>
+        </div>
       </div>
 
-      <Divider className="mx-auto my-3 w-full max-w-xs opacity-70" />
+      <Divider className="mx-auto my-2 w-full max-w-xs opacity-70" />
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex min-h-4 flex-col gap-1">
-          <span className="font-body text-[0.72rem] italic leading-snug text-sepia-500">
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
+        <div className="flex min-h-4 min-w-0 flex-col gap-0.5">
+          <span className="font-body text-[0.68rem] italic leading-tight text-sepia-500">
             {t("search.dossier.hint")}
           </span>
           <DossierProgress status={dossier} />
@@ -174,11 +187,11 @@ export function AdvancedSearchPanel({
               onReset();
             }}
             onMouseEnter={() => audio.hover()}
-            className="font-heading text-[0.66rem] uppercase tracking-[0.16em] text-sepia-600 underline decoration-dotted decoration-1 underline-offset-4 transition-colors hover:text-burgundy-600"
+            className="font-heading text-[0.6rem] uppercase leading-tight tracking-[0.08em] text-sepia-600 underline decoration-dotted decoration-1 underline-offset-4 transition-colors hover:text-burgundy-600"
           >
             {t("search.advanced.reset")}
           </button>
-          <button type="button" onClick={onClose} className="btn-rpg !px-3 !py-[0.32rem]">
+          <button type="button" onClick={onClose} className="btn-rpg !px-2.5 !py-[0.25rem] !text-[0.6rem] !tracking-[0.08em] leading-tight">
             {t("search.advanced.hide")}
           </button>
         </div>

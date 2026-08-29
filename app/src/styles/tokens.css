@@ -1,0 +1,114 @@
+/* ============================================================
+   КОДЕКС ГИТАРИСТОВ — Design tokens
+   Light solarized manuscript: warm ivory / yellowed paper,
+   muted gold, burgundy, dark brown. (docs/Biography_card_Design.md)
+   ============================================================ */
+@theme {
+  --font-display: "Cormorant SC", Georgia, serif;
+  --font-heading: "Cormorant SC", Georgia, serif;
+  --font-body: "Cormorant Garamond Variable", "Cormorant Garamond", Georgia, serif;
+  /* Musical symbols (U+2669–U+266F and the U+1D1xx clefs) live outside the
+     text fonts — every desktop and mobile platform ships one of these. */
+  --font-music: "Segoe UI Symbol", "Apple Symbols", "Noto Music", "Noto Sans Symbols 2",
+    "Segoe UI Emoji", serif;
+
+  /* Yellowed-paper scale (light → aged) */
+  --color-paper-50: #faf5e6;
+  --color-paper-100: #f4ecd6;
+  --color-paper-200: #ecdfc0;
+  --color-paper-300: #e2d1a8;
+  --color-paper-400: #d4bf8d;
+  --color-paper-500: #c9b488;
+
+  /* Ink (dark brown text) */
+  --color-ink-700: #4a3423;
+  --color-ink-800: #33220f;
+  --color-ink-900: #2a1810;
+  --color-ink-950: #1a0f08;
+
+  /* Sepia mid-tones */
+  --color-sepia-500: #8a6f4d;
+  --color-sepia-600: #6b4a2a;
+  --color-sepia-700: #54381e;
+
+  /* Muted antique gold */
+  --color-gold-100: #fbf3d2;
+  --color-gold-200: #f7e7b4;
+  --color-gold-300: #efd585;
+  --color-gold-400: #e6c25b;
+  --color-gold-500: #d4af37;
+  --color-gold-600: #b8902a;
+  --color-gold-700: #8a6a1f;
+  --color-gold-800: #6e5419;
+
+  /* Burgundy / deep red */
+  --color-burgundy-400: #a33d4d;
+  --color-burgundy-500: #8b2635;
+  --color-burgundy-600: #7a1f2b;
+  --color-burgundy-700: #5e1220;
+  --color-burgundy-800: #4a0d18;
+
+  /* ---- Fluid rhythm -------------------------------------------------------
+     Four bounded values the whole page is spaced by. They exist because the
+     furniture used to be a fixed tower the catalogue had to fit around: the
+     distance from the top of the document to the first card measured 627 px on
+     every desktop from 1280 to 3840, and 656–734 px on a phone — which on a
+     390 px-tall landscape phone left *no* card on screen at all.
+
+     `--spacing-stack` is the one vertical step between hero blocks. Its middle
+     term is `svh`, not `vw`, because the thing being economised is height, and
+     `svh` (not `dvh`) so a margin does not resize while the reader scrolls and
+     the mobile URL bar retracts. `--spacing-topbar` clears the 53 px fixed
+     header and no more. Both are named in the `--spacing-*` namespace, so they
+     are ordinary Tailwind spacing utilities: `mt-stack`, `pt-topbar`.
+
+     `--card-min` is the narrowest a catalogue card may be; the grid's column
+     count is derived from it rather than declared (see `.catalog-grid`). Its
+     ceiling is deliberately low: the portrait sources are the legacy archive's
+     thumbnails (measured 150×200 … 410×677), so a card wider than ~15 rem is
+     upscaling a small JPEG, not showing more of it. Its floor is set by the
+     narrowest viewport that must still show two cards side by side — 320 CSS
+     px, the WCAG reflow width — and not by taste. */
+  --spacing-stack: clamp(0.75rem, 0.5rem + 1.2svh, 1.75rem);
+  --spacing-gutter: clamp(0.5rem, 0.25rem + 1vw, 1.5rem);
+
+  /* ---- The fixed top bar --------------------------------------------------
+     Its five measurements were literals — a 36 px control, a 14 px glyph, a
+     14 px wordmark, 8 px of padding — so the bar was 53 px tall on a 320 px
+     phone and 53 px tall on a 4K display: a fifth of the phone's chrome budget
+     and a row of buttons you lean in to find on the desk. One fluid family
+     now, bounded at both ends.
+
+     `--spacing-topbar` is *derived* from them rather than guessed at: it is
+     exactly the bar's own height plus one vertical step, so `pt-topbar` can
+     never under- or over-clear a bar whose size it no longer has to know. */
+  --topbar-ctrl: clamp(1.75rem, 1.45rem + 0.75vw, 2.6rem);
+  --topbar-pad-block: clamp(0.25rem, 0.15rem + 0.3vw, 0.7rem);
+  --topbar-gap: clamp(0.3rem, 0.18rem + 0.35vw, 0.8rem);
+  --topbar-icon: clamp(0.78rem, 0.66rem + 0.38vw, 1.3rem);
+  --topbar-text: clamp(0.62rem, 0.54rem + 0.26vw, 1rem);
+  --topbar-height: calc(var(--topbar-ctrl) + 2 * var(--topbar-pad-block) + 1px);
+  --spacing-topbar: calc(var(--topbar-height) + var(--spacing-stack));
+  --card-min: clamp(8.75rem, 7rem + 4vw, 15rem);
+  /* One size for the four controls floating over the codex, read by both the
+     buttons and the scrim behind them. */
+  --codex-ctrl-size: clamp(1.7rem, 1.5rem + 0.8vw, 2.1rem);
+  /* The reading pane's scrollbar track. Overwritten at start-up with the
+     platform's real measurement (see `lib/scrollbar.ts`); this is the fallback,
+     the widest classic track in the wild, so a failed measurement errs towards
+     "clear of the scrollbar" rather than "on top of it". The floating control
+     row reserves it on the trailing side. */
+  --codex-scrollbar: 17px;
+  /* Where the floating codex controls sit inside the panel.
+     Inline: a corner gutter that grows with the panel — ~17px on a phone,
+     ~25px on a desktop. Flush with the reading pane (11px) turned out to read
+     as *stuck to* the frame; a flat 36px, which is what this replaced, read as
+     a group drifting towards the middle. The trailing side adds the scrollbar
+     so the page-turn arrow stops where the track begins.
+     Block: the same 11px plus an optical correction — a solid dark button
+     crowds the hairline border in a way the pane's transparent edge does not —
+     and it gives that back on a short viewport, where height is the scarce
+     axis. */
+  --codex-ctrl-inset: clamp(1.05rem, 0.9rem + 0.6vw, 1.6rem);
+  --codex-ctrl-inset-block: clamp(0.75rem, 0.55rem + 0.6svh, 1.05rem);
+}
