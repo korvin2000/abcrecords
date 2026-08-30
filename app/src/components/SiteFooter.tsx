@@ -3,6 +3,8 @@ import { m, useReducedMotion, type Variants } from "framer-motion";
 import type { MsgKey } from "@/lib/messages";
 import { audio } from "@/lib/audio";
 import { useI18n } from "@/lib/i18n";
+import { Glyph } from "@/components/Glyph";
+import { SIGN } from "@/lib/signs";
 import { CornerOrnament, Divider } from "./OrnateFrame";
 
 /** `slug` names the catalogue entry a section opens once one exists; items
@@ -79,7 +81,9 @@ export function SiteFooter({ hasEntry, onOpenEntry }: Props) {
 
         <div className="relative px-3 pb-3 pt-4 sm:px-8 sm:pb-6 sm:pt-7 lg:px-10">
           <div className="footer-string-rule mx-auto max-w-3xl" aria-hidden>
-            <span className="footer-rosette">𝄞</span>
+            <span className="footer-rosette">
+              <Glyph char={SIGN.clef} font="var(--font-music)" size="0.95rem" />
+            </span>
           </div>
 
           <div className="mt-2 text-center">

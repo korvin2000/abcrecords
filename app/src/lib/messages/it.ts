@@ -101,7 +101,7 @@ export const it: Record<MsgKey, Message> = {
   "gallery.photos": "Ritratti e fotografie",
   "gallery.music": "Musica",
   "gallery.theme": "Tema dell'eroe",
-  "gallery.themePlay": "▶ Ascolta il tema",
+  "gallery.themePlay": "▶︎ Ascolta il tema",
   "gallery.themeStop": "■ Ferma",
   "gallery.themeHint": "La melodia nasce dalla formula f = f₀·2^(n/12) dal nome dell'eroe",
   "gallery.empty": "La galleria di questa voce è ancora vuota.",

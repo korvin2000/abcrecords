@@ -15,6 +15,10 @@ const YEAR_INPUT = /^\d{0,4}$/;
  *
  * The boxes are narrowed by their wrappers, not by a class on the input: see
  * the note in TextField.
+ *
+ * `.form-ink--figures` is what makes a year sit level in its box — Cormorant's
+ * default figures are *oldstyle*, and half of them hang below the baseline. See
+ * the rule in search.css.
  */
 export function YearRangeField({
   value,
@@ -49,7 +53,7 @@ export function YearRangeField({
           placeholder="1885"
           inputMode="numeric"
           maxLength={4}
-          className="text-center"
+          className="form-ink--figures text-center"
         />
       </div>
       <span className="shrink-0 font-body text-[0.72rem] italic text-sepia-500">{toLabel}</span>
@@ -61,7 +65,7 @@ export function YearRangeField({
           placeholder="1944"
           inputMode="numeric"
           maxLength={4}
-          className="text-center"
+          className="form-ink--figures text-center"
         />
       </div>
     </div>

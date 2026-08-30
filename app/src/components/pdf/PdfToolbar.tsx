@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import clsx from "clsx";
 import { useI18n } from "@/lib/i18n";
+import { Glyph } from "@/components/Glyph";
+import { SIGN } from "@/lib/signs";
 
 /**
  * The document viewer's control bar: paging, zoom, fit, rotation and
@@ -71,9 +73,7 @@ export function PdfToolbar({
           title={t("viewer.close")}
         >
           <span className="hidden sm:inline">{t("viewer.close")}</span>
-          <span className="sm:hidden" aria-hidden>
-            ✕
-          </span>
+          <Glyph char={SIGN.close} size="var(--codex-ctrl-glyph)" className="glyph--until-sm" />
         </button>
       )}
       {title && (

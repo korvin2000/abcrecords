@@ -99,7 +99,7 @@ export const ja: Record<MsgKey, Message> = {
   "gallery.photos": "肖像と写真",
   "gallery.music": "音楽",
   "gallery.theme": "人物のテーマ",
-  "gallery.themePlay": "▶ テーマを聴く",
+  "gallery.themePlay": "▶︎ テーマを聴く",
   "gallery.themeStop": "■ 停止",
   "gallery.themeHint": "旋律は人物の名から f = f₀·2^(n/12) の式で生まれます",
   "gallery.empty": "この記録の画廊はまだ空です。",

@@ -6,7 +6,6 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { legacyArchive } from "./vite/legacy-archive";
 import { contentWatch, ignoreContent } from "./vite/content-watch";
-import { factsDigest } from "./vite/facts-digest";
 import { pdfjsAssets } from "./vite/pdfjs-assets";
 
 /**
@@ -44,7 +43,6 @@ export default defineConfig({
     react(),
     tailwindcss(),
     contentWatch(),
-    factsDigest(contentDir),
     pdfjsAssets(),
     legacyArchive("https://www.abc-guitars.com"),
   ],

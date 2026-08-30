@@ -34,6 +34,9 @@
 /* chrome — parchment, gold frame, divider, `btn-rpg` — the shared furniture */
 @import "./styles/chrome.css";
 
+/* glyph — measured Unicode signs; must precede every file that sizes one */
+@import "./styles/glyph.css";
+
 /* topbar — the fixed top bar */
 @import "./styles/topbar.css";
 

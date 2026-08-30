@@ -99,7 +99,7 @@ export const zh: Record<MsgKey, Message> = {
   "gallery.photos": "肖像与照片",
   "gallery.music": "音乐",
   "gallery.theme": "人物主题曲",
-  "gallery.themePlay": "▶ 聆听主题",
+  "gallery.themePlay": "▶︎ 聆听主题",
   "gallery.themeStop": "■ 停止",
   "gallery.themeHint": "旋律由公式 f = f₀·2^(n/12) 从人物之名中生成",
   "gallery.empty": "此条目的画廊尚且空空。",

@@ -82,11 +82,11 @@
   color: var(--color-burgundy-700);
   background: var(--color-paper-100);
   box-shadow: 0 0 0 4px rgba(244, 236, 214, 0.88);
-  /* U+1D11E is not in the text fonts; without this the glyph falls through to
-     whatever generic serif the platform substitutes. */
-  font-family: var(--font-music);
-  font-size: 1rem;
-  line-height: 1;
+  /* No `font-family`/`font-size` here: U+1D11E is not in the text fonts, and
+     naming the symbol stack is only half the job — the faces that carry it draw
+     it at very different fractions of the em. The clef inside is a `<Glyph>`,
+     which measures; this element only says how big the medallion is. */
+  line-height: 0;
 }
 
 .footer-menu-item {

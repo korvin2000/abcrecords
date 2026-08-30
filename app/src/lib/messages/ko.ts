@@ -99,7 +99,7 @@ export const ko: Record<MsgKey, Message> = {
   "gallery.photos": "초상과 사진",
   "gallery.music": "음악",
   "gallery.theme": "인물의 테마",
-  "gallery.themePlay": "▶ 테마 듣기",
+  "gallery.themePlay": "▶︎ 테마 듣기",
   "gallery.themeStop": "■ 정지",
   "gallery.themeHint": "선율은 인물의 이름에서 f = f₀·2^(n/12) 공식으로 태어납니다",
   "gallery.empty": "이 기록의 화랑은 아직 비어 있습니다.",

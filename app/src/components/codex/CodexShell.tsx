@@ -4,8 +4,10 @@ import clsx from "clsx";
 import type { Lang } from "@/lib/languages";
 import { audio } from "@/lib/audio";
 import { useI18n } from "@/lib/i18n";
+import { Glyph } from "../Glyph";
 import { LanguageMenu } from "../LanguageMenu";
 import { CornerOrnament } from "../OrnateFrame";
+import { SIGN, TURN_REF } from "@/lib/signs";
 import { CodexScrollProvider } from "./codexScroll";
 
 interface Props {
@@ -29,11 +31,14 @@ interface Props {
  * biographies, dossiers or tabs.
  *
  * Layout invariants worth keeping:
- * - The reading pane is `absolute inset-[11px]` (not h-full) so its whole
+ * - The reading pane is inset from the frame (not h-full) so its whole
  *   scrollbar track — top to bottom — stays inside the double border.
- * - The four controls share one flex row, aligned with that pane and pushed
- *   `--codex-scrollbar` clear of it on the trailing side, so no amount of
- *   narrowing can make two of them overlap or put one on the scrollbar.
+ * - The four controls share one flex row, held one corner gutter outside that
+ *   pane and pushed `--codex-scrollbar-guard` clear of it on the trailing
+ *   side, so no amount of narrowing can make two of them overlap or put one
+ *   under the scrollbar — overlay scrollbars included, which is what the
+ *   *guard* in that name is about. Every number is derived from
+ *   `--codex-pane-inset`; see the chain in tokens.css.
  * - The body scroll-lock belongs to App (single owner); do not add one here.
  *
  * **One shell, many entries.** App deliberately does *not* key this component
@@ -127,7 +132,7 @@ export function CodexShell({
 
   return (
     <m.div
-      className="fixed inset-0 z-40 flex items-center justify-center p-[clamp(0.35rem,0.1rem+1.1vw,1.5rem)]"
+      className="codex-overlay fixed inset-0 z-40 flex items-center justify-center"
       initial={{ opacity: 0 }}
       animate={{ opacity: closing ? 0 : 1 }}
       // Nothing is left to fade: `closing` has already taken this to zero.
@@ -171,19 +176,19 @@ export function CodexShell({
               page turns at `right-9` — which is a layout that works until the
               panel is narrow enough for the middle one to reach the right one.
               Below about 360 px it did, and the edition menu sat on top of the
-              back arrow. A flex row cannot overlap itself. `.codex-ctrl` (index.css) is what makes
-              each control a compact square, and `.codex-ctrl-row` is what puts
-              the row in the panel's corners and keeps the trailing arrow clear
-              of the reading pane's scrollbar. */}
+              back arrow. A flex row cannot overlap itself. `.codex-ctrl`
+              (codex.css) is what makes each control a compact square, and
+              `.codex-ctrl-row` is what puts the row in the panel's corners and
+              keeps the trailing arrow clear of the reading pane's scrollbar —
+              including the *overlay* scrollbars of iOS and Android, which take
+              no layout width but are still painted over whatever is there. */}
           <div className="codex-ctrl-row">
             <button onClick={handleClose} className="btn-rpg codex-ctrl" aria-label={t("codex.close")} title={t("codex.close")}>
               <span className="hidden lg:inline">{t("codex.close")}</span>
-              <span className="lg:hidden" aria-hidden>
-                ✕
-              </span>
+              <Glyph char={SIGN.close} size="var(--codex-ctrl-glyph)" className="glyph--until-lg" />
             </button>
 
-            <div className="flex items-start gap-1.5">
+            <div className="codex-ctrl-group">
               {/* Language of this entry — only when the chronicle exists in
                   several tongues; switches the open page on the fly. */}
               {langs.length > 1 && (
@@ -196,24 +201,32 @@ export function CodexShell({
                   heading={t("lang.entry")}
                 />
               )}
+              {/* Solid triangles, not arrows. `←`/`→` are drawn as a hairline
+                  stroke at this size — at 10 px of ink they read as a dash with
+                  a smudge on one end, and thinner still on a face that renders
+                  them lighter. `◀`/`▶` are filled shapes, so their weight comes
+                  from area rather than from stroke width and survives any
+                  rasteriser. Both are measured (`<Glyph>`, `sizedBy` the same
+                  reference) so the pair is one size and one height on every
+                  platform, and both carry U+FE0E — they are emoji codepoints,
+                  and an unqualified triangle can be drawn in colour by a phone
+                  whose font fallback reaches the emoji face first. */}
               <button onClick={() => handleTurn(-1)} className="btn-rpg codex-ctrl" aria-label={t("codex.prev")} title={t("codex.prev")}>
-                ←
+                <Glyph char={SIGN.prev} sizedBy={TURN_REF} size="var(--codex-ctrl-glyph)" />
               </button>
               <button onClick={() => handleTurn(1)} className="btn-rpg codex-ctrl" aria-label={t("codex.next")} title={t("codex.next")}>
-                →
+                <Glyph char={SIGN.next} sizedBy={TURN_REF} size="var(--codex-ctrl-glyph)" />
               </button>
             </div>
           </div>
 
           {/* Reading pane — anchored to the frame so the scrollbar track and
-              the very last line both live inside the border */}
-          {/* The top inset clears the control row floating over the pane and
-              stops there — a flat 64 px was a quarter of the readable height on
-              a landscape phone. */}
-          <div
-            ref={scrollRef}
-            className="codex-scroll absolute inset-[11px] overflow-y-auto pb-6 px-[clamp(0.65rem,0.1rem+2.2vw,2.25rem)] pt-[clamp(2.9rem,2.4rem+1.8svh,3.9rem)]"
-          >
+              the very last line both live inside the border. Its geometry,
+              including the top padding that clears the control row, lives in
+              `.codex-pane` (codex.css) and is derived from the row rather
+              than guessed alongside it; `.codex-scroll` beside it is only the
+              gold scrollbar, which the document viewer shares. */}
+          <div ref={scrollRef} className="codex-scroll codex-pane">
             <div className="mx-auto max-w-5xl">
               <CodexScrollProvider value={scrollToTop}>{children}</CodexScrollProvider>
 

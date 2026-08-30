@@ -128,6 +128,21 @@ Each entry combines:
 - Visual language: warm ivory/parchment, muted gold, burgundy, dark brown;
   serif type; antique/archival, calm, symmetrical. **Avoid** modern UI chrome,
   neon, strong shadows, heavy textures.
+- **A Unicode sign is not a character — it is a font substitution.** ♀ ♂ ⚥ 𝄞 ♪
+  ◀ ▶ ✦ ❖ ✕ are not in the text faces, so the platform draws each of them from
+  Segoe UI Symbol / Apple Symbols / Noto — three unrelated designs that disagree
+  about ink size, baseline position *and* line-box height. Draw every one of them
+  with `<Glyph>` (`app/src/components/Glyph.tsx`), take the character from
+  `app/src/lib/signs.ts`, and give it an **ink height**, never a `font-size`.
+  A literal `font-size` or a `translateY` nudge for a sign is a Windows-only
+  guess that will be wrong on Android and iOS — this has recurred three times.
+  Full rationale and checklist:
+  [`.claude-memory/16-cross-platform-glyphs.md`](.claude-memory/16-cross-platform-glyphs.md).
+- **Cross-entry metadata is read in the browser, never precomputed into a file.**
+  The dossier facts index (`app/src/lib/dossier/`) crawls `pages/<lang>/*.bio.json`
+  and caches in memory for the session. A generated `facts-<lang>.json` beside the
+  index froze the deployed answer at build time, so an edited birth year did not
+  reach the search until the next rebuild; `pages/` is the only home for a fact.
 
 ## Working agreements
 

@@ -7,10 +7,30 @@
   --font-display: "Cormorant SC", Georgia, serif;
   --font-heading: "Cormorant SC", Georgia, serif;
   --font-body: "Cormorant Garamond Variable", "Cormorant Garamond", Georgia, serif;
-  /* Musical symbols (U+2669–U+266F and the U+1D1xx clefs) live outside the
-     text fonts — every desktop and mobile platform ships one of these. */
+  /* ---- Symbol stacks ------------------------------------------------------
+     Signs the text faces do not carry, drawn by whatever the platform ships.
+     Two rules hold for both stacks, and breaking either brings back a bug this
+     project has now fixed three times:
+
+       1. **No emoji face may appear in them.** Several of the signs used here
+          (♀ ♂ ◀ ▶ ✦) are `Emoji=Yes, Emoji_Presentation=No`: text by default,
+          but one colour face reached in fallback and a burgundy sign becomes a
+          purple pictograph. Callers additionally pin the text presentation
+          with U+FE0E — see `lib/glyph.ts`'s consumers.
+       2. **Nothing may be sized against them by hand.** Segoe UI Symbol,
+          Apple Symbols and the Noto faces draw the same codepoint at very
+          different fractions of the em and at different heights above the
+          baseline. Draw them through `<Glyph>` (components/Glyph.tsx), which
+          measures; a literal `font-size` here is a Windows-only guess. */
   --font-music: "Segoe UI Symbol", "Apple Symbols", "Noto Music", "Noto Sans Symbols 2",
-    "Segoe UI Emoji", serif;
+    "DejaVu Sans", serif;
+  --font-symbol: "Segoe UI Symbol", "Apple Symbols", "Noto Sans Symbols 2", "Noto Sans Symbols",
+    "DejaVu Sans", sans-serif;
+  /* The one place a *picture* is wanted rather than a sign — the generic
+     "document of unknown kind" mark. Kept separate so no accidental fallback
+     can pull a colour face into the two stacks above. */
+  --font-emoji: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Segoe UI Symbol",
+    sans-serif;
 
   /* Yellowed-paper scale (light → aged) */
   --color-paper-50: #faf5e6;
@@ -90,27 +110,74 @@
   --topbar-height: calc(var(--topbar-ctrl) + 2 * var(--topbar-pad-block) + 1px);
   --spacing-topbar: calc(var(--topbar-height) + var(--spacing-stack));
   --card-min: clamp(8.75rem, 7rem + 4vw, 15rem);
+  /* ---- The codex's frame and the controls floating in its corners ---------
+     One family of *derived* values, because the previous pass tuned five of
+     them independently and they disagreed on a phone: the control row's
+     12 px gutter was 1 px more than the reading pane's own 11 px frame gap, so
+     close sat all but flush against the double border; the trailing gutter
+     reserved `--codex-scrollbar`, which is honestly **0** wherever scrollbars
+     overlay the content (iOS, Android, macOS), so the page-turn arrow sat
+     under a scrollbar that still paints over it; and the pane's top padding
+     was a third clamp that had to be kept in step with the first two by hand.
+
+     Read the chain downwards — each line is defined in terms of the one above,
+     so no two of them can drift again:
+
+       frame-pad  → how far the panel is held off the screen edge
+       pane-inset → how far the reading pane is held off the panel's border
+       ctrl-inset → pane-inset plus a corner gutter (so a control is always
+                    *outside* the pane's edge, never level with it)
+       ctrl-band  → the height the row actually occupies, which is what the
+                    pane's top padding and the parchment fade both spend. */
+
+  /* The gap between the panel and the screen. Its floor rose from 0.35rem:
+     on a 375 px phone that was 5.7 px, and a book with a 6 px margin reads as
+     a book that did not fit. `.codex-overlay` additionally takes the larger of
+     this and the device's safe-area inset — with `viewport-fit=cover` set in
+     index.html, a notched iPhone in landscape puts 44 px of unusable screen
+     exactly where the close button lives. */
+  --codex-frame-pad: clamp(0.5rem, 0.15rem + 1.1vw, 1.5rem);
+  /* The reading pane's own gap from the panel border, so its whole scrollbar
+     track — top to bottom — stays inside the double frame. */
+  --codex-pane-inset: 11px;
   /* One size for the four controls floating over the codex, read by both the
-     buttons and the scrim behind them. */
-  --codex-ctrl-size: clamp(1.7rem, 1.5rem + 0.8vw, 2.1rem);
-  /* The reading pane's scrollbar track. Overwritten at start-up with the
-     platform's real measurement (see `lib/scrollbar.ts`); this is the fallback,
-     the widest classic track in the wild, so a failed measurement errs towards
-     "clear of the scrollbar" rather than "on top of it". The floating control
-     row reserves it on the trailing side. */
+     buttons and the scrim behind them. The floor is 1.9rem = 30.4 px: with the
+     gap below that puts adjacent targets 36 px apart, clearing WCAG 2.2 AA
+     (SC 2.5.8) on *both* of its tests — 24×24 px of target, and 24 px of
+     spacing between one target's centre and the next. */
+  --codex-ctrl-size: clamp(1.9rem, 1.6rem + 0.8vw, 2.15rem);
+  --codex-ctrl-gap: clamp(0.375rem, 0.28rem + 0.28vw, 0.5rem);
+  /* The two triangles and the ✕ are symbol-face glyphs, so this is an *ink*
+     height handed to `<Glyph>`, not a `font-size` (see lib/glyph.ts). */
+  --codex-ctrl-glyph: clamp(0.66rem, 0.56rem + 0.3vw, 0.85rem);
+
+  /* The reading pane's scrollbar track, in layout terms. Overwritten at
+     start-up with the platform's real measurement (see `lib/scrollbar.ts`);
+     this is the fallback, the widest classic track in the wild, so a failed
+     measurement errs towards "clear of the scrollbar". */
   --codex-scrollbar: 17px;
-  /* Where the floating codex controls sit inside the panel.
-     Inline: a corner gutter that grows with the panel — ~12px on a phone,
-     ~20px on a desktop. Flush with the reading pane (11px) reads as *stuck
-     to* the frame, and a flat 36px (the original) read as a group drifting
-     towards the middle; a first pass settled further out still (~17–26px)
-     and read as not quite in the corner, so this pulls back in a step closer
-     to the frame. The trailing side adds the scrollbar so the page-turn
-     arrow stops where the track begins.
-     Block: a little more than the inline gutter, because a solid dark
-     button crowds the hairline border in a way the pane's transparent edge
-     does not — and it eases back on a short viewport, where height is the
-     scarce axis. */
-  --codex-ctrl-inset: clamp(0.75rem, 0.55rem + 0.55vw, 1.25rem);
-  --codex-ctrl-inset-block: clamp(0.95rem, 0.75rem + 0.6svh, 1.35rem);
+  /* …and the width it may *paint* over, which is not the same number. Where
+     scrollbars overlay the content the measurement above is 0 by definition —
+     an overlay track takes no layout space — yet it is still drawn on top of
+     whatever is at the pane's trailing edge. 0.5rem is Chromium's overlay
+     track (8 px) and comfortably covers iOS Safari's ~7 px, and `max()` keeps
+     a classic 12–17 px track winning wherever there is one. */
+  --codex-scrollbar-guard: max(var(--codex-scrollbar), 0.5rem);
+
+  /* The corner gutter: how far *past* the pane's edge a control sits. Flush
+     with the pane (gutter 0) reads as stuck to the frame, and the original
+     flat 36 px read as a group drifting towards the middle. On a desk this
+     lands the row ~21 px in — the spacing the previous pass settled on and
+     which reads correctly there — while on a phone it is ~17 px instead of
+     12 px, which is the half of the geometry that was wrong. */
+  --codex-ctrl-gutter: clamp(0.4rem, 0.22rem + 0.45vw, 0.6rem);
+  --codex-ctrl-inset: calc(var(--codex-pane-inset) + var(--codex-ctrl-gutter));
+  /* A little more on the block axis, because a solid dark button crowds the
+     hairline border in a way the pane's transparent edge does not — and it
+     eases back on a short viewport, where height is the scarce axis. */
+  --codex-ctrl-inset-block: calc(var(--codex-pane-inset) + clamp(0.3rem, 0.15rem + 0.55svh, 0.75rem));
+  /* Everything the row occupies, measured from the panel's inner edge. The
+     pane's top padding and the parchment fade are both expressed in this, so
+     neither can under-clear the buttons however the parts are retuned. */
+  --codex-ctrl-band: calc(var(--codex-ctrl-inset-block) + var(--codex-ctrl-size));
 }

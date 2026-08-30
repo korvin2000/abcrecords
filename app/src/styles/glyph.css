@@ -1,0 +1,80 @@
+/* ============================================================
+   Measured Unicode signs (components/Glyph.tsx + lib/glyph.ts)
+
+   Two elements, and the split is the whole point:
+
+     .glyph       — the LAYOUT box. Its size is stated, never inherited from a
+                    font, so no platform's symbol face can make the control
+                    around it taller. `line-height: 0` because the wrapper is
+                    not text and must not raise a line box of its own.
+     .glyph__ink  — the TEXT. Absolutely positioned, so it contributes nothing
+                    to layout and everything to appearance, placed by the four
+                    measured ratios `lib/glyph.ts` publishes.
+
+   Every custom property below arrives from that one measurement. None of them
+   is a taste value, and none may be hand-edited to "look right here" — that is
+   the bug this pair exists to make impossible. If a sign looks wrong, the fix
+   is in the measurement or in `--glyph-size`, never in a nudge.
+
+   NB: `.glyph` owns `position`, so — per the house rule for unlayered CSS —
+   the element must never also carry a Tailwind position utility.
+   ============================================================ */
+.glyph {
+  position: relative;
+  display: inline-block;
+  flex: none;
+  /* The ink's height is what the caller asked for; the width follows the
+     glyph's own proportions, so a box is never wider than the mark inside it. */
+  block-size: var(--glyph-size, 1em);
+  inline-size: calc(var(--glyph-size, 1em) * var(--glyph-aspect, 1));
+  line-height: 0;
+  vertical-align: middle;
+}
+
+.glyph__ink {
+  position: absolute;
+  /* Placement, not a transform: `transform` belongs to whatever is animating
+     the sign (the search box's clef turns), and two owners of one property is
+     how a spin starts cancelling a nudge. `em` here resolves against this
+     element's own `font-size`, which is exactly the unit the fit is in. */
+  inset-block-start: calc(var(--glyph-dy, 0) * 1em);
+  inset-inline-start: calc(var(--glyph-dx, 0) * 1em);
+  font-size: calc(var(--glyph-size, 1em) * var(--glyph-scale, 1));
+  /* Pinned to match the probe in `lib/glyph.ts` exactly. A button's inherited
+     `font-weight: 700` would make the engine synthesise bold — differently on
+     every platform — against a measurement taken at 400. */
+  font-weight: 400;
+  font-style: normal;
+  font-variant: normal;
+  font-kerning: none;
+  letter-spacing: normal;
+  word-spacing: normal;
+  line-height: 1;
+  white-space: pre;
+  /* A turning sign turns about its ink, not about the middle of its advance
+     width — the two are the same only by accident. */
+  transform-origin: calc(var(--glyph-cx, 0.5) * 1em) center;
+}
+
+/* ------------------------------------------------------------------------
+   Hiding a sign at a breakpoint.
+
+   `.glyph` sets `display`, this stylesheet is unlayered, and Tailwind's
+   display utilities live in `@layer utilities` — so **`.glyph` beats `hidden`
+   and `lg:hidden` regardless of source order**, and a `<Glyph className=
+   "lg:hidden">` stays on screen. (Verified: `.glyph.hidden` computes to
+   `inline-block`.) That is the one trap in this primitive, and it fails
+   silently — the sign simply appears next to the word it was meant to replace.
+
+   Wrapping the sign in a plain `<span class="lg:hidden">` would hide it, but at
+   a cost: the wrapper becomes a grid item, the sign becomes an inline-block in
+   a line box again, and `vertical-align` puts it a couple of pixels off the
+   cell's centre — which is the whole defect this file exists to remove. So the
+   toggle lives here instead, named after Tailwind's own breakpoints.
+   ------------------------------------------------------------------------ */
+@media (min-width: 40rem) {
+  .glyph--until-sm { display: none; }
+}
+@media (min-width: 64rem) {
+  .glyph--until-lg { display: none; }
+}

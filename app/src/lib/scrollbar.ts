@@ -11,6 +11,10 @@
  * `.codex-scroll` sets `scrollbar-width`/`scrollbar-color`, and those change
  * the answer — and published as `--codex-scrollbar` for the stylesheet to use.
  * The CSS keeps a sane fallback, so a failure here is a few pixels, not a bug.
+ *
+ * Note which class the probe wears: `.codex-scroll` is the scrollbar alone.
+ * `.codex-pane` (the reading pane's position and padding) must stay off it, or
+ * the probe measures a box that is absolutely positioned and 20 px padded.
  */
 export function publishScrollbarWidth(): void {
   const probe = document.createElement("div");

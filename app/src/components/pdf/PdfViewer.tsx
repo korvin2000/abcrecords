@@ -51,6 +51,10 @@ export interface PdfViewerProps {
   download?: string;
   /** When given, the toolbar offers a close control. */
   onClose?: () => void;
+  /** **Required in practice: this is where the viewer's size comes from.** It
+   *  declares none of its own (see the note in the markup), so a host must give
+   *  it a height — `flex-1 min-h-0` inside a flex column is the safest form,
+   *  because flexbox cannot over-constrain the way `height` + `inset` can. */
   className?: string;
 }
 
@@ -59,8 +63,35 @@ const MIN_SCALE = 0.2;
 const MAX_SCALE = 8;
 const ZOOM_STEP = 1.25;
 
-/** Padding around the page column, in px — also the scroll-to-page offset. */
-const GUTTER = 16;
+/**
+ * Padding around the page column, in px — also the scroll-to-page offset.
+ *
+ * It used to be a flat 16, and a flat margin is a percentage in disguise: on a
+ * 335 px-wide pane (a 375 px phone, once the modal's frame and the parchment
+ * border are paid for) it spent **9.5 %** of the reader's width on empty
+ * parchment either side of a scan they are trying to read. On a desk the same
+ * 32 px is 2 % and reads as a mount, which is what it is for.
+ *
+ * So it is a fraction of the pane, bounded at both ends — the same fluid rule
+ * the rest of the app spaces by. `clamp()` cannot do this in CSS here because
+ * the number is also arithmetic input to the fit scale and to the scroll-to-
+ * page offset, both of which live in JS.
+ */
+function gutterFor(paneWidth: number): number {
+  return Math.round(clamp(paneWidth * 0.022, 6, 16));
+}
+
+/**
+ * One pixel given up when fitting to width.
+ *
+ * `clientWidth` is specified to return the content width **rounded to the
+ * nearest integer**, so it can overstate the real box by half a pixel — and
+ * fit-to-width, which by definition lands the page exactly on that number,
+ * then overflows by that half pixel. The cost is a horizontal scrollbar
+ * appearing under a page that visibly fits, painted over the foot of it where
+ * scrollbars overlay (iOS, Android). A pixel is cheaper than that.
+ */
+const FIT_GUARD = 1;
 
 /** How far outside the pane a page is still worth painting. */
 const RENDER_MARGIN = "1200px";
@@ -149,7 +180,11 @@ export function PdfViewer({ src, title, download, onClose, className }: PdfViewe
       const size = sizes.get(n) ?? base;
       const width = turned ? size.height : size.width;
       const height = turned ? size.width : size.height;
-      return { width: Math.round(width * scale), height: Math.round(height * scale) };
+      // Floor, not round, on the inline axis only: a page half a pixel wider
+      // than the pane summons a horizontal scrollbar, while one half a pixel
+      // shorter than it should be is invisible. Nothing on the block axis can
+      // do that, so the height keeps the more accurate rounding.
+      return { width: Math.floor(width * scale), height: Math.round(height * scale) };
     },
     [sizes, base, turned, scale],
   );
@@ -157,15 +192,17 @@ export function PdfViewer({ src, title, download, onClose, className }: PdfViewe
   // Fit is re-satisfied whenever what it depends on moves: the pane, the page
   // geometry, the rotation. Leaving fit mode (a zoom click) freezes the scale
   // wherever it stood.
+  const gutter = gutterFor(area.width);
+
   useEffect(() => {
     if (!fit || !area.width || !area.height) return;
     const width = turned ? base.height : base.width;
     const height = turned ? base.width : base.height;
-    const byWidth = (area.width - 2 * GUTTER) / width;
-    const byHeight = (area.height - 2 * GUTTER) / height;
+    const byWidth = (area.width - 2 * gutter - FIT_GUARD) / width;
+    const byHeight = (area.height - 2 * gutter - FIT_GUARD) / height;
     const wanted = fit === "width" ? byWidth : Math.min(byWidth, byHeight);
     setScale(clamp(wanted, MIN_SCALE, MAX_SCALE));
-  }, [fit, area.width, area.height, base.width, base.height, turned]);
+  }, [fit, area.width, area.height, base.width, base.height, turned, gutter]);
 
   /**
    * The resolution the canvases are painted at. React holds it back while the
@@ -249,6 +286,12 @@ export function PdfViewer({ src, title, download, onClose, className }: PdfViewe
 
   /* --------------------------------------------------------------- controls */
 
+  // Read through a ref rather than closed over: `goToPage` is a dependency of
+  // the keyboard bindings and of the anchor below, and neither should be torn
+  // down because the pane grew by a pixel.
+  const gutterRef = useRef(gutter);
+  gutterRef.current = gutter;
+
   const goToPage = useCallback(
     (wanted: number, behavior?: ScrollBehavior) => {
       const root = scrollRef.current;
@@ -256,7 +299,7 @@ export function PdfViewer({ src, title, download, onClose, className }: PdfViewe
       const el = pageEls.current.get(target);
       if (!root || !el) return;
       const top =
-        root.scrollTop + el.getBoundingClientRect().top - root.getBoundingClientRect().top - GUTTER;
+        root.scrollTop + el.getBoundingClientRect().top - root.getBoundingClientRect().top - gutterRef.current;
       // A step to the neighbouring page reads as a page turn; a jump across
       // the document should simply arrive.
       root.scrollTo({ top, behavior: behavior ?? (Math.abs(target - page) <= 1 ? "smooth" : "auto") });
@@ -332,9 +375,17 @@ export function PdfViewer({ src, title, download, onClose, className }: PdfViewe
   const downloadName = download ?? basename(src);
 
   return (
-    // The viewer is always a toolbar over a scrolling pane; the host only
-    // says how large that column is.
-    <div className={clsx("flex h-full min-h-0 flex-col", className)}>
+    // The viewer is always a toolbar over a scrolling pane; the host says how
+    // large that column is, and **only** the host.
+    //
+    // This used to declare `h-full` as well, which is one owner too many: the
+    // host (PdfModal) sizes it, and when a host does that by anchoring all four
+    // sides, `height: 100%` and `bottom` are over-constrained. CSS resolves that
+    // by discarding `bottom` — so the viewer was exactly its own top inset (11px)
+    // taller than the frame it sits in, and its foot was drawn across the
+    // parchment's inner border. It is sized from outside now, so the two can no
+    // longer disagree.
+    <div className={clsx("flex min-h-0 flex-col", className)}>
       <PdfToolbar
         title={title}
         page={page}
@@ -366,7 +417,7 @@ export function PdfViewer({ src, title, download, onClose, className }: PdfViewe
           // still centres a page smaller than the pane.
           <div
             className="flex w-fit min-w-full flex-col items-center gap-4"
-            style={{ padding: GUTTER }}
+            style={{ padding: gutter }}
           >
             {pages.map((n) => (
               <PdfPage

@@ -24,24 +24,12 @@
 }
 
 .fx-clef-glyph {
-  font-family: var(--font-music);
-  /* Every number here is measured, not chosen: the fonts that carry U+1D11E
-     draw the clef at very different fractions of the em, so a fixed font-size
-     drew a visibly different clef per platform (about a fifth larger on Linux
-     and Android than on Windows). `--fx-clef-size` is the size that makes the
-     *ink* one height everywhere, `--fx-clef-ink` lifts that ink into the middle
-     of the box — a clef hangs far below its baseline, so centring the line box
-     leaves it low — and `--fx-clef-nudge` does the same sideways, so the turn is
-     about the middle of the drawn clef. All three come from ClefSpinner's one
-     `measureText`; the literals below are the Windows/Segoe values, used only
-     when an engine reports no ink metrics. They are `font-size`/`top`/`left`
-     rather than a transform, so none of them can fight the rotation. */
-  font-size: var(--fx-clef-size, 1.45rem);
-  line-height: 1;
-  position: relative;
-  top: calc(-1 * var(--fx-clef-ink, 0.129em));
-  left: calc(-1 * var(--fx-clef-nudge, 0em));
-  /* Perspective belongs to the transform, not to a wrapper: one element, one
+  /* Everything about the clef's *size and placement* is measured — see
+     `<Glyph>` and lib/glyph.ts. All this rule adds is the depth, and it adds it
+     to the element whose box is the ink box, so the turn is about the drawn
+     clef and not about the middle of its advance width.
+
+     Perspective belongs to the transform, not to a wrapper: one element, one
      composited layer, and the depth reads the same wherever the clef is used. */
   transform: perspective(600px) rotateY(0deg);
 }

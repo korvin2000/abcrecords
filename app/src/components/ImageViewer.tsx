@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { m } from "framer-motion";
 import clsx from "clsx";
 import { useI18n } from "@/lib/i18n";
+import { Glyph } from "@/components/Glyph";
+import { SIGN } from "@/lib/signs";
 import type { ViewerImage } from "@/lib/imageViewer";
 
 /**
@@ -165,7 +167,7 @@ export function ImageViewer({ image, onClose }: Props) {
         title={t("viewer.close")}
         className="btn-rpg absolute right-4 top-4 z-20 !px-3"
       >
-        ✕
+        <Glyph char={SIGN.close} size="var(--codex-ctrl-glyph)" />
       </button>
 
       <div

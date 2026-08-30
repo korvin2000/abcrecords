@@ -11,6 +11,8 @@ import { useAsciiTabViewer } from "@/lib/asciiTabViewer";
 import { AudioDownload, AudioPlayer } from "@/components/AudioPlayer";
 import { Divider } from "@/components/OrnateFrame";
 import { CurlFrame } from "@/components/CurlFrame";
+import { Glyph } from "@/components/Glyph";
+import { SIGN } from "@/lib/signs";
 
 interface Props {
   record: CatalogRecord;
@@ -85,7 +87,13 @@ export function GalleryTab({ record, bundle }: Props) {
               onClick={() => openTab({ src, label: track.label, download: track.target.split(/[?#]/, 1)[0].split("/").pop() })}
               className="flex w-full items-center gap-3 border border-gold-600/40 bg-paper-100/70 px-4 py-2.5 text-left transition-shadow hover:shadow-[0_2px_14px_rgba(138,106,31,0.25)]"
             >
-              <span aria-hidden className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-gold-600/60 text-lg text-gold-800">𝄞</span>
+              {/* The clef comes from a symbol face the platform picks, so it is
+                  measured rather than sized: `text-lg` drew it correctly on
+                  Windows and a fifth larger — hanging below the medallion's
+                  centre — on Android and Linux. See lib/glyph.ts. */}
+              <span aria-hidden className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-gold-600/60 text-gold-800">
+                <Glyph char={SIGN.clef} font="var(--font-music)" size="1.15rem" />
+              </span>
               <span className="min-w-0 flex-1 truncate font-heading text-sm text-ink-800">{track.label}</span>
               <span className="rounded-sm border border-gold-600/50 bg-paper-200/70 px-1.5 py-0.5 font-heading text-[0.6rem] font-bold tracking-wider text-gold-800">TAB</span>
               <span className="btn-rpg !px-3 !py-1 !text-[0.65rem]">{t("docs.open")}</span>

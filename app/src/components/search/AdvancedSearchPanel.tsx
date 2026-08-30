@@ -5,6 +5,7 @@ import { countryName } from "@/lib/metadata";
 import { toggleValue, type GenderFilter, type LangScope, type SearchCriteria } from "@/lib/search";
 import { ChipGroup, Field, SegmentedControl, TextField, TokenSelect, YearRangeField } from "@/components/form";
 import { CountryFlag, hasCountryFlag } from "@/components/CountryFlag";
+import { GENDER_REF, SIGN } from "@/lib/signs";
 import { Divider } from "@/components/OrnateFrame";
 import { DossierProgress, type DossierStatus } from "./DossierProgress";
 
@@ -88,10 +89,11 @@ export function AdvancedSearchPanel({
               value={criteria.gender}
               onChange={(gender) => onPatch({ gender })}
               labelledBy={labelId("gender")}
+              iconSizedBy={GENDER_REF}
               segments={[
-                { value: "any", label: t("search.gender.any"), icon: "⚥" },
-                { value: "m", label: t("lore.gender.m"), icon: "♂" },
-                { value: "f", label: t("lore.gender.f"), icon: "♀" },
+                { value: "any", label: t("search.gender.any"), icon: SIGN.either },
+                { value: "m", label: t("lore.gender.m"), icon: SIGN.male },
+                { value: "f", label: t("lore.gender.f"), icon: SIGN.female },
               ]}
             />
           </Field>

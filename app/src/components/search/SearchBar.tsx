@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, m } from "framer-motion";
 import { FEATURES } from "@/config";
 import { audio } from "@/lib/audio";
@@ -158,11 +158,40 @@ export function SearchBar({
         </div>
       )}
 
-      <p className="mt-2 text-center font-heading text-xs uppercase tracking-[0.3em] text-sepia-600/80" aria-live="polite">
-        {resultCount === totalCount
-          ? t("search.count", { n: totalCount })
-          : t("search.countFiltered", { n: resultCount, total: totalCount })}
+      <p className="search-count" aria-live="polite">
+        {emphasizeNumbers(
+          resultCount === totalCount
+            ? t("search.count", { n: totalCount })
+            : t("search.countFiltered", { n: resultCount, total: totalCount }),
+        )}
       </p>
     </m.div>
+  );
+}
+
+/**
+ * The tally under the catalogue, with its figures picked out.
+ *
+ * The line is the one place the reader is told how much of the archive they are
+ * looking at, and it sat in the same weight and half the contrast as the
+ * decorative rule above it. Bolder and darker is most of the fix (`.search-count`
+ * in search.css); this is the rest — the *numbers* are what the sentence is
+ * about, so they are lifted out of the sepia into burgundy.
+ *
+ * Splitting on digit runs rather than re-interpolating keeps every dictionary
+ * out of it: `t()` has already chosen the plural form and filled the slots, and
+ * all ten dictionaries write their figures in Arabic numerals. Odd indices of
+ * the split are the captured runs — that is `String#split`'s contract with a
+ * capturing group, not an assumption about this particular string.
+ */
+function emphasizeNumbers(text: string): ReactNode[] {
+  return text.split(/(\d+)/).map((part, i) =>
+    i % 2 === 1 ? (
+      <b key={i} className="search-count-figure">
+        {part}
+      </b>
+    ) : (
+      part
+    ),
   );
 }

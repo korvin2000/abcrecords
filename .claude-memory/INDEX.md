@@ -30,6 +30,7 @@ Claude Code sessions can work efficiently without re-reading every source file.
 | [`13-app-code-map.md`](13-app-code-map.md) | Need to **navigate `app/` fast** — file-by-file map by layer, control/data-flow walkthroughs, and a component-relationship diagram. |
 | [`14-app-patterns-and-gotchas.md`](14-app-patterns-and-gotchas.md) | **About to change `app/` code** — the recurring patterns, the landmines to avoid (CSS layering, dates, two bases, audio, search, BioMD), and step-by-step task recipes. |
 | [`15-app-critique.md`](15-app-critique.md) | Want the **honest state of `app/`** — strengths, a severity-tagged weakness/risk register, and a prioritized improvement backlog. |
+| [`16-cross-platform-glyphs.md`](16-cross-platform-glyphs.md) | **About to add, resize or "nudge" a Unicode sign** (♀ ♂ ⚥ 𝄞 ♪ ◀ ▶ ✦ ❖ ✕) — why a `font-size` for one is a Windows-only guess, and the `<Glyph>` primitive that replaces it. Read it before touching any symbol in the chrome. |
 
 ## 30-second orientation
 
@@ -59,6 +60,11 @@ Claude Code sessions can work efficiently without re-reading every source file.
   `CodexLegends`'s `CharacterCard.tsx`/`SearchBar.tsx`/search screen, but
   **re-themed from dark to light**. Full rationale in
   [`10-ui-component-decision.md`](10-ui-component-decision.md).
+- **Drawing a Unicode sign?** ♀ ♂ ⚥ 𝄞 ♪ ◀ ▶ ✦ ❖ ✕ come from a *symbol face
+  the platform picks*, and the three families in the wild disagree about ink
+  size, baseline position and line-box height. Use `<Glyph>`; never a
+  `font-size`, never a `translateY`. Full rationale:
+  [`16-cross-platform-glyphs.md`](16-cross-platform-glyphs.md).
 - **Working on the `app/` code?** Read the deep-dive triad:
   [`13`](13-app-code-map.md) (where everything lives + flow) →
   [`14`](14-app-patterns-and-gotchas.md) (patterns, landmines, task recipes) →

@@ -209,13 +209,14 @@ function normalizeNames(raw: unknown): NameIndex {
 /**
  * How many entry editions stay in memory.
  *
- * `jsonCache` used to be deliberately unbounded, because the facts index read
+ * `jsonCache` used to be deliberately unbounded, because the facts index reads
  * every dossier in the catalogue and evicting them would have meant fetching
- * them twice. That stopped being true when the index moved to a precomputed
- * digest (lib/dossier/digest.ts): nothing now reads a dossier except a codex
- * the reader has actually opened, so an unbounded map is simply a session-long
- * leak — at ~1 KB each it is the whole catalogue's metadata held for one
- * afternoon of browsing.
+ * them twice. It does still read them (lib/dossier/factsStore.ts) — but it
+ * keeps the four fields it wants, not the dossiers, so what the cap evicts is
+ * only the raw JSON behind facts already extracted. An unbounded map here is
+ * a session-long leak: at ~1 KB each it is the whole catalogue's metadata held
+ * for one afternoon of browsing, to save a re-read that only happens if the
+ * reader opens that exact entry.
  *
  * A Map preserves insertion order, so evicting `keys().next()` is a plain LRU
  * once a re-read moves the key to the back. The dossier cap is the looser of

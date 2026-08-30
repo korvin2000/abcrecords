@@ -115,7 +115,7 @@ export const ru = {
   "gallery.photos": "Портреты и снимки",
   "gallery.music": "Музыка",
   "gallery.theme": "Тема героя",
-  "gallery.themePlay": "▶ Слушать тему",
+  "gallery.themePlay": "▶︎ Слушать тему",
   "gallery.themeStop": "■ Остановить",
   "gallery.themeHint": "Мелодия порождается формулой f = f₀·2^(n/12) из имени героя",
   "gallery.empty": "Галерея этой записи пока пуста.",

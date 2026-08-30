@@ -65,14 +65,204 @@
 }
 
 /* ============================================================
+   The tally under the catalogue (components/search/SearchBar)
+   ============================================================ */
+
+/*
+ * "737 entries recorded" / "12 of 737 revealed" — the only sentence on the page
+ * that says how much of the archive the reader is looking at, and it was set in
+ * the same weight, the same colour and one shade *less* contrast than the
+ * ornamental rule above it: `text-sepia-600/80` on parchment, ~3.4:1, which is
+ * below WCAG AA for text this small and reads as a caption on the search box
+ * rather than as the catalogue's own count.
+ *
+ * Now it is the heaviest small line in the block — bold, full-strength sepia
+ * (~7:1 on `--color-paper-100`) — and the figures inside it are lifted into
+ * burgundy, because the numbers are what the sentence is *about*. The wide
+ * tracking survives but eases off on a phone, where 0.3em of a bold line is
+ * what pushed the old count onto two rows.
+ */
+.search-count {
+  --search-count-tracking: clamp(0.16em, 0.08em + 0.28vw, 0.3em);
+
+  margin-block-start: 0.55rem;
+  /* `letter-spacing` puts a space after the *last* glyph too, so a centred
+     line of wide-tracked capitals sits half a space left of true centre.
+     Shrinking the content box from the leading edge by one full space moves
+     the centred line back by half of it — the exact compensation. */
+  padding-inline-start: var(--search-count-tracking);
+  color: var(--color-sepia-700);
+  font-family: var(--font-heading);
+  font-size: clamp(0.72rem, 0.66rem + 0.22vw, 0.86rem);
+  font-weight: 700;
+  letter-spacing: var(--search-count-tracking);
+  line-height: 1.3;
+  text-align: center;
+  text-transform: uppercase;
+}
+.search-count-figure {
+  color: var(--color-burgundy-700);
+  font-weight: 700;
+  /* Lining, equal-width figures: the count changes on every keystroke, and
+     proportional digits make the whole line twitch as it does. */
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* ============================================================
    Country facet — a row of flags (components/search/CountryFilter)
    ============================================================ */
+
+/*
+ * The row.
+ *
+ * Its gap is **derived from the selection mark**, and that is the whole repair.
+ * The mark used to be `transform: scale(1.18)` plus a ring — and a transform
+ * changes no layout at all, so a chosen flag grew ~3 px into each side of a
+ * 4 px gap and ended up touching, sometimes overlapping, whichever neighbours
+ * were also chosen. Reserving the room here means a mark can never collide with
+ * anything, whichever of the four is in use, and means the flags no longer
+ * shift when one is picked.
+ */
+.country-row {
+  /* The mark's own two measurements. Every variant below spends exactly these,
+     so the gap and the drawing can never disagree. */
+  --country-ring: 1.5px;
+  --country-ring-gap: 0.5px;
+  --country-mark: calc(var(--country-ring) + var(--country-ring-gap));
+
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  /* One mark's width on each of two neighbours, plus the air the row wants
+     anyway. Block gets a little more: rows read as rows because the vertical
+     rhythm is looser than the horizontal one. */
+  column-gap: calc(0.15rem + 2 * var(--country-mark));
+  row-gap: calc(0.1rem + 2 * var(--country-mark));
+}
 
 /* The flags shrink with the viewport, so the same eighteen nations take two
    rows on a phone instead of three. */
 .country-flag {
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
   block-size: clamp(1.15rem, 1rem + 0.45vw, 1.45rem);
   inline-size: clamp(1.7rem, 1.45rem + 0.7vw, 2.15rem);
+  border: 1px solid rgba(184, 144, 42, 0.35);
+  border-radius: 0.2rem;
+  cursor: pointer;
+  /* Not `all`: `transition: all` on a box whose `outline`, `box-shadow` and
+     `border-radius` all change at once is how a ring arrives a frame after the
+     colour it is meant to belong to. */
+  transition: opacity 0.2s, filter 0.2s, border-color 0.2s, box-shadow 0.2s, outline-color 0.2s;
+}
+.country-flag-code {
+  font-family: var(--font-heading);
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--color-sepia-600);
+}
+
+/* The unchosen: dimmed and desaturated, so the chosen ones are the only full
+   colour in the row. This half of the signal is the one that reads across
+   fifty flags at a glance — the mark below is what makes it unambiguous. */
+.country-flag--off {
+  opacity: 0.55;
+  filter: saturate(0.7);
+}
+.country-flag--off:hover {
+  opacity: 1;
+  filter: none;
+  border-color: var(--color-gold-600);
+}
+.country-flag--on {
+  z-index: 1;
+}
+.country-flag:focus-visible {
+  outline: 2px solid var(--color-gold-600);
+  outline-offset: 2px;
+}
+
+/* The "+33 more" / "−" toggle wears the same box as a flag. */
+.country-flag--more {
+  border-color: rgba(184, 144, 42, 0.45);
+  border-radius: 999px;
+  background: rgba(250, 245, 230, 0.6);
+  padding-inline: 0.25rem;
+  font-family: var(--font-heading);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-sepia-600);
+  transition: color 0.2s, border-color 0.2s;
+}
+.country-flag--more:hover {
+  border-color: var(--color-gold-600);
+  color: var(--color-ink-800);
+}
+
+/* ---- The four marks (config.ts `FLAG_SELECTION`) -------------------------
+ *
+ * Each draws **one** thing, and draws it outside the flag. `outline` rather
+ * than a second border: it is painted outside the border box, it follows
+ * `border-radius` concentrically, `outline-offset` gives it clear air without
+ * touching layout, and — unlike a `box-shadow` spread — it is not clipped by
+ * the `overflow: hidden` that rounds the flag's own corners. That combination
+ * is why the old border+shadow pair looked uneven at the corners: two rings at
+ * two radii, one of them fighting the clip.
+ */
+
+/* ring — a burgundy ring, held one gap clear of the flag on all four sides. */
+[data-select="ring"] .country-flag--on {
+  border-color: rgba(94, 18, 32, 0.5);
+  outline: var(--country-ring) solid var(--color-burgundy-600);
+  outline-offset: var(--country-ring-gap);
+  box-shadow: 0 2px 7px rgba(122, 31, 43, 0.3);
+}
+
+/* stamp — the same ring with a paper-coloured separator inside it, so the
+   burgundy never sits directly against a red or orange flag. Both rings come
+   from one property, so they cannot drift apart. */
+[data-select="stamp"] .country-flag--on {
+  --country-ring: 2px;
+  --country-ring-gap: 3px;
+  border-color: rgba(94, 18, 32, 0.5);
+  box-shadow:
+    0 0 0 var(--country-ring-gap) var(--color-paper-50),
+    0 0 0 calc(var(--country-ring-gap) + var(--country-ring)) var(--color-burgundy-600),
+    0 3px 9px rgba(51, 34, 15, 0.3);
+}
+
+/* mount — the flag mounted on a solid burgundy plate, like a stamp hinged onto
+   an album leaf. One spread shadow is the plate; the second is its shadow. */
+[data-select="mount"] .country-flag--on {
+  --country-ring: 4px;
+  --country-ring-gap: 0px;
+  border-color: rgba(94, 18, 32, 0.65);
+  border-radius: 0.15rem;
+  box-shadow:
+    0 0 0 var(--country-ring) var(--color-burgundy-600),
+    0 3px 8px rgba(51, 34, 15, 0.32);
+}
+
+/* quiet — no mark at all. The chosen flag is simply the only one still in full
+   colour, and the rest recede further than they do under the other three. The
+   row keeps a small gap because `--country-ring` is zero here. */
+[data-select="quiet"] {
+  --country-ring: 0px;
+  --country-ring-gap: 1px;
+}
+[data-select="quiet"] .country-flag--off {
+  opacity: 0.4;
+  filter: saturate(0.25);
+}
+[data-select="quiet"] .country-flag--on {
+  border-color: var(--color-burgundy-600);
+  box-shadow: 0 1px 4px rgba(51, 34, 15, 0.22);
 }
 
 /*
@@ -84,7 +274,9 @@
 .country-row--open {
   max-block-size: clamp(5rem, 2rem + 16svh, 11rem);
   overflow-y: auto;
-  padding-block: 0.25rem;
+  /* The block padding is the mark's room again: a chosen flag in the first or
+     last row would otherwise have its ring clipped by the scroll container. */
+  padding-block: calc(0.25rem + var(--country-mark));
   border-block: 1px solid rgba(184, 144, 42, 0.28);
 }
 
@@ -125,6 +317,41 @@
   box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.18);
 }
 
+/*
+ * Years, sitting level in their boxes.
+ *
+ * The two year ranges looked pushed down inside their frames, and the cause is
+ * the typeface, not the padding: **Cormorant's default figures are oldstyle**.
+ * In "1944" the 9s and the 4 hang a fifth of an em *below* the baseline while
+ * only the 1 reaches x-height, so the ink of the number is not where the ink of
+ * a word would be — and a control centres a **line box**, never ink.
+ *
+ * The arithmetic, at `font-size: 100px` (measured, not guessed — the same
+ * canvas/DOM pair `lib/glyph.ts` uses):
+ *
+ *   face metrics    ascent 92, descent 29        → content 121px
+ *   line-height 1.2 → half-leading −0.5          → baseline 91.5px from the top
+ *   line centre     60px from the top            = 31.5px above the baseline
+ *   ink of "1944"   −40 … +28 around the baseline = 6px above the baseline
+ *                                                → the digits sit 25.5px low
+ *
+ * i.e. 0.255 em, or 4.1 px at the panel's 16 px — exactly the drop that reads
+ * as "not vertically aligned". Lining figures sit between the baseline and the
+ * cap line, which puts their ink centre 0.33 em above the baseline and the
+ * residual error at 0.015 em: a quarter of a pixel, and invisible.
+ *
+ * So the fix is to ask for the right figures rather than to pad the box by
+ * eye — a nudge would be right at 16 px and wrong at every other size, and
+ * wrong again the day the face changes. `tabular-nums` comes along because a
+ * year box is a numeric field: the digits must not shuffle sideways as they are
+ * typed. Both are `font-variant-numeric`, so a face that has neither feature
+ * simply keeps today's rendering.
+ */
+.form-ink--figures,
+.form-ink--figures::placeholder {
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
 /* Native select: only the closed control is restyled; the open list stays the
    platform's, which is the right trade on a phone and with a screen reader. */
 .form-select-shell {
@@ -157,8 +384,24 @@
    instead, and the end segments carry the pill's radius themselves, so the
    selected fill is rounded at whichever end it sits. */
 .form-segments {
+  /* The strip's height is **stated**, not inherited from whatever the tallest
+     child's font happens to want.
+
+     Before, it was neither: the word segments were sized by Cormorant's line
+     box and the sign segments by whichever symbol face the platform reached
+     for, so the gender plaque stood taller than the language plaque beside it
+     on Android and matched it on Windows. Two strips in one row must be one
+     height on every device, and the only way to promise that is to say so. The
+     floor is 1.5rem = 24px, WCAG 2.2 AA's target size (SC 2.5.8); the ceiling
+     keeps it a caption-scale control on a desk. */
+  --form-segment-h: clamp(1.5rem, 1.35rem + 0.55vw, 1.9rem);
+  /* The signs' ink height inside that strip — see `.form-segment--icon`. */
+  --segment-icon: clamp(0.72rem, 0.63rem + 0.32vw, 0.95rem);
+
   display: inline-flex;
+  align-items: stretch;
   align-self: flex-start;
+  block-size: var(--form-segment-h);
   max-width: 100%;
   overflow: hidden;
   border: 1px solid rgba(184, 144, 42, 0.45);
@@ -166,7 +409,10 @@
   background: rgba(250, 245, 230, 0.7);
 }
 .form-segment {
-  padding: 0.24rem clamp(0.45rem, 0.2rem + 0.85vw, 0.8rem);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 clamp(0.45rem, 0.2rem + 0.85vw, 0.8rem);
   border: none;
   border-left: 1px solid rgba(184, 144, 42, 0.28);
   color: var(--color-sepia-600);
@@ -174,6 +420,13 @@
   font-family: var(--font-heading);
   font-size: clamp(0.56rem, 0.51rem + 0.16vw, 0.66rem);
   font-weight: 700;
+  /* Explicit, so the button's height is the strip's and never the face's. */
+  line-height: 1;
+  /* The strip has a stated height now, so a label that wrapped would be cut in
+     half rather than making its button taller. It never wraps: a strip too
+     narrow for its words is clipped on the inline axis, which is what
+     `overflow: hidden` on the strip already did before the height was fixed. */
+  white-space: nowrap;
   letter-spacing: clamp(0.05em, 0.02em + 0.1vw, 0.12em);
   text-transform: uppercase;
   cursor: pointer;
@@ -190,31 +443,23 @@
   padding-right: clamp(0.6rem, 0.3rem + 1vw, 1rem);
   border-radius: 0 999px 999px 0;
 }
-/* A sign, not a word — drawn from the symbol stack because ⚥ (U+26A5) is
-   missing from the text faces — paired with its word once the strip has
-   room to spell it out. Below that width `.form-segment-text` collapses to
-   nothing and the row is three signs again, squared off so they read as one
-   plaque of equal cells; the icon alone is slightly larger than the label it
-   stands in for, because a glyph at caption size is a smudge. */
+/* A sign, not a word — the three genders spell out to 24 characters of German
+   and draw in three marks — paired with its word once the strip has room to
+   spell it out. Below that width `.form-segment-text` collapses to nothing and
+   the row is three signs again, squared off so they read as one plaque of
+   equal cells.
+
+   The sign itself is a `<Glyph>` (components/Glyph.tsx), so its box is exactly
+   `--segment-icon` tall on every platform and its ink is centred in that box
+   by measurement. What used to live here — a literal `font-size: 0.9rem` and a
+   `translateY(-0.1em)` "measured against Cormorant SC" — was a description of
+   Segoe UI Symbol on Windows: on Android the same declarations drew a larger
+   sign, sitting low, in a button the face had made taller. Do not reintroduce
+   a nudge here; if a sign looks wrong, `--segment-icon` is the only dial. */
 .form-segment--icon {
-  display: inline-flex;
-  align-items: center;
   gap: 0.32rem;
-  min-inline-size: 1.6rem;
+  min-inline-size: var(--form-segment-h);
   padding-inline: 0.3rem;
-}
-.form-segment--icon > span:first-child {
-  font-family: var(--font-music);
-  font-size: 0.9rem;
-  /* The symbol stack's own vertical metrics (tall ascent, shallow descent —
-     it reserves headroom for symbols far taller than ♀/♂/⚥) sit its glyphs
-     lower than the label's line box centers them, even though both boxes
-     are correctly centered in the button — flex `align-items: center`
-     centers line boxes, not ink, and the two fonts disagree on where ink
-     sits inside one. Measured against "Cormorant SC" at this size the sign
-     needs nudging back up by about a tenth of its own em; baked in here
-     rather than left to whatever the layout math produces. */
-  transform: translateY(-0.1em);
 }
 .form-segment--icon:first-child { padding-left: 0.45rem; }
 .form-segment--icon:last-child { padding-right: 0.45rem; }

@@ -73,7 +73,10 @@ export function PdfModal({ record, pdf, onClose }: Props) {
 
   return (
     <m.div
-      className="fixed inset-0 z-40 flex items-center justify-center p-2 sm:p-6"
+      // Same frame gap and same safe-area handling as CodexShell: one token for
+      // how far a book is held off the screen, and `env()` so a notched phone
+      // in landscape does not put the toolbar under the cutout.
+      className="codex-overlay fixed inset-0 z-40 flex items-center justify-center"
       initial={{ opacity: 0 }}
       animate={{ opacity: closing ? 0 : 1 }}
       exit={{ opacity: 0, transition: { duration: 0 } }}
@@ -86,21 +89,32 @@ export function PdfModal({ record, pdf, onClose }: Props) {
 
       <div
         className={clsx(
-          "preserve-3d relative z-10 flex h-full max-h-[94vh] w-full max-w-6xl flex-col",
+          // `dvh`, not `vh`: on a phone the URL bar is part of the viewport
+          // `vh` measures and not part of the one the reader can see, so a
+          // 94vh panel stands 6 % taller than the screen it is centred in.
+          // (CodexShell has carried the `dvh` form since it was fixed there.)
+          "preserve-3d relative z-10 flex h-full max-h-[94dvh] w-full max-w-6xl flex-col",
           closing ? "page-turn-close" : "page-turn-open",
         )}
       >
-        <div className="parchment ornate-border relative flex flex-1 flex-col overflow-hidden rounded-sm">
+        {/* The frame gap is this element's **padding**, not the viewer's inset.
+            Anchoring the viewer to all four sides looks equivalent and is not:
+            any `height` on it then over-constrains the box and CSS silently
+            drops `bottom`, which is how the document's foot ended up drawn
+            across the bottom border. Padding plus a flex child is arithmetic
+            the layout engine does — there is no second number to disagree with.
+            Same token as the codex's reading pane, so the two stay in step. */}
+        <div className="parchment ornate-border relative flex flex-1 flex-col overflow-hidden rounded-sm p-[var(--codex-pane-inset)]">
           <CornerOrnament className="pointer-events-none absolute left-[5px] top-[5px] z-30 h-7 w-7 opacity-65 sm:h-8 sm:w-8" />
           <CornerOrnament flipX className="pointer-events-none absolute right-[5px] top-[5px] z-30 h-7 w-7 opacity-65 sm:h-8 sm:w-8" />
           <CornerOrnament flipY className="pointer-events-none absolute bottom-[5px] left-[5px] z-30 h-7 w-7 opacity-65 sm:h-8 sm:w-8" />
           <CornerOrnament flipX flipY className="pointer-events-none absolute bottom-[5px] right-[5px] z-30 h-7 w-7 opacity-65 sm:h-8 sm:w-8" />
 
-          {/* Inset past the double border, exactly as the codex's reading pane
-              is, so the toolbar and the scrollbar track both sit inside the
-              frame rather than across it. */}
+          {/* Inset past the double border by the parent's padding, exactly as
+              the codex's reading pane is, so the toolbar and both scrollbar
+              tracks sit inside the frame rather than across it. */}
           <PdfViewer
-            className="absolute inset-[11px]"
+            className="flex-1"
             src={href}
             title={record.display}
             download={pdf.split("/").pop()}

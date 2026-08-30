@@ -1,6 +1,8 @@
 import clsx from "clsx";
 import { useI18n } from "@/lib/i18n";
 import { useAudioPlayback, type AudioKind } from "@/lib/playback";
+import { Glyph } from "@/components/Glyph";
+import { SIGN } from "@/lib/signs";
 
 /**
  * Built-in audio player, styled in the manuscript theme. `AudioPlayer` is the
@@ -134,9 +136,9 @@ export function AudioDownload({ src, label, kind }: { src: string; label: string
     <div className="flex items-center gap-3 border border-gold-600/40 bg-paper-100/70 px-4 py-2.5">
       <span
         aria-hidden
-        className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-gold-600/40 text-lg text-sepia-500"
+        className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-gold-600/40 text-sepia-500"
       >
-        ♪
+        <Glyph char={SIGN.note} font="var(--font-music)" size="1.05rem" />
       </span>
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-2">
@@ -158,9 +160,7 @@ export function InlineAudioDownload({ src, label }: { src: string; label: string
   const format = formatWord(label, src);
   return (
     <span className="audio-pill audio-pill--mute" title={t("audio.noCodec")}>
-      <span aria-hidden className="text-[0.85em] text-sepia-500">
-        ♪
-      </span>
+      <Glyph char={SIGN.note} font="var(--font-music)" size="0.8em" className="text-sepia-500" />
       {format ? (
         <FormatIcon kind="native" format={format} />
       ) : (

@@ -1,4 +1,27 @@
 /* ============================================================
+   The codex overlay — the sheet the book is centred on.
+
+   Padding, and only padding: `position`/`z-index`/the flex centring stay on the
+   element as Tailwind utilities (see CodexShell), per the house rule that one
+   element must not have two owners for the same property.
+
+   `index.html` sets `viewport-fit=cover`, so on a notched phone the layout
+   viewport runs underneath the notch, the rounded corners and the home
+   indicator — and the codex is the one full-screen surface in the app that had
+   no `env()` in it. In landscape on such a device that is 44 px of screen the
+   system will not let anything be seen or tapped in, sitting exactly where the
+   close button lives. `max()` per side, so a device with no cutout is unchanged
+   and one with a cutout is inset by whichever is larger.
+   ============================================================ */
+.codex-overlay {
+  padding:
+    max(var(--codex-frame-pad), env(safe-area-inset-top))
+    max(var(--codex-frame-pad), env(safe-area-inset-right))
+    max(var(--codex-frame-pad), env(safe-area-inset-bottom))
+    max(var(--codex-frame-pad), env(safe-area-inset-left));
+}
+
+/* ============================================================
    Codex interior scroll area — a golden "ribbon" scrollbar.
    The scroll container is inset from the parchment border, so the
    whole track (top to bottom) lives inside the double frame.
@@ -32,9 +55,41 @@
   background-clip: padding-box;
   border-width: 2px;
 }
+/*
+ * `.codex-scroll` is the gold ribbon and **nothing else**.
+ *
+ * It is worn by two very different panes — the codex's reading pane and the
+ * document viewer's page column (components/pdf/PdfViewer) — which share a
+ * scrollbar and share no geometry at all. Putting the reading pane's position
+ * and padding on this class broke the viewer instantly and invisibly: the PDF
+ * pane inherited `position: absolute`, a 44 px top padding and a ~10 px inline
+ * padding it knows nothing about, which is what put a gap down the left of
+ * every document and pushed the page column 21 px past its own scroll port.
+ *
+ * The geometry lives in `.codex-pane` below. Anything that only wants the
+ * scrollbar takes this class alone.
+ */
 .codex-scroll {
   scrollbar-width: auto; /* Firefox: `thin` was too skinny for the design */
   scrollbar-color: #b8902a transparent;
+}
+
+/*
+ * The codex's reading pane. It owns its position (so, per the house rule for
+ * unlayered CSS, the element must not also carry Tailwind `absolute`/`inset-*`),
+ * and its top padding is *derived* from the control row rather than clamped
+ * alongside it: `--codex-ctrl-band` is how far the row reaches from the panel's
+ * inner edge, and the pane already starts `--codex-pane-inset` in, so the
+ * difference plus one line of air is exactly the clearance the buttons need.
+ * Three independent clamps used to have to agree about that by hand.
+ */
+.codex-pane {
+  position: absolute;
+  inset: var(--codex-pane-inset);
+  overflow-y: auto;
+  padding-block: calc(var(--codex-ctrl-band) - var(--codex-pane-inset) + clamp(0.3rem, 0.2rem + 0.5svh, 0.75rem))
+    1.5rem;
+  padding-inline: clamp(0.65rem, 0.1rem + 2.2vw, 2.25rem);
 }
 
 /* ============================================================
@@ -136,9 +191,11 @@
  */
 .codex-topfade {
   position: absolute;
-  inset: 11px 11px auto;
+  inset: var(--codex-pane-inset) var(--codex-pane-inset) auto;
   z-index: 15;
-  block-size: calc(var(--codex-ctrl-size) + 2rem);
+  /* The same band the buttons occupy, plus the distance over which the paper
+     dissolves back into the page. Derived, so it cannot end above them. */
+  block-size: calc(var(--codex-ctrl-band) - var(--codex-pane-inset) + 1.25rem);
   pointer-events: none;
   background: linear-gradient(
     180deg,
@@ -178,7 +235,14 @@
   justify-content: space-between;
   gap: 0.5rem;
   padding-block-start: var(--codex-ctrl-inset-block);
-  padding-inline: var(--codex-ctrl-inset) calc(var(--codex-ctrl-inset) + var(--codex-scrollbar));
+  /* Leading: the corner gutter. Trailing: the same gutter *plus* room for the
+     scrollbar — `--codex-scrollbar-guard`, not `--codex-scrollbar`, because on
+     every platform with overlay scrollbars the latter is 0 and the arrow ends
+     up underneath a track that is still painted over it. That is the phone bug
+     precisely: correct on Windows, wrong on Android and iOS, and invisible to
+     a desktop test. */
+  padding-inline: var(--codex-ctrl-inset)
+    calc(var(--codex-ctrl-inset) + var(--codex-scrollbar-guard));
   /* The row spans the full width but is mostly empty air over the article —
      only the controls themselves should swallow a click. */
   pointer-events: none;
@@ -199,6 +263,14 @@
   border-radius: 3px;
   font-size: clamp(0.6rem, 0.54rem + 0.2vw, 0.72rem);
   line-height: 1;
+}
+
+/* The right-hand group: edition menu, back, forward. Its own gap is a token so
+   the WCAG spacing sum (target size + gap) is stated in one place. */
+.codex-ctrl-group {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--codex-ctrl-gap);
 }
 
 /* The same short-viewport band. The reading pane is ~300 px tall there, so the

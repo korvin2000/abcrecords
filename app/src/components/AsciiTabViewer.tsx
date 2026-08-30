@@ -12,6 +12,8 @@ import {
 import { useAsciiTabPlayback } from "@/lib/asciiTabPlayback";
 import type { ViewerTab } from "@/lib/asciiTabViewer";
 import { useI18n, type TFunc } from "@/lib/i18n";
+import { SIGN } from "@/lib/signs";
+import { Glyph } from "./Glyph";
 import { CornerOrnament } from "./OrnateFrame";
 
 interface Props {
@@ -182,7 +184,7 @@ export function AsciiTabViewer({ tab, onClose }: Props) {
           </h1>
           <p className="tabview-meta truncate font-body italic text-sepia-600">{name}</p>
           <button type="button" onClick={onClose} className="btn-rpg codex-ctrl tabview-close z-20" aria-label={t("viewer.close")} title={t("viewer.close")}>
-            ✕
+            <Glyph char={SIGN.close} size="var(--codex-ctrl-glyph)" />
           </button>
         </header>
 
@@ -314,7 +316,7 @@ function TabToolbar({
           disabled={!playback.hasNotes || playback.status === "error"}
           className="btn-rpg tabview-btn disabled:cursor-not-allowed disabled:opacity-45"
         >
-          {playing ? `Ⅱ ${t("audio.pause")}` : `▶ ${t("audio.play")}`}
+          {playing ? `Ⅱ ${t("audio.pause")}` : `▶︎ ${t("audio.play")}`}
         </button>
         <button
           type="button"

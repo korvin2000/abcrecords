@@ -92,6 +92,29 @@ export const EFFECTS: EffectsConfig = {
   respectReducedMotion: true,
 };
 
+/**
+ * How a chosen nation is marked in the country facet (components/search/
+ * CountryFilter). One word, four looks — change it here and nowhere else.
+ *
+ *   "ring"   a burgundy ring held clear of the flag on all four sides.
+ *   "stamp"  the same ring with a paper-coloured separator inside it, so the
+ *            burgundy never touches the flag's own colours.
+ *   "mount"  the flag mounted on a solid burgundy plate, like a stamp on an
+ *            album leaf.
+ *   "quiet"  no mark at all: the *unchosen* flags recede further instead.
+ *
+ * The previous treatment grew the chosen flag by 18 % with `transform: scale`
+ * and ringed it with a border *and* a box-shadow. Both halves were wrong:
+ * a transform changes no layout, so a grown flag ate the 4 px gap and touched
+ * its neighbour, and two ring mechanisms at two radii on a clipped, rounded box
+ * is what made the outline look thick in some corners and absent in others.
+ * Every option here draws **one** mark, outside the flag, in space the row's
+ * gap has actually reserved — see `.country-row` in search.css.
+ */
+export type FlagSelection = "ring" | "stamp" | "mount" | "quiet";
+
+export const FLAG_SELECTION: FlagSelection = "ring";
+
 interface DossierConfig {
   /** Start reading dossiers as soon as the catalogue is on screen. With this
    *  off, the crawl waits until an advanced criterion actually needs it. */
@@ -111,13 +134,21 @@ interface DossierConfig {
  *
  * This is the app's only many-request feature, so it is deliberately shy: few
  * sockets, idle-scheduled batches, throttled re-renders. At catalogue scale
- * (~10³ entries) it stays a background trickle; if that ever stops being
- * acceptable, the escape hatch is a precomputed digest in `pages/` plugged in
- * behind `factsStore`'s loader — no caller changes.
+ * (~10³ entries) it stays a background trickle, and it is **the only** place
+ * these facts come from: reading them in the browser is what makes an edit to a
+ * `*.bio.json` show up on the next reload instead of on the next build. A
+ * generated `facts-<lang>.json` beside the index is faster and wrong — see the
+ * note at the head of `lib/dossier/factsStore.ts` before proposing one again.
+ * The dials below are where a slow crawl is paid for.
  */
 export const DOSSIER: DossierConfig = {
   warmOnIdle: true,
-  concurrency: 4,
+  /* Six, not four: browsers cap a same-origin HTTP/1.1 host at six connections
+     and multiplex freely over HTTP/2, so six is the most the slowest transport
+     will actually run in parallel and no more than the fastest wants. The codex
+     still cannot queue behind the index, because every worker yields to the
+     browser between entries (`whenIdle` in factsStore.ts). */
+  concurrency: 6,
   notifyThrottleMs: 500,
 };
 

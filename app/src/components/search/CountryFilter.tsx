@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import clsx from "clsx";
+import { FLAG_SELECTION } from "@/config";
 import { audio } from "@/lib/audio";
 import { useI18n } from "@/lib/i18n";
 import { countryName } from "@/lib/metadata";
@@ -72,11 +73,12 @@ export function CountryFilter({
       aria-label={labelledBy ? undefined : t("facet.country.group")}
       /* Open, this used to be every nation in the catalogue in one unbounded
          block — six rows of flags on a phone. `.country-row--open` caps it and
-         gives it its own scroll (index.css). */
-      className={clsx(
-        "flex flex-wrap items-center justify-center gap-1",
-        expanded && "country-row--open",
-      )}
+         gives it its own scroll (search.css). */
+      className={clsx("country-row", expanded && "country-row--open")}
+      /* Which of the four selection marks is drawn (config.ts). The row, not
+         the flag, carries it: the gap between flags has to reserve room for
+         whichever mark is in use, and only the row can set a gap. */
+      data-select={FLAG_SELECTION}
     >
       {shown.map((code) => {
         const name = countryName(code, locale) ?? code;
@@ -95,23 +97,18 @@ export function CountryFilter({
             title={`${name} · ${n}`}
             aria-label={`${name} · ${n}`}
             /* Flags are already colourful, so selection cannot be signalled by
-               adding more colour to one — it is signalled by taking it away
-               from the others. An unchosen flag is dimmed and desaturated; a
-               chosen one stands at full strength, a little larger, ringed and
-               lifted. The difference reads at a glance across a row of fifty. */
-            className={clsx(
-              "country-flag relative grid place-items-center overflow-hidden rounded-[0.2rem] border transition-all duration-200",
-              on
-                ? "z-10 scale-[1.18] border-burgundy-600 shadow-[0_0_0_1px_#7a1f2b,0_3px_10px_rgba(122,31,43,0.45)]"
-                : "border-gold-600/35 opacity-55 saturate-[0.7] hover:border-gold-600 hover:opacity-100 hover:saturate-100",
-            )}
+               adding more colour to one — it is signalled first by taking it
+               away from the others. An unchosen flag is dimmed and desaturated;
+               a chosen one stands at full strength and takes whichever mark
+               `FLAG_SELECTION` names. The look lives entirely in search.css so
+               that the mark, and the gap that makes room for it, are written
+               next to each other. */
+            className={clsx("country-flag", on ? "country-flag--on" : "country-flag--off")}
           >
             {hasCountryFlag(code) ? (
               <CountryFlag code={code} className="h-full w-full" />
             ) : (
-              <span className="font-heading text-[0.55rem] font-bold tracking-wide text-sepia-600">
-                {code}
-              </span>
+              <span className="country-flag-code">{code}</span>
             )}
           </button>
         );
@@ -132,7 +129,7 @@ export function CountryFilter({
           onMouseEnter={() => audio.hover()}
           aria-expanded={expanded}
           aria-label={t("facet.country.group")}
-          className="country-flag grid place-items-center rounded-full border border-gold-600/45 bg-paper-50/60 px-1 font-heading text-[0.58rem] font-bold uppercase tracking-wider text-sepia-600 transition-colors hover:border-gold-600 hover:text-ink-800"
+          className="country-flag country-flag--more"
         >
           {expanded ? "−" : `+${hidden}`}
         </button>

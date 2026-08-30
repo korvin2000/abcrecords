@@ -4,6 +4,8 @@ import { useI18n } from "@/lib/i18n";
 import { isImageUrl, useImageViewer } from "@/lib/imageViewer";
 import { isAsciiTabUrl } from "@/lib/asciiTab";
 import { useAsciiTabViewer } from "@/lib/asciiTabViewer";
+import { Glyph } from "@/components/Glyph";
+import { SIGN } from "@/lib/signs";
 
 /**
  * Documents tab — the documents[] array of MetaData.json.
@@ -31,21 +33,31 @@ export function DocumentsTab({ bundle }: { bundle: EntryBundle }) {
   );
 }
 
-const TYPE_GLYPHS: Record<string, string> = {
-  TRANSCRIPT: "𝄞",
-  DOSSIER: "❖",
-  ARTICLE: "❧",
-  SOURCE: "✦",
+/** One mark per document kind, and the face that carries it. `type` is an open
+ *  set (docs/MetaData.md), so an unknown kind falls through to the scroll —
+ *  the one deliberate pictograph in the chrome, which is why it is the one
+ *  entry drawn from the colour face. */
+const TYPE_GLYPHS: Record<string, { char: string; font: string }> = {
+  TRANSCRIPT: { char: SIGN.clef, font: "var(--font-music)" },
+  DOSSIER: { char: SIGN.dossier, font: "var(--font-symbol)" },
+  ARTICLE: { char: SIGN.article, font: "var(--font-symbol)" },
+  SOURCE: { char: SIGN.source, font: "var(--font-symbol)" },
 };
 
+const UNKNOWN_TYPE = { char: SIGN.scroll, font: "var(--font-emoji)" };
+
 function TypeGlyph({ type }: { type?: string }) {
-  const glyph = TYPE_GLYPHS[(type ?? "").toUpperCase()] ?? "📜";
+  const { char, font } = TYPE_GLYPHS[(type ?? "").toUpperCase()] ?? UNKNOWN_TYPE;
   return (
     <span
       aria-hidden
-      className="grid h-11 w-11 shrink-0 place-items-center border border-gold-600/60 bg-paper-200/70 text-xl text-gold-800"
+      className="grid h-11 w-11 shrink-0 place-items-center border border-gold-600/60 bg-paper-200/70 text-gold-800"
     >
-      {glyph}
+      {/* Five marks from three different faces, none of them in the text
+          fonts. `text-xl` sized whichever face Windows happened to load and
+          left the rest to chance — a clef a fifth larger on Android, sitting
+          low in its plate. Measured instead; see lib/glyph.ts. */}
+      <Glyph char={char} font={font} size="1.3rem" />
     </span>
   );
 }
