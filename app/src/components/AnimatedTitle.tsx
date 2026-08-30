@@ -52,12 +52,19 @@ export function AnimatedTitle() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.05 }}
-        className="font-heading text-[0.7rem] uppercase tracking-[0.5em] text-gold-700"
+        // The tracking is what wrapped this line onto two rows at 390 px — the
+        // letters themselves are 11 px. Loosening it with the viewport keeps
+        // the engraved look wide and the line single on a phone.
+        className="hero-kicker font-heading text-[0.7rem] uppercase tracking-[clamp(0.2em,0.02em+0.65vw,0.5em)] text-gold-700"
       >
         {t("app.volume")}
       </m.p>
 
-      <h1 className="relative mx-auto mt-3 font-display text-4xl font-bold leading-tight tracking-[0.06em] sm:text-6xl md:text-7xl">
+      {/* One fluid size instead of 36 / 60 / 72 px steps: the old ladder put a
+          72 px headline on a 1280 px laptop, where it cost a fifth of the first
+          screen. Bounded at both ends — it never drops below a headline and
+          never grows past one. */}
+      <h1 className="hero-title relative mx-auto mt-2 font-display font-bold leading-tight tracking-[0.06em]">
         {/* one-time light sweep across the lettering */}
         {!reduced && (
           <m.span
@@ -105,8 +112,8 @@ export function AnimatedTitle() {
         </m.span>
       </h1>
 
-      <m.div initial={{ opacity: 0, scaleX: 0.4 }} animate={{ opacity: 1, scaleX: 1 }} transition={{ delay: 0.9, duration: 0.8 }}>
-        <Divider className="mx-auto mt-5 w-full max-w-md" />
+      <m.div className="hero-rule" initial={{ opacity: 0, scaleX: 0.4 }} animate={{ opacity: 1, scaleX: 1 }} transition={{ delay: 0.9, duration: 0.8 }}>
+        <Divider className="mx-auto mt-stack w-full max-w-md" />
       </m.div>
 
       {/* The line under the rule is no longer static: `<HeraldBanner>` (mounted

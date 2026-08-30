@@ -1,0 +1,186 @@
+/* ============================================================
+   The frontispiece — title, rule, herald plaque
+   ============================================================ */
+
+/* One fluid size instead of the old 36 / 60 / 72 px ladder, which put a 72 px
+   headline on a 1280 px laptop and spent a fifth of the first screen on it. */
+.hero-title {
+  font-size: clamp(1.9rem, 1.15rem + 3.2vw, 4.25rem);
+}
+
+/*
+ * The short-viewport band: a landscape phone (390 CSS px of height), a small
+ * old portrait phone (568), a half-height desktop window. There the
+ * frontispiece was the whole screen — the first catalogue card began 627 px
+ * down, so the reader was shown a title page and nothing to leaf through.
+ *
+ * The query is on height alone, because height alone is the constraint: the
+ * same 390 px width in portrait has 844 px to spend and no such problem. What
+ * goes is the volume line and the rule under the name, two ornaments already
+ * read once. The name, the plaque, the search box and every facet stay.
+ */
+@media (max-height: 36rem) {
+  /* The rhythm itself tightens, which is what carries the compression into
+     every gap on the page at once — the title, the plaque, the facets and the
+     grid all sit on `--spacing-stack`. */
+  :root {
+    --spacing-stack: 0.5rem;
+    /* `--spacing-topbar` needs no override: it is the bar's height plus the
+       step above, and the step has just been tightened. */
+  }
+
+  .hero-kicker,
+  .hero-rule {
+    display: none;
+  }
+  .hero-title {
+    font-size: clamp(1.5rem, 1.05rem + 1.9vw, 2.4rem);
+  }
+  .herald {
+    padding-block: 0.4rem;
+  }
+  .herald-body {
+    min-height: 1.6rem;
+  }
+  .herald::before,
+  .herald::after {
+    display: none;
+  }
+}
+
+/* ============================================================
+   Page width and the catalogue grid
+   ============================================================ */
+
+/*
+ * One width for every full-bleed band on the page (catalogue grid, colophon).
+ * `max-w-6xl` used to cap it at 1152 px, which is the right measure for a
+ * paragraph and the wrong one for a picture index: at 2560 and 3840 the
+ * catalogue was the same four columns it had at 1280.
+ *
+ * 90 rem is not a taste: it is five cards of ~270 px plus their gaps. A card
+ * wider than that is upscaling a 400 px archive scan, and five is the row the
+ * catalogue reads best at — so the page stops there and the margins grow
+ * instead, on a 4K desk as on an 8K one.
+ */
+.page-wide {
+  /* `main` already carries the page gutter; subtracting it a second time here
+     cost 32 px of a 320 px screen, which was the difference between two cards
+     in a row and one. */
+  width: min(100%, 90rem);
+  margin-inline: auto;
+}
+
+/*
+ * The catalogue grid derives its column count from the space available rather
+ * than declaring one — but between two hard bounds, both written into the
+ * track size rather than into a breakpoint:
+ *
+ *   at least two   `min(--card-min, (100% - 1 gap) / 2)` — the track can never
+ *                  be so wide that a single card fills the row, which is what
+ *                  a phone under ~305 px used to get.
+ *   at most five   `max(…, (100% - 4 gaps) / 5)` — the track is never smaller
+ *                  than a fifth of the row, so `auto-fill` cannot fit a sixth.
+ *
+ * Between them `--card-min` decides, and the card grows with the room: two on
+ * a phone at 127–202 px, three from ~470, four from ~730, five from ~880 and
+ * up to 269 px wide. Nothing here is a device; every number is a width at
+ * which the previous arrangement stopped being the better one.
+ *
+ * `auto-fill` rather than `auto-fit`: a search that returns three results
+ * should leave them at card size on the left, not stretch three of them across
+ * the whole row.
+ */
+.catalog-grid {
+  --grid-gap: clamp(0.6rem, 0.3rem + 0.9vw, 1.5rem);
+  display: grid;
+  gap: var(--grid-gap);
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(
+      max(
+        (100% - 4 * var(--grid-gap)) / 5,
+        min(var(--card-min), (100% - var(--grid-gap)) / 2)
+      ),
+      1fr
+    )
+  );
+}
+
+/* The "found in another tongue" rule spans whatever the row turned out to be. */
+.catalog-grid > .catalog-grid-span {
+  grid-column: 1 / -1;
+}
+
+/* ============================================================
+   Catalogue grid cell — off-screen work the browser may skip
+   ============================================================ */
+
+/* Layout containment costs nothing and applies everywhere: a card's internals
+   are all positioned against the card, so nothing outside it ever needed to
+   take part in their layout. With hundreds of cells on a page this is what
+   keeps one reflow from walking the whole grid. */
+.grid-cell {
+  contain: layout style;
+  /* …and it is the card's own width, not the viewport's, that decides how big
+     the lettering on it should be. With the column count now derived from
+     `--card-min`, a card is 152 px on a phone and 250-odd on a wide monitor;
+     the name plate below reads that off `cqi` instead of guessing from `sm:`. */
+  container-type: inline-size;
+}
+
+/*
+ * Native windowing, on the devices that need it.
+ *
+ * `content-visibility: auto` lets the browser skip layout and paint for cells
+ * that are off screen and restore them as they scroll in — the behaviour a
+ * virtualized list emulates, without having to pretend every row is the same
+ * height (an ornate frame around a portrait plus a name plate is never quite
+ * the same height twice).
+ *
+ * It implies paint containment, which clips to the cell: the hover lift, the
+ * 4.5% grow and the 34 px glow ring would all be cut off. So it is scoped to
+ * `(hover: none)` — phones and tablets, where those effects never run and
+ * where the memory it saves is worth the most. A fine pointer keeps the full
+ * ornament and relies on the page cap in CharacterGrid instead.
+ *
+ * `auto` before the length: the browser substitutes each cell's own last
+ * rendered size once it has one, so the scrollbar stops guessing after the
+ * first pass. The 26rem is only the opening estimate for a card that has
+ * never been on screen.
+ */
+@media (hover: none) {
+  .grid-cell {
+    content-visibility: auto;
+    /* The opening estimate only, for a cell that has never been on screen;
+       `auto` lets each cell's own last rendered size replace it. 18 rem is
+       what a two-column phone card now measures (was 26 rem when a card was
+       half again as tall). */
+    contain-intrinsic-size: auto 18rem;
+  }
+}
+
+/* ---- The name plate under a portrait ------------------------------------
+   Three sizes, all read from the card's own inline size (`cqi` = 1 % of the
+   container's inline axis). One declaration each replaces a `text-lg sm:text-xl`
+   pair that knew about the viewport and nothing about the card it was on. */
+.card-name {
+  /* Russian patronymics are long — "Владимир Павлович Машкевич" ran to three
+     lines and made its card half again as tall as its neighbours, which is
+     what broke the rhythm of the grid. Smaller type fits most names in two,
+     and the clamp below guarantees the rest: every card in a row is then the
+     same height. The full name stays in the card's `aria-label` and `title`. */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+  min-block-size: 2.1em;
+  font-size: clamp(0.76rem, 0.44rem + 3.3cqi, 1.08rem);
+}
+.card-sub {
+  font-size: clamp(0.6rem, 0.46rem + 1.35cqi, 0.74rem);
+}
+.card-badge {
+  font-size: clamp(0.48rem, 0.4rem + 0.85cqi, 0.58rem);
+}

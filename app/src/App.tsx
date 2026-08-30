@@ -272,14 +272,19 @@ export default function App() {
       <MusicalDrift paused={!!selectedRecord} />
 
       {/* fixed top control bar */}
-      <header className="fixed inset-x-0 top-0 z-30 flex items-center justify-between border-b border-gold-600/25 bg-paper-100/70 px-4 py-2 backdrop-blur-sm">
-        <div className="flex items-center gap-2">
-          <span className="anim-floaty text-base text-gold-700" aria-hidden>
+      {/* `viewport-fit=cover` is declared in index.html, so on a notched phone
+          held sideways the safe area is what keeps these controls reachable. */}
+      {/* Every size in the bar is fluid — see the `--topbar-*` family and the
+          `.topbar*` classes in index.css. `pt-topbar` on <main> below is derived
+          from the same tokens, so the clearance follows the bar automatically. */}
+      <header className="topbar fixed inset-x-0 top-0 z-30 flex items-center justify-between border-b border-gold-600/25 bg-paper-100/70 backdrop-blur-sm">
+        <div className="topbar-group">
+          <span className="anim-floaty topbar-mark text-gold-700" aria-hidden>
             ✦
           </span>
-          <span className="font-display text-sm font-bold tracking-[0.25em] text-burgundy-700">{t("app.brand")}</span>
+          <span className="topbar-brand font-display font-bold tracking-[0.25em] text-burgundy-700">{t("app.brand")}</span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="topbar-group">
           <LanguageMenu
             variant="header"
             value={lang}
@@ -290,9 +295,7 @@ export default function App() {
           />
           {EFFECTS.enabled && (
             <CtrlButton active={fx.on} onClick={toggleEffects} title={fx.on ? t("fx.on") : t("fx.off")}>
-              <span className="text-sm" aria-hidden>
-                ✨
-              </span>
+              <span aria-hidden>✨</span>
             </CtrlButton>
           )}
           {/* Muting silences the ambience without forgetting that it was
@@ -303,14 +306,10 @@ export default function App() {
             onClick={toggleAmbient}
             title={ambient ? t("ambient.on") : t("ambient.off")}
           >
-            <span className="text-sm" aria-hidden>
-              {ambient && sound ? "🎼" : "🎵"}
-            </span>
+            <span aria-hidden>{ambient && sound ? "🎼" : "🎵"}</span>
           </CtrlButton>
           <CtrlButton active={sound} onClick={toggleSound} title={sound ? t("sound.on") : t("sound.off")}>
-            <span className="text-sm" aria-hidden>
-              {sound ? "🔊" : "🔇"}
-            </span>
+            <span aria-hidden>{sound ? "🔊" : "🔇"}</span>
           </CtrlButton>
         </div>
       </header>
@@ -321,7 +320,10 @@ export default function App() {
           later element — the footer — take the clicks meant for "Clear
           refinements". Layers, low to high: backdrop -10 · footer 10 · main 20 ·
           header 30 · codex 40+. */}
-      <main className="relative z-20 px-1 pb-16 pt-20 sm:px-2">
+      {/* `pt-topbar` clears the fixed header and stops there — it used to be a
+          flat 80 px over a 53 px bar, at every viewport height. Both it and
+          every gap below are the one fluid step defined in index.css. */}
+      <main className="relative z-20 px-gutter pb-2 pt-topbar">
         <AnimatedTitle />
         <HeraldBanner facts={facts.bySlug} onOpenEntry={openEntry} />
 
@@ -357,7 +359,7 @@ export default function App() {
             {/* While a long query is still being ranked, dim rather than block */}
             <div
               className={clsx(
-                "mt-10 transition-opacity duration-200",
+                "mt-[calc(var(--spacing-stack)*1.4)] transition-opacity duration-200",
                 criteria !== deferredCriteria && "opacity-60",
               )}
             >
@@ -440,7 +442,7 @@ function CtrlButton({
       onClick={onClick}
       title={title}
       aria-label={title}
-      className={`grid h-9 w-9 place-items-center rounded-full border transition-all ${
+      className={`topbar-ctrl topbar-ctrl--square grid place-items-center rounded-full border transition-all ${
         active
           ? "border-gold-600/80 bg-gold-500/25 shadow-[0_0_12px_rgba(184,144,42,0.45)]"
           : "border-gold-600/40 hover:border-gold-600/70 hover:bg-gold-500/15"
@@ -453,8 +455,8 @@ function CtrlButton({
 
 function GridSkeleton() {
   return (
-    <div className="mx-auto mt-14 grid max-w-6xl grid-cols-2 gap-4 px-4 sm:grid-cols-3 sm:gap-6 lg:grid-cols-4" aria-hidden>
-      {Array.from({ length: 7 }).map((_, i) => (
+    <div className="catalog-grid page-wide mt-14" aria-hidden>
+      {Array.from({ length: 12 }).map((_, i) => (
         <div key={i} className="skeleton aspect-[3/4.4] rounded-lg" style={{ animationDelay: `${i * 0.12}s` }} />
       ))}
     </div>

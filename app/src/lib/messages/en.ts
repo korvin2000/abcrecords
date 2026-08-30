@@ -32,7 +32,7 @@ export const en: Record<MsgKey, Message> = {
     "When using these materials, a link to the “Guitarists and Composers” project is REQUIRED",
   "footer.rights": "All rights reserved © Tavrovsky V.V., A.V. and S.V., 2001–2026",
 
-  "search.placeholder": "Seek by name — e.g. Segovia, Django, Jovan…",
+  "search.placeholder": "Seek by name…",
   "search.clear": "Clear search",
   "search.count": { one: "{n} entry recorded", other: "{n} entries recorded" },
   "search.countFiltered": "{n} of {total} revealed",
@@ -94,7 +94,7 @@ export const en: Record<MsgKey, Message> = {
   "codex.notFound": "This entry's page has not yet been inked into the codex.",
 
   "tabs.biography": "Biography",
-  "tabs.gallery": "Gallery",
+  "tabs.gallery": "Media",
   "tabs.documents": "Documents",
   "tabs.lore": "Attributes",
 
@@ -118,6 +118,7 @@ export const en: Record<MsgKey, Message> = {
   "viewer.rotateRight": "Rotate right",
   "viewer.fit": "Fit to screen",
   "viewer.actualSize": "Actual size",
+  "viewer.fitWidth": "Fit to width",
   "viewer.download": "Download",
   "viewer.close": "Close",
   "viewer.error": "The image could not be loaded",

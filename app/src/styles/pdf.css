@@ -1,0 +1,90 @@
+/* ============================================================
+   PDF document viewer (components/pdf)
+
+   Two things pdf.js needs from the host stylesheet, and nothing more.
+
+   `--total-scale-factor` is the contract between this app and pdf.js's
+   TextLayer: the layer is built in *unrotated page points* and every span's
+   position, size and font is expressed as a multiple of that variable, so
+   setting it on the page wrapper is what makes the invisible text sit exactly
+   over the visible ink. PdfPage writes it from the display scale, which is
+   also why a zoom step re-registers the text layer without rebuilding it.
+   `--scale-round-*` is the rounding step pdf.js's `round(down, …)` sizing
+   asks for; 1px means "whole device-independent pixels".
+
+   The rules below are the subset of pdfjs-dist/web/pdf_viewer.css that a
+   plain, non-editable, non-annotating viewer uses. The full sheet is ~4 000
+   lines of viewer chrome, editors and annotation tooling we do not ship.
+   ============================================================ */
+.pdf-page {
+  --total-scale-factor: 1;
+  --scale-round-x: 1px;
+  --scale-round-y: 1px;
+}
+
+.textLayer {
+  position: absolute;
+  inset: 0;
+  overflow: clip;
+  z-index: 1;
+  line-height: 1;
+  text-align: initial;
+  text-size-adjust: none;
+  forced-color-adjust: none;
+  transform-origin: 0 0;
+  caret-color: CanvasText;
+  --min-font-size: 1;
+  --text-scale-factor: calc(var(--total-scale-factor) * var(--min-font-size));
+  --min-font-size-inv: calc(1 / var(--min-font-size));
+}
+
+/* The text itself is invisible — it exists to be selected, and to let the
+   browser's own find bar work on a page of pixels. */
+.textLayer :is(span, br) {
+  color: transparent;
+  position: absolute;
+  white-space: pre;
+  cursor: text;
+  transform-origin: 0% 0%;
+}
+
+.textLayer > :not(.markedContent),
+.textLayer .markedContent span:not(.markedContent) {
+  z-index: 1;
+  --font-height: 0;
+  --scale-x: 1;
+  --rotate: 0deg;
+  font-size: calc(var(--text-scale-factor) * var(--font-height));
+  transform: rotate(var(--rotate)) scaleX(var(--scale-x)) scale(var(--min-font-size-inv));
+}
+
+.textLayer .markedContent {
+  display: contents;
+}
+
+.textLayer span[role="img"] {
+  user-select: none;
+  cursor: default;
+}
+
+/* Selection in the catalogue's own gold rather than the system blue. */
+.textLayer ::selection {
+  background: rgba(212, 175, 55, 0.35);
+}
+.textLayer br::selection {
+  background: transparent;
+}
+
+/* pdf.js's sentinel for "the pointer left the bottom of the page" — it is what
+   lets a drag select from one page into the next. */
+.textLayer .endOfContent {
+  display: block;
+  position: absolute;
+  inset: 100% 0 0;
+  z-index: 0;
+  cursor: default;
+  user-select: none;
+}
+.textLayer.selecting .endOfContent {
+  top: 0;
+}

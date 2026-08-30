@@ -1,4 +1,3 @@
-import { useState } from "react";
 import type { EntryBundle } from "@/lib/types";
 import type { CatalogRecord } from "@/lib/catalog";
 import type { BioDoc } from "@/lib/biomd/parse";
@@ -20,6 +19,10 @@ interface Props {
   /** null while the edition loads. */
   bundle: EntryBundle | null;
   onNavigateEntry: (slug: string) => void;
+  /** Which tab is open — owned by CodexModal, above this view's `key`, so a
+   *  ← → turn keeps the reader's tab instead of resetting it. */
+  tab: CodexTab;
+  onTabChange: (tab: CodexTab) => void;
 }
 
 /**
@@ -35,12 +38,8 @@ interface Props {
  * entry instead, and either way a line the plate ends up carrying is not
  * printed again below it — see lib/biomd/headings.ts for the whole rule.
  */
-export function BiographyView({ record, bundle, onNavigateEntry }: Props) {
+export function BiographyView({ record, bundle, onNavigateEntry, tab, onTabChange }: Props) {
   const { t, locale } = useI18n();
-  // Reset is by remount: CodexModal keys this view on the slug, so turning the
-  // page mounts a fresh view already on the Biography tab. (The shell around
-  // it deliberately survives the turn — see CodexShell.)
-  const [tab, setTab] = useState<CodexTab>("biography");
 
   const { entry, display } = record;
   const meta = bundle?.data?.metadata;
@@ -67,10 +66,10 @@ export function BiographyView({ record, bundle, onNavigateEntry }: Props) {
         ]}
       />
 
-      <CodexTabs value={tab} onChange={setTab} />
+      <CodexTabs value={tab} onChange={onTabChange} />
 
       {/* leaf-through on switch */}
-      <div key={tab} className="leaf-in min-h-[40vh]">
+      <div key={tab} className="leaf-in min-h-48">
         {bundle === null ? (
           <CodexSkeleton />
         ) : (

@@ -32,7 +32,7 @@ export const de: Record<MsgKey, Message> = {
     "Bei Verwendung der Materialien ist ein Verweis auf das Projekt „Gitarristen und Komponisten“ ERFORDERLICH",
   "footer.rights": "Alle Rechte vorbehalten © Tavrovsky V.V., A.V. und S.V., 2001–2026",
 
-  "search.placeholder": "Nach Namen suchen — z. B. Segovia, Django, Jovan…",
+  "search.placeholder": "Nach Namen suchen…",
   "search.clear": "Suche löschen",
   "search.count": { one: "{n} Eintrag in der Chronik", other: "{n} Einträge in der Chronik" },
   "search.countFiltered": "{n} von {total} gefunden",
@@ -94,7 +94,7 @@ export const de: Record<MsgKey, Message> = {
   "codex.notFound": "Die Seite dieses Eintrags wurde noch nicht in den Kodex geschrieben.",
 
   "tabs.biography": "Chronik",
-  "tabs.gallery": "Galerie",
+  "tabs.gallery": "Medien",
   "tabs.documents": "Schriften",
   "tabs.lore": "Attribute",
 
@@ -118,6 +118,7 @@ export const de: Record<MsgKey, Message> = {
   "viewer.rotateRight": "Nach rechts drehen",
   "viewer.fit": "An Bildschirm anpassen",
   "viewer.actualSize": "Originalgröße",
+  "viewer.fitWidth": "An Breite anpassen",
   "viewer.download": "Herunterladen",
   "viewer.close": "Schließen",
   "viewer.error": "Das Bild konnte nicht geladen werden",

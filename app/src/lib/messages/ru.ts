@@ -33,7 +33,7 @@ export const ru = {
     "При использовании материалов ссылка на проект «Гитаристы и Композиторы» ОБЯЗАТЕЛЬНА",
   "footer.rights": "Все права защищены © Тавровские В.В., А.В. и С.В., 2001–2026",
 
-  "search.placeholder": "Искать по имени — например, Сеговия, Джанго, Йован…",
+  "search.placeholder": "Искать по имени…",
   "search.clear": "Очистить поиск",
   "search.count": {
     one: "{n} запись в летописи",
@@ -108,7 +108,7 @@ export const ru = {
   "codex.notFound": "Страница этой записи ещё не вписана в кодекс.",
 
   "tabs.biography": "Летопись",
-  "tabs.gallery": "Галерея",
+  "tabs.gallery": "Медиа",
   "tabs.documents": "Свитки",
   "tabs.lore": "Атрибуты",
 
@@ -132,6 +132,7 @@ export const ru = {
   "viewer.rotateRight": "Повернуть вправо",
   "viewer.fit": "Вписать в экран",
   "viewer.actualSize": "Реальный размер",
+  "viewer.fitWidth": "По ширине",
   "viewer.download": "Скачать",
   "viewer.close": "Закрыть",
   "viewer.error": "Не удалось загрузить изображение",

@@ -34,8 +34,10 @@ export function Chip({
       onMouseEnter={() => audio.hover()}
       aria-pressed={active}
       className={clsx(
-        "inline-flex items-center gap-1.5 rounded-full border font-heading uppercase tracking-wider transition-all duration-200",
-        size === "md" ? "px-3 py-1 text-[0.7rem]" : "px-2.5 py-0.5 text-[0.64rem]",
+        // Padding and lettering live in `.chip` (index.css) so they can shrink
+        // with the viewport — five craft labels used to wrap onto three rows.
+        "inline-flex items-center gap-1 rounded-full border font-heading uppercase tracking-wider transition-all duration-200",
+        size === "md" ? "chip" : "chip chip--sm",
         active
           ? "border-burgundy-600 bg-burgundy-600 text-paper-50 shadow-[0_0_12px_rgba(122,31,43,0.35)]"
           : "border-gold-600/45 bg-paper-50/60 text-sepia-600 hover:border-gold-600 hover:text-ink-800",

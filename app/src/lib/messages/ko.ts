@@ -30,7 +30,7 @@ export const ko: Record<MsgKey, Message> = {
   "footer.usageNotice": "자료를 사용할 때는 「기타리스트와 작곡가」 프로젝트 링크 표기가 필수입니다",
   "footer.rights": "판권 소유 © 타브롭스키 V.V., A.V., S.V., 2001–2026",
 
-  "search.placeholder": "이름으로 찾기 — 예: 세고비아, 장고, 요반…",
+  "search.placeholder": "이름으로 찾기…",
   "search.clear": "검색 지우기",
   "search.count": { other: "연대기에 기록 {n}건" },
   "search.countFiltered": "{total}건 중 {n}건 발견",
@@ -92,7 +92,7 @@ export const ko: Record<MsgKey, Message> = {
   "codex.notFound": "이 기록의 페이지는 아직 코덱스에 쓰이지 않았습니다.",
 
   "tabs.biography": "연대기",
-  "tabs.gallery": "화랑",
+  "tabs.gallery": "미디어",
   "tabs.documents": "문서",
   "tabs.lore": "속성",
 
@@ -116,6 +116,7 @@ export const ko: Record<MsgKey, Message> = {
   "viewer.rotateRight": "오른쪽으로 회전",
   "viewer.fit": "화면에 맞추기",
   "viewer.actualSize": "실제 크기",
+  "viewer.fitWidth": "너비에 맞춤",
   "viewer.download": "다운로드",
   "viewer.close": "닫기",
   "viewer.error": "이미지를 불러올 수 없습니다",
