@@ -69,6 +69,7 @@ export const ko: Record<MsgKey, Message> = {
   "type.composer": "작곡가",
   "type.conductor": "지휘자",
   "type.luthier": "현악기 장인",
+  "type.magazine": "잡지",
 
   "card.open": "기록 열기: {name}",
   "card.foreignHint": "이용 가능 언어: {langs}",
@@ -118,6 +119,15 @@ export const ko: Record<MsgKey, Message> = {
   "viewer.download": "다운로드",
   "viewer.close": "닫기",
   "viewer.error": "이미지를 불러올 수 없습니다",
+
+  "pdf.loading": "문서를 여는 중…",
+  "pdf.error": "문서를 열 수 없습니다",
+  "pdf.page": "페이지",
+  "pdf.pageOf": "/ {total}",
+  "pdf.prevPage": "이전 페이지",
+  "pdf.nextPage": "다음 페이지",
+  "pdf.fitWidth": "너비에 맞춤",
+  "pdf.fitPage": "전체 페이지",
   "tab.title": "ASCII 타브악보",
   "tab.loading": "타브악보를 불러오는 중…",
   "tab.error": "타브악보를 불러올 수 없습니다",

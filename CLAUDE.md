@@ -25,7 +25,7 @@ Each entry combines:
 |-----------------|---------------------------------------------------------------------|
 | `app/`          | **The production catalogue app** (Vite + React + TS). Renders `pages/` content at runtime; see `app/README.md` and [`.claude-memory/12-app-architecture.md`](.claude-memory/12-app-architecture.md) (overview). For real work in `app/` read the deep-dive triad: [`13`](.claude-memory/13-app-code-map.md) code map · [`14`](.claude-memory/14-app-patterns-and-gotchas.md) patterns/gotchas/recipes · [`15`](.claude-memory/15-app-critique.md) critique/backlog. |
 | `docs/`         | Source specifications & guides (the source of truth — see below).   |
-| `pages/`        | Content pages / migrated entries. `index.json` + `index-<lang>.json` at the root are the catalogue index ([`docs/Catalog-Index.md`](docs/Catalog-Index.md)); each entry's article (+ dossier, if it has one) lives in `pages/<iso-lang>/` (`ru/`, `en/`, `de/`, …) per the `lang` field; `pages/photos/` and other media stay at the root and are never localized. `pages/quotes/quote-<lang>.json` holds the localized book of sayings shown in the herald block — one fully localized edition per UI language ([`pages/quotes/README.md`](pages/quotes/README.md); **the shipped texts are placeholder fixtures, not verified quotations**). |
+| `pages/`        | Content pages / migrated entries. (PDFs are **not** here — the document archive, e.g. `magazine/<year>/*.pdf`, sits at the site root; see `pdf` in `docs/Catalog-Index.md` §9.1.) `index.json` + `index-<lang>.json` at the root are the catalogue index ([`docs/Catalog-Index.md`](docs/Catalog-Index.md)); each entry's article (+ dossier, if it has one) lives in `pages/<iso-lang>/` (`ru/`, `en/`, `de/`, …) per the `lang` field; `pages/photos/` and other media stay at the root and are never localized. `pages/quotes/quote-<lang>.json` holds the localized book of sayings shown in the herald block — one fully localized edition per UI language ([`pages/quotes/README.md`](pages/quotes/README.md); **the shipped texts are placeholder fixtures, not verified quotations**). |
 | `prototypes/`   | Two throwaway React reference apps (`CodexLegends`, `Copendum`) exploring the codex UI. Not production code — see below. |
 | `.claude-memory/` | Condensed, indexed knowledge distilled from `docs/`, `pages/`, and `prototypes/` for fast recall. |
 
@@ -89,11 +89,18 @@ Each entry combines:
   language. Only `dates`, `ranking`, `url` are language-invariant. **Metadata
   never goes in the article.**
 - `index.json` `json` present ⟺ the entry is a **biography** (4-tab codex);
-  absent ⟺ a **page** (article only). `type: "hidden"` keeps an entry routable
-  but out of the grid, search and facets.
+  absent ⟺ a **page** (article only); **`pdf` in place of `md` ⟺ a document**,
+  which opens in the PDF viewer (`app/src/components/pdf/`) instead of the
+  codex — no tabs, no header, no dossier. `type: "hidden"` keeps an entry
+  routable but out of the grid, search and facets.
+- **Three path bases, not two.** `md`/`json`/`img` resolve against the
+  application base; media/documents written *inside* an entry resolve against
+  the resource base (`/pages`); **`pdf` is site-root-relative** — the document
+  archive lives beside the app, so it survives a `--base=/fable/` deploy.
 - **`id` is a stable string, assigned once, never renumbered or reused** — it
   is the join key to `index-<lang>.json`, not a position and not a route. The
-  route is `#/{slug}`, where slug = the `md` basename minus `.bio.md`/`.md`.
+  route is `#/{slug}`, where slug = the basename of `md` — or of `pdf` when a
+  row has no `md` — minus `.bio.md`/`.md`/`.pdf`.
 - BioMD blocks use `::: name … :::` fences: `lead`, `align`, `image`, `images`,
   `document`, `columns`, `column`, `nav`, `frame`, `signature`, `anchor`. Prefer
   plain Markdown; use blocks only for layout/media. Image properties: `src`,

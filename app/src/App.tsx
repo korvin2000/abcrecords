@@ -30,6 +30,7 @@ import { SearchBar } from "@/components/search";
 import { CharacterGrid } from "@/components/CharacterGrid";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { LazyCodexModal } from "@/components/codex/LazyCodexModal";
+import { LazyPdfModal } from "@/components/pdf";
 import { SiteFooter } from "@/components/SiteFooter";
 
 export default function App() {
@@ -387,13 +388,34 @@ export default function App() {
               so the reader still lands on the Biography tab of the new entry.
               See CodexShell's header comment. */}
           <AnimatePresence>
-            {selectedRecord && (
-              <LazyCodexModal
+            {/* Which book opens is decided by the index row, before anything
+                is fetched: a row that *is* a PDF (docs/Catalog-Index.md §9)
+                opens the document viewer, everything else opens the codex.
+                Both are lazy, so only the one the reader asked for is
+                downloaded — and the pdf.js engine never reaches a session
+                that only reads biographies.
+
+                The two keys are constants, one per *kind* of book, not per
+                entry: they let AnimatePresence tell a codex from a document
+                when ← → crosses between them, while leaving the "deliberately
+                unkeyed" property above intact within each kind. */}
+            {selectedRecord?.pdf ? (
+              <LazyPdfModal
+                key="pdf"
                 record={selectedRecord}
+                pdf={selectedRecord.pdf}
                 onClose={() => openEntry(null)}
-                onTurn={turnPage}
-                onNavigateEntry={openLinkedEntry}
               />
+            ) : (
+              selectedRecord && (
+                <LazyCodexModal
+                  key="codex"
+                  record={selectedRecord}
+                  onClose={() => openEntry(null)}
+                  onTurn={turnPage}
+                  onNavigateEntry={openLinkedEntry}
+                />
+              )
             )}
           </AnimatePresence>
         </Suspense>

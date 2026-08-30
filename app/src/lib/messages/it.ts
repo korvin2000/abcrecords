@@ -71,6 +71,7 @@ export const it: Record<MsgKey, Message> = {
   "type.composer": "Compositore",
   "type.conductor": "Direttore d'orchestra",
   "type.luthier": "Liutaio",
+  "type.magazine": "Rivista",
 
   "card.open": "Apri la voce: {name}",
   "card.foreignHint": "Disponibile in: {langs}",
@@ -120,6 +121,15 @@ export const it: Record<MsgKey, Message> = {
   "viewer.download": "Scarica",
   "viewer.close": "Chiudi",
   "viewer.error": "Impossibile caricare l'immagine",
+
+  "pdf.loading": "Apertura del documento…",
+  "pdf.error": "Impossibile aprire il documento",
+  "pdf.page": "Pagina",
+  "pdf.pageOf": "di {total}",
+  "pdf.prevPage": "Pagina precedente",
+  "pdf.nextPage": "Pagina successiva",
+  "pdf.fitWidth": "Adatta alla larghezza",
+  "pdf.fitPage": "Pagina intera",
   "tab.title": "Tablatura ASCII",
   "tab.loading": "Caricamento della tablatura…",
   "tab.error": "Impossibile caricare la tablatura",

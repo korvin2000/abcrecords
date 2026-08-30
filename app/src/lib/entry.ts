@@ -8,21 +8,39 @@ import type { Gender, IndexEntry } from "./types";
  * the two rules live in one place.
  */
 
-/** What a slug may contain: the md basename, i.e. ASCII word characters plus
- *  dot and dash ("goya2.right"). Shared by the router and the in-article link
- *  classifier so both agree on what a slug is. */
-export const SLUG_PATTERN = /^[\w.-]+$/;
+/** What a slug may contain: the source basename, i.e. ASCII word characters
+ *  plus dot, dash and round brackets ("goya2.right",
+ *  "IGvL_1-2(28-29)_2022_min" — archive scans are named that way and the file
+ *  name is the slug). Shared by the router and the in-article link classifier
+ *  so both agree on what a slug is. */
+export const SLUG_PATTERN = /^[\w.()-]+$/;
 
-/** "/jovan-jovicic.bio.md" → "jovan-jovicic". Also the route: `#/{slug}`. */
-export function slugOf(entry: { md: string }): string {
-  const file = entry.md.split("/").pop() ?? entry.md;
-  return file.replace(/\.bio\.md$/i, "").replace(/\.md$/i, "");
+/** "/jovan-jovicic.bio.md" → "jovan-jovicic", "magazine/2022/x.pdf" → "x".
+ *  Also the route: `#/{slug}`. A document entry declares no `md`, so its PDF
+ *  path names it instead — one rule, whichever file the row points at. */
+export function slugOf(entry: { md?: string; pdf?: string }): string {
+  const path = entry.md ?? entry.pdf ?? "";
+  const file = path.split("/").pop() ?? path;
+  return file.replace(/\.bio\.md$/i, "").replace(/\.(?:md|pdf)$/i, "");
 }
 
 /** A declared dossier ⟺ a biography (4-tab codex). Declared, never inferred
  *  from a failed fetch — the chrome must not reshape mid-load. */
 export function isBiography(entry: IndexEntry): boolean {
   return Boolean(entry.json);
+}
+
+/**
+ * A row that *is* a PDF: `pdf` declared and no article to render beside it.
+ * Such an entry opens in the document viewer instead of the codex, so this
+ * is the same kind of declared, pre-fetch fact as `isBiography` — the chrome
+ * is chosen from the index, never from what a download turned out to be.
+ *
+ * A row carrying both `md` and `pdf` stays an ordinary entry; the PDF is then
+ * just another archive document for its article to link.
+ */
+export function isDocumentEntry(entry: IndexEntry): boolean {
+  return Boolean(entry.pdf) && !entry.md;
 }
 
 /** Hidden entries stay routable and linkable but leave the grid, the search

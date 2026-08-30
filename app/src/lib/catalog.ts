@@ -1,6 +1,6 @@
 import type { EntryBundle, EntryData, Gender, IndexEntry, NameIndex } from "./types";
 import { localizeContentPath, resolveContentPath } from "./paths";
-import { isBiography, isListed, slugOf } from "./entry";
+import { isBiography, isDocumentEntry, isListed, slugOf } from "./entry";
 import { displayName } from "./names";
 import { entryLangs, type Lang } from "./languages";
 
@@ -25,6 +25,10 @@ export interface CatalogRecord {
   langs: Lang[];
   listed: boolean;
   biography: boolean;
+  /** The declared site-root-relative PDF path when this entry *is* a document
+   *  (index.json `pdf`, no `md`) — opening it shows the viewer, not a codex.
+   *  Undefined for every ordinary entry. See docs/Catalog-Index.md §9. */
+  pdf?: string;
   /** Localized name, or index.json's Latin `title` when none is declared. */
   display: string;
 }
@@ -48,6 +52,7 @@ export function buildCatalog(entries: IndexEntry[], names: NameIndex): Catalog {
     langs: entryLangs(entry),
     listed: isListed(entry),
     biography: isBiography(entry),
+    pdf: isDocumentEntry(entry) ? entry.pdf : undefined,
     display: displayName(names, entry.id, entry.title),
   }));
 
@@ -85,9 +90,10 @@ function lower(value: unknown): string | undefined {
 }
 
 /**
- * One raw row → a usable entry, or null when `id`/`md` are missing (without
- * them it can be neither joined nor routed). This is the single boundary
- * where case is settled: `country` uppercase, the other enums lowercase.
+ * One raw row → a usable entry, or null when it can be neither joined nor
+ * routed: no `id`, or neither of the two files that can name it (`md` for an
+ * article, `pdf` for a document — docs/Catalog-Index.md §9). This is the
+ * single boundary where case is settled: `country` uppercase, the rest lower.
  */
 function normalizeRow(raw: unknown): IndexEntry | null {
   if (!raw || typeof raw !== "object") return null;
@@ -95,7 +101,8 @@ function normalizeRow(raw: unknown): IndexEntry | null {
 
   const id = typeof row.id === "number" ? String(row.id) : text(row.id);
   const md = text(row.md);
-  if (!id || !md) return null;
+  const pdf = text(row.pdf);
+  if (!id || (!md && !pdf)) return null;
 
   const rawGender = lower(row.gender);
   const gender = rawGender && isGender(rawGender) ? rawGender : undefined;
@@ -108,6 +115,7 @@ function normalizeRow(raw: unknown): IndexEntry | null {
   return {
     id,
     md,
+    pdf,
     title: text(row.title) ?? id,
     type: lower(row.type) ?? "",
     lang: lower(row.lang),
@@ -145,7 +153,7 @@ async function fetchIndex(): Promise<IndexEntry[]> {
   for (const row of raw) {
     const entry = normalizeRow(row);
     if (!entry) {
-      warnDev("skipped a row with no id or no md path");
+      warnDev("skipped a row with no id, or with neither an md nor a pdf path");
       continue;
     }
     const slug = slugOf(entry);
@@ -304,7 +312,8 @@ export function loadEntry(entry: IndexEntry, lang: Lang): Promise<EntryBundle> {
 
   request = Promise.all([
     loadEntryData(entry, lang),
-    fetchText(localizeContentPath(entry.md, lang)),
+    // A document entry declares no article; there is nothing to read for it.
+    entry.md ? fetchText(localizeContentPath(entry.md, lang)) : Promise.resolve(null),
   ]).then(([data, md]) => {
     const bundle: EntryBundle = { data, md };
     // Only remember the edition if its request is still the cached one —

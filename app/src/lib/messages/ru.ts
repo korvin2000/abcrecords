@@ -82,6 +82,7 @@ export const ru = {
   "type.composer": "Композитор",
   "type.conductor": "Дирижёр",
   "type.luthier": "Мастер",
+  "type.magazine": "Журнал",
 
   "card.open": "Открыть запись: {name}",
   "card.foreignHint": "Доступно на: {langs}",
@@ -134,6 +135,15 @@ export const ru = {
   "viewer.download": "Скачать",
   "viewer.close": "Закрыть",
   "viewer.error": "Не удалось загрузить изображение",
+
+  "pdf.loading": "Открываем документ…",
+  "pdf.error": "Не удалось открыть документ",
+  "pdf.page": "Страница",
+  "pdf.pageOf": "из {total}",
+  "pdf.prevPage": "Предыдущая страница",
+  "pdf.nextPage": "Следующая страница",
+  "pdf.fitWidth": "По ширине",
+  "pdf.fitPage": "Страница целиком",
   "tab.title": "ASCII-табулатура",
   "tab.loading": "Загрузка табулатуры…",
   "tab.error": "Не удалось загрузить табулатуру",

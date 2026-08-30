@@ -69,6 +69,7 @@ export const zh: Record<MsgKey, Message> = {
   "type.composer": "作曲家",
   "type.conductor": "指挥家",
   "type.luthier": "制琴师",
+  "type.magazine": "杂志",
 
   "card.open": "打开条目:{name}",
   "card.foreignHint": "可用语言:{langs}",
@@ -118,6 +119,15 @@ export const zh: Record<MsgKey, Message> = {
   "viewer.download": "下载",
   "viewer.close": "关闭",
   "viewer.error": "无法加载图像",
+
+  "pdf.loading": "正在打开文档…",
+  "pdf.error": "无法打开文档",
+  "pdf.page": "页",
+  "pdf.pageOf": "/ {total}",
+  "pdf.prevPage": "上一页",
+  "pdf.nextPage": "下一页",
+  "pdf.fitWidth": "适合宽度",
+  "pdf.fitPage": "整页",
   "tab.title": "ASCII六线谱",
   "tab.loading": "正在加载六线谱…",
   "tab.error": "无法加载六线谱",

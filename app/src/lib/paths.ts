@@ -14,6 +14,10 @@
  *   json/md — root-relative with a leading slash ("/slug.bio.json")
  *   img     — bucket-relative without one   ("photos/slug.jpg")
  * Both resolve against the application base (Vite publicDir = pages/).
+ *
+ * One index.json field belongs to neither base: `pdf` addresses the document
+ * archive at the *site* root, beside the app rather than inside it — see
+ * `resolveSitePath` below.
  */
 const APP_BASE = import.meta.env.BASE_URL.replace(/\/+$/, "");
 
@@ -99,6 +103,28 @@ function normalizeResourceBase(value: string): string {
 function splitBase(base: string): [origin: string, segments: string[]] {
   const origin = /^(?:[a-z][a-z\d+.-]*:)?\/\/[^/]*/i.exec(base)?.[0] ?? "";
   return [origin, base.slice(origin.length).split("/").filter(Boolean)];
+}
+
+/**
+ * Resolve a site-root-relative path — today only index.json's `pdf`, which
+ * points into the document archive that sits *beside* the application at the
+ * web root:
+ *
+ *   magazine/2022/issue.pdf   → /magazine/2022/issue.pdf
+ *   /magazine/2022/issue.pdf  → the same
+ *   https://host/x.pdf        → passed through untouched
+ *
+ * Neither existing base applies. The application base is where the SPA is
+ * deployed (it may be /fable/, and the archive is not inside it); the resource
+ * base is /pages, and the archive is not inside that either. So this is a
+ * third, deliberately trivial rule: the leading slash and nothing else.
+ *
+ * In development the legacy-archive plugin (vite/legacy-archive.ts) serves
+ * whatever publicDir lacks from the live site, so these URLs resolve there too.
+ */
+export function resolveSitePath(p: string): string {
+  if (!p || OPAQUE_TARGET.test(p)) return p;
+  return `/${p.replace(/^\/+/, "")}`;
 }
 
 /**

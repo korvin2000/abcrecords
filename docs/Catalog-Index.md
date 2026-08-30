@@ -2,7 +2,7 @@
 
 `pages/index.json` · `pages/index-<lang>.json`
 
-**Version:** 2.0 · **Status:** normative · **Date:** 2026-07-31
+**Version:** 2.1 · **Status:** normative · **Date:** 2026-08-30
 
 This document specifies the two files that make up the catalogue's **identity
 and discovery layer**. Together they answer three questions without loading a
@@ -11,7 +11,8 @@ single per-entry file:
 1. *What entries exist, and what is each one?* → `index.json`
 2. *What is each entry called in language X, and what else might a reader type
    to find it?* → `index-<lang>.json`
-3. *Where does the content live?* → the `md` / `json` paths in `index.json`
+3. *Where does the content live?* → the `md` / `json` / `pdf` paths in
+   `index.json`
 
 The per-entry dossier format is specified separately in
 [`MetaData.md`](MetaData.md); the article format in
@@ -68,15 +69,19 @@ A flat JSON **array** of records, in display order.
 | `id` | ● | string | Unique, stable, never reused. §3 |
 | `title` | ● | string | **Latin/ASCII** fallback display name + last-resort search key. §5.3 |
 | `type` | ● | string | Craft (`guitarist`, `composer`, `conductor`, `luthier`, `musician`, …) **or** `hidden`. §6 |
-| `md` | ● | string | Root-relative path to the article. Defines the slug and the route. §4 |
+| `md` | ◐ | string | Root-relative path to the article. Defines the slug and the route. Required unless the row declares `pdf` instead. §4 |
+| `pdf` | ◐ | string | **Site-root**-relative path to a PDF. Declared instead of `md`, it makes the row a **document**: opening it shows the file in the PDF viewer. §9 |
 | `lang` | ○ | string | Comma-separated ISO 639-1 codes of the **content editions** that exist; first = original. Absent → `"ru"`. §7 |
 | `gender` | ○ | `m`\|`f`\|`mixed` | Person's gender; also selects the default portrait. §8 |
 | `country` | ○ | string | ISO 3166-1 alpha-2, **lowercase**. §5.2 |
 | `json` | ○ | string | Root-relative path to the dossier. **Presence decides biography vs page.** §9 |
 | `img` | ○ | string | Bucket-relative portrait. Absent → default by gender. §8 |
 
-Rows with no `id` or no `md` are invalid and are skipped by the loader with a
-warning. Unknown fields are preserved, never rejected.
+A row needs an `id` and one of `md` / `pdf`; without them it can be neither
+joined nor routed, and the loader skips it with a warning. Unknown fields are
+preserved, never rejected.
+
+`●` required · `◐` one of the pair required · `○` optional.
 
 Dates are **not** here — they are dossier facts (`dates` in `*.bio.json`).
 
@@ -134,17 +139,37 @@ the root-relative form; never write the language directory into `index.json`.
 
 Article extensions: `.bio.md` for biographies, plain `.md` for pages (§9).
 
-### 4.2 Slug and route
-
-The **slug** is the `md` basename with `.bio.md` or `.md` stripped:
+**`pdf` follows a different rule and must not be confused with these.** It is
+relative to the **site root**, not to the content root and not to the
+application base:
 
 ```
-/andres-segovia.bio.md  →  andres-segovia
-/about.md               →  about
+"pdf": "magazine/2022/IGvL_1-2(28-29)_2022_min.pdf"
+      →  https://www.abc-guitars.com/magazine/2022/IGvL_1-2(28-29)_2022_min.pdf
+```
+
+A leading slash is allowed and means the same thing; an absolute `https://…`
+URL is passed through untouched. The document archive sits *beside* the
+application at the web root, so neither the app base (which may be `/fable/`)
+nor the resource base (`/pages`) applies — the app can move without the
+magazines moving with it. `pdf` is **never localized**: one scan serves every
+edition, exactly as `img` and every other media path does.
+
+### 4.2 Slug and route
+
+The **slug** is the basename of whichever file names the row — `md` when there
+is one, `pdf` otherwise — with `.bio.md`, `.md` or `.pdf` stripped:
+
+```
+/andres-segovia.bio.md                       →  andres-segovia
+/about.md                                    →  about
+magazine/2022/IGvL_1-2(28-29)_2022_min.pdf   →  IGvL_1-2(28-29)_2022_min
 ```
 
 It must be **unique across the whole index** and should be Latin/ASCII with
-hyphens. It is the entry's URL:
+hyphens; word characters, dots, hyphens and round brackets are what the router
+accepts (brackets because archive scans are named that way and renaming them
+would break the links the archive already publishes). It is the entry's URL:
 
 ```
 {BASE_URL}#/{slug}
@@ -288,23 +313,65 @@ procedural monogram — so a missing portrait is never a broken image.
 
 ---
 
-## 9. Biography or page
+## 9. Biography, page or document
 
-**`json` present ⟺ the entry is a biography.**
+A row declares which of three things it is, and the application reads that
+declaration **before** it fetches anything:
 
-| | `json` present | `json` absent |
+| The row declares | It is a | Opening it shows |
 |---|---|---|
-| Codex chrome | header + 4 tabs (Biography · Gallery · Documents · Lore) | header + article only |
-| Header | `forename` / `surname` + `type · country · years` | display name + `country` |
-| Data | article + dossier | article only |
+| `md` + `json` | **biography** | the codex: header + 4 tabs (Biography · Gallery · Documents · Lore) |
+| `md`, no `json` | **page** | the codex: header + article only |
+| `pdf`, no `md` | **document** | the PDF viewer: the file itself, with paging/zoom/fit/rotate/download |
 
-This is a **declared** property, read from `index.json` — never inferred from
-whether a fetch happened to succeed. A dossier that fails to load leaves a
-biography as a biography with empty tabs; it does not silently reshape the
-page.
+**`json` present ⟺ biography. `pdf` without `md` ⟺ document.**
+
+Both are **declared** properties, never inferred from whether a fetch happened
+to succeed. A dossier that fails to load leaves a biography as a biography with
+empty tabs; a PDF that fails to load leaves the viewer showing an error and a
+download link. Neither silently reshapes into something else mid-load.
 
 Pages are ordinary BioMD Lite articles named `<slug>.md` (no `.bio.` infix) and
 placed in the same per-language directories.
+
+### 9.1 Documents
+
+A document row is the whole entry: there is no article, no dossier and no
+per-language edition, so the codex has nothing to arrange and is not used.
+What the reader gets instead is a dialog with the same parchment, border,
+corner filigree and page-turn as the codex — and a PDF where the article would
+be. It has no tabs, no header, no metadata and no ←/→ leafing between entries,
+because those arrow keys belong to the pages of the open document.
+
+Consequences worth knowing before authoring one:
+
+- **`lang` still classifies it, but nothing is translated.** One file serves
+  every reader; declare the language the document is *written in*, so the
+  language-scope filter shelves it correctly.
+- **`title`, `type`, `gender`, `country` and `img` work as they do everywhere
+  else** — a document appears in the grid as a card like any other entry, with
+  its own portrait or cover and its own facet chips. Give it a `type` that
+  reads as one (`magazine`, `score`, `programme`) and add its localized name to
+  `index-<lang>.json` as usual.
+- **`json` on a document row is meaningless** and should be omitted: there is
+  no codex to put a dossier in.
+- **A row may carry both `md` and `pdf`.** That is *not* a document: the
+  article wins, and the PDF is simply another archive file for the article to
+  link. Use it when a scan accompanies a written entry.
+
+Example:
+
+```jsonc
+{
+  "id":      "737",
+  "title":   "Istoriya gitary v litsakh 1-2 (2022)",
+  "lang":    "ru",
+  "type":    "magazine",
+  "country": "ru",
+  "pdf":     "magazine/2022/IGvL_1-2(28-29)_2022_min.pdf",
+  "img":     "photo/z/zyrjanov.jpg"
+}
+```
 
 ---
 
@@ -358,8 +425,13 @@ Enforced by `npm run lint:content`.
 
 **Errors** — the catalogue is inconsistent:
 
-- duplicate `id`; duplicate slug; missing `id` or `md`
+- duplicate `id`; duplicate slug; a row with no `id`, or with neither `md`
+  nor `pdf`
 - `md` (and `json`, when declared) missing for any declared `lang`
+- a `pdf` row that also declares `json` — a document has no codex to put a
+  dossier in (§9.1)
+- a slug containing anything but word characters, dots, hyphens and round
+  brackets (§4.2)
 - `country` not a known ISO 3166-1 alpha-2 region (compared case-insensitively)
 - `gender` outside `m` | `f` | `mixed`
 - `born` / `died` / `dates` present in an `index.json` row — dates belong to
@@ -382,6 +454,8 @@ Enforced by `npm run lint:content`.
 - a single-element entry whose only name equals `title` (dead weight — omit
   the whole `id`; an entry that also carries aliases is fine)
 - a `hidden` row carrying `img` or `gender`
+- a `pdf` value written with the `/pages` resource prefix, or with a `^`
+  anchor — `pdf` is site-root-relative and takes neither (§4.1)
 - an enum-like field (`type`, `gender`, `country`, `lang`) authored in anything
   other than lowercase — accepted, but not house style
 - a non-Latin-script edition (`ru`, `zh`, `ja`, `ko`) whose dossier prose is
@@ -413,6 +487,19 @@ Enforced by `npm run lint:content`.
 3. Add its display name to `index-<lang>.json` — hidden entries are not
    searchable, but the codex header still needs a name.
 
+### Add a document (a PDF)
+
+1. Put the file on the site under the archive path it will keep forever
+   (`magazine/<year>/<file>.pdf`) — outside `pages/`, which is the content
+   tree, not the media archive.
+2. Append a row with the next unused `id`, a Latin `title`, a `type` that reads
+   as a document (`magazine`, …), lowercase ISO `country`, the `lang` the
+   document is *written* in, an `img` cover if there is one, and `pdf` set to
+   the site-root-relative path. **No `md`, no `json`.**
+3. Add its localized name to `index-<lang>.json` for every language a reader
+   might search in — the grid card and the viewer's title bar both read it.
+4. `npm run lint:content`.
+
 ### Add a language edition to an existing entry
 
 1. Append the code to that row's `lang`.
@@ -427,7 +514,18 @@ change, no rebuild — the file is content.
 
 ---
 
-## 13. Migration from v1 (historical)
+## 13. Version history
+
+### 2.1 — documents (2026-08-30)
+
+Added `pdf`: a row that declares it instead of `md` **is** a PDF and opens in
+the document viewer rather than the codex (§9.1). `md` became conditionally
+required, the slug may now come from a `pdf` basename, and the slug character
+set gained round brackets so archive scan names survive intact. Nothing about
+existing rows changed; a catalogue with no `pdf` anywhere behaves exactly as
+it did under 2.0.
+
+### Migration from v1 (historical)
 
 Version 1 had no `id`, free-text English country names (`"Spain"`), and carried
 `forename` / `surname` in both `index.json` and every dossier. v2 introduced

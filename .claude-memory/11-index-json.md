@@ -1,7 +1,7 @@
 # 11 · Catalogue Index — `index.json` + `index-<lang>.json`
 
-**Source of truth:** [`docs/Catalog-Index.md`](../docs/Catalog-Index.md) (v2,
-2026-07-31). This note is the condensed version — when they disagree, the spec
+**Source of truth:** [`docs/Catalog-Index.md`](../docs/Catalog-Index.md) (v2.1,
+2026-08-30). This note is the condensed version — when they disagree, the spec
 wins.
 
 > ✅ **Migration status (2026-07-31).** Spec, data **and all app code** are v2 —
@@ -25,9 +25,21 @@ wins.
   "type": "guitarist",                    // craft — or "hidden"
   "gender": "m",                          // m | f | mixed → also picks the default portrait
   "country": "es",                        // ISO 3166-1 alpha-2, LOWERCASE (never free text)
-  "md": "/andres-segovia.bio.md",         // REQUIRED; defines the slug + route
+  "md": "/andres-segovia.bio.md",         // defines the slug + route; required unless `pdf`
   "json": "/andres-segovia.bio.json",     // OPTIONAL — presence ⟺ biography
   "img": "photos/andres-segovia.jpg"      // OPTIONAL — else photos/default-<gender>.jpg
+}
+```
+
+A row may declare **`pdf` instead of `md`** — then it *is* a document and opens
+in the PDF viewer, not the codex (v2.1):
+
+```jsonc
+{
+  "id": "737", "title": "Istoriya gitary v litsakh 1-2 (2022)",
+  "lang": "ru", "type": "magazine", "country": "ru",
+  "pdf": "magazine/2022/IGvL_1-2(28-29)_2022_min.pdf",   // SITE-root-relative!
+  "img": "photo/z/zyrjanov.jpg"                          // grid cover
 }
 ```
 
@@ -44,14 +56,15 @@ Missing file / missing id / empty array → fall back to `index.json.title`.
 Aliases are what make CJK search work — 塞戈维亚 has no romanization path any
 generic algorithm will find.
 
-## The five rules worth memorizing
+## The six rules worth memorizing
 
 1. **`id` is stable, string, never a position.** Assigned once, never
    renumbered, never reused. Join key to `index-<lang>.json` — *not* the route.
-2. **Route = `#/{slug}`**, slug = `md` basename minus `.bio.md`/`.md`. Unique
-   across the index, Latin/ASCII. `md`/`json` are written root-relative and
-   mapped to `pages/<lang>/…` at load; `img` and all media are **never**
-   localized.
+2. **Route = `#/{slug}`**, slug = the basename of `md` (or of `pdf` when there
+   is no `md`), minus `.bio.md`/`.md`/`.pdf`. Unique across the index,
+   Latin/ASCII — word chars, `.`, `-` and `()` (brackets for archive scan
+   names). `md`/`json` are written root-relative and mapped to `pages/<lang>/…`
+   at load; `img` and all media are **never** localized.
 3. **`json` present ⟺ biography** (4-tab codex). Absent ⟺ page (article only).
    *Declared*, never inferred from a failed fetch — the chrome must not reshape
    mid-load.
@@ -62,6 +75,13 @@ generic algorithm will find.
    only what is needed to list, route and classify an entry before anything
    else is fetched. `born`/`died` are **not** mirrored here (owner's call,
    2026-07-31); a future birth-date filter must revisit spec §13.
+6. **`pdf` without `md` ⟺ document** — opens the PDF viewer instead of the
+   codex (spec §9.1). Also declared, never inferred. **Three bases now, not
+   two:** `pdf` is relative to the **site root**, not the app base and not
+   `/pages` — the magazine archive sits beside the app, so it survives a
+   `--base=/fable/` deploy. A row with *both* `md` and `pdf` is an ordinary
+   entry whose article happens to have a scan to link. `json` on a `pdf` row is
+   meaningless.
 
 ## Field ownership (the model in one table)
 
@@ -100,8 +120,9 @@ app draws a deterministic procedural monogram — a portrait is never broken.
 
 ## Validation
 
-`npm run lint:content` (see spec §11). Errors: duplicate id/slug, missing
-`md`, bad ISO country, bad gender, a date field present in an index row,
+`npm run lint:content` (see spec §11). Errors: duplicate id/slug, a row with
+neither `md` nor `pdf`, `json` on a `pdf` row, a slug with characters outside
+`[\w.()-]`, bad ISO country, bad gender, a date field present in an index row,
 dangling `index-<lang>` key, any of the 7 removed fields still in a
 `*.bio.json`. Warnings: display name ≠ `forename + " " + surname`,
 `dates`/`ranking`/`url` differing between editions, a lone localized name equal

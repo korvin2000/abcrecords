@@ -7,6 +7,7 @@ import tailwindcss from "@tailwindcss/vite";
 import { legacyArchive } from "./vite/legacy-archive";
 import { contentWatch, ignoreContent } from "./vite/content-watch";
 import { factsDigest } from "./vite/facts-digest";
+import { pdfjsAssets } from "./vite/pdfjs-assets";
 
 /**
  * The app is a pure renderer: all catalogue content (index.json, *.bio.json,
@@ -44,6 +45,7 @@ export default defineConfig({
     tailwindcss(),
     contentWatch(),
     factsDigest(contentDir),
+    pdfjsAssets(),
     legacyArchive("https://www.abc-guitars.com"),
   ],
   publicDir: contentDir,
@@ -68,6 +70,13 @@ export default defineConfig({
           react: ["react", "react-dom", "react-dom/client"],
           motion: ["framer-motion"],
           markdown: ["react-markdown", "remark-gfm", "unist-util-visit"],
+          // pdf.js is the largest dependency in the tree and the least often
+          // needed. Its only importer is the lazily-loaded document viewer, so
+          // naming it here does not pull it forward — it gives the engine a
+          // stable chunk of its own that survives every application deploy in
+          // the reader's cache. (The ~1 MB worker is a separate emitted asset;
+          // see src/lib/pdf/engine.ts.)
+          pdf: ["pdfjs-dist"],
         },
       },
     },

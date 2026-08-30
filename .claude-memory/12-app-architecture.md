@@ -24,10 +24,16 @@ See [`app/README.md`](../app/README.md) for the full layer table.
 - **Content stays in `pages/`** — mounted as Vite `publicDir` and fetched
   at runtime. `catalog.ts` idle-prefetches only lightweight JSON metadata;
   biography Markdown remains cached but lazy until its codex opens.
-- **Two deployment bases**: `import.meta.env.BASE_URL` locates `index.json`
-  and its json/md/img targets under the app (for example `/fable/`), while
+- **Three deployment bases**: `import.meta.env.BASE_URL` locates `index.json`
+  and its json/md/img targets under the app (for example `/fable/`),
   `VITE_RESOURCE_BASE_PATH` locates resources referenced inside BioMD and
-  per-entry JSON independently (default `/pages`).
+  per-entry JSON independently (default `/pages`), and `index.json`'s `pdf`
+  resolves against the **site root** — the document archive is beside the app,
+  not inside it (`resolveSitePath`).
+- **Three kinds of entry**: biography (`json`) → 4-tab codex · page (no `json`)
+  → article only · document (`pdf`, no `md`) → the lazily-loaded pdf.js viewer
+  in `components/pdf/`, with no codex chrome at all. All three are *declared*
+  in `index.json` and read before any fetch.
 - **BioMD Lite parser**: `src/lib/biomd/parse.ts` (recursive fence parser; v1.3
   adds `align`/`nav` nodes and image `alt`/`link`/`frame`,
   tolerant per spec: unknown blocks render inner content, unclosed fences

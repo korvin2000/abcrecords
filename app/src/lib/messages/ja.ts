@@ -69,6 +69,7 @@ export const ja: Record<MsgKey, Message> = {
   "type.composer": "作曲家",
   "type.conductor": "指揮者",
   "type.luthier": "弦楽器職人",
+  "type.magazine": "雑誌",
 
   "card.open": "記録を開く:{name}",
   "card.foreignHint": "利用可能な言語:{langs}",
@@ -118,6 +119,15 @@ export const ja: Record<MsgKey, Message> = {
   "viewer.download": "ダウンロード",
   "viewer.close": "閉じる",
   "viewer.error": "画像を読み込めませんでした",
+
+  "pdf.loading": "文書を開いています…",
+  "pdf.error": "文書を開けませんでした",
+  "pdf.page": "ページ",
+  "pdf.pageOf": "／ {total}",
+  "pdf.prevPage": "前のページ",
+  "pdf.nextPage": "次のページ",
+  "pdf.fitWidth": "幅に合わせる",
+  "pdf.fitPage": "ページ全体",
   "tab.title": "ASCIIタブ譜",
   "tab.loading": "タブ譜を読み込んでいます…",
   "tab.error": "タブ譜を読み込めませんでした",

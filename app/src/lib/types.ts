@@ -25,8 +25,16 @@ export interface IndexEntry {
   /** Craft ("guitarist"), or "hidden" for routable but unlisted entries. */
   type: string;
   /** Root-relative path to the BioMD article; its basename is the slug, and
-   *  therefore the route. The file itself lives in pages/<lang>/. */
-  md: string;
+   *  therefore the route. The file itself lives in pages/<lang>/. Absent only
+   *  on a document entry, which is routed by `pdf` instead. */
+  md?: string;
+  /**
+   * Site-root-relative path to a PDF (`"magazine/2022/issue.pdf"`). Present
+   * and `md` absent ⟺ the entry **is** a document: opening it shows the PDF
+   * in its own viewer rather than a codex. Never localized — one file serves
+   * every edition. See docs/Catalog-Index.md §9.
+   */
+  pdf?: string;
   /** Comma-separated ISO 639-1 editions ("ru,de"); the first is the entry's
    *  original language. Absent → "ru". */
   lang?: string;
