@@ -180,4 +180,24 @@
      pane's top padding and the parchment fade are both expressed in this, so
      neither can under-clear the buttons however the parts are retuned. */
   --codex-ctrl-band: calc(var(--codex-ctrl-inset-block) + var(--codex-ctrl-size));
+
+  /* ---- The visitor counter's odometer ------------------------------------
+     Derived from the top bar's own text step rather than from the viewport, so
+     the plate grows and shrinks with the bar it sits in and the header keeps
+     one rhythm at every width. Three numbers, one of them a ratio:
+
+       digit  the type size of a numeral — and a `font-size` is correct here,
+              unlike everywhere else in this project: 0–9 are in Cormorant, so
+              nothing is being sized against a symbol face. (Signs still go
+              through `<Glyph>`; see the note at the head of this file.)
+       drum   the window one numeral turns inside. Its 1.72 : 1.1 proportion
+              is the odometer's, taken from the reference photographs in
+              `/counter` — a taller-than-wide drum is what reads as mechanical.
+       roll   how long a numeral takes to turn. Long enough to be seen as
+              movement, short enough that six of them settle together. */
+  --counter-digit: calc(var(--topbar-text) * 1.16);
+  --counter-drum-h: calc(var(--counter-digit) * 1.72);
+  --counter-drum-w: calc(var(--counter-digit) * 1.1);
+  --counter-drum-gap: max(1px, calc(var(--counter-digit) * 0.085));
+  --counter-roll: 640ms;
 }

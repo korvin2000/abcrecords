@@ -213,6 +213,62 @@ export const ru = {
   "lang.menu": "Язык",
   "lang.title": "Языки кодекса",
   "lang.entry": "Язык записи",
+
+  /* ---- the visitor counter (components/counter) ---- */
+
+  "counter.label": "ГОСТИ",
+  "counter.open": "Статистика посещений",
+  "counter.silent": "Счётчик молчит — свод посещений не удалось прочесть",
+
+  "stats.title": "Летопись посетителей",
+  "stats.since": "Ведётся с {date} · {days}",
+  "stats.dayCount": { one: "{v} день", few: "{v} дня", many: "{v} дней", other: "{v} дней" } as Plural,
+  "stats.views": {
+    one: "{v} просмотр",
+    few: "{v} просмотра",
+    many: "{v} просмотров",
+    other: "{v} просмотров",
+  } as Plural,
+  "stats.close": "Закрыть",
+  "stats.retry": "Ещё раз",
+  "stats.loading": "Считаем читателей…",
+  "stats.error": "Летопись посетителей не открылась.",
+  "stats.privacy": "Ни cookie, ни адресов — только подсчёты.",
+  "stats.empty": "Записей пока нет.",
+  "stats.entryUnknown": "Нет в каталоге",
+
+  "stats.tile.uniques": "Читатели",
+  "stats.tile.views": "Открыто страниц",
+  "stats.tile.visits": "Посещения",
+  "stats.tile.today": "Сегодня",
+  "stats.tile.online": "Читают сейчас",
+
+  "stats.days.title": "Последние тридцать дней",
+  "stats.days.hint": "{d7} за семь дней · {d30} за тридцать",
+  "stats.hours.title": "Сегодня, час за часом",
+  "stats.hours.hint": "Самый людный час: {hour} · {n}",
+  "stats.week.title": "По дням недели",
+  "stats.pages.title": "Самые читаемые записи",
+  "stats.langs.title": "Читатели по наречиям",
+  "stats.tech.title": "Орудия чтения",
+  "stats.refs.title": "Откуда пришли",
+  "stats.refs.none": "Все посещения — прямо в кодекс.",
+  "stats.records.title": "Пометы на полях",
+
+  "stats.tech.device": "Устройство",
+  "stats.tech.browser": "Обозреватель",
+  "stats.tech.os": "Система",
+  "stats.device.desktop": "Настольное",
+  "stats.device.mobile": "Телефон",
+  "stats.device.tablet": "Планшет",
+  "stats.other": "прочее",
+
+  "stats.record.peakDay": "Самый людный день",
+  "stats.record.peakHour": "Самый людный час",
+  "stats.record.streak": "Дней подряд",
+  "stats.record.perDay": "Страниц в день",
+  "stats.record.perVisit": "Страниц за посещение",
+  "stats.record.bots": "Отсеяно роботов",
 } satisfies Record<string, Message>;
 
 export type MsgKey = keyof typeof ru;

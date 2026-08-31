@@ -71,3 +71,4 @@ pages/
 pages.old/
 images/
 app/package-lock.json
+counter/

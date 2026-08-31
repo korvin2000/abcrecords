@@ -1,7 +1,7 @@
 import { Suspense, useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import clsx from "clsx";
-import { DOSSIER, EFFECTS, FEATURES, HERALD } from "@/config";
+import { COUNTER, DOSSIER, EFFECTS, FEATURES, HERALD } from "@/config";
 import { LANG_CODES, pickContentLang } from "@/lib/languages";
 import { EMPTY_CATALOG, prefetchEntry } from "@/lib/catalog";
 import { countryName } from "@/lib/metadata";
@@ -29,6 +29,7 @@ import { LanguageMenu } from "@/components/LanguageMenu";
 import { SearchBar } from "@/components/search";
 import { CharacterGrid } from "@/components/CharacterGrid";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { LazyStatsModal, VisitorCounter } from "@/components/counter";
 import { LazyCodexModal } from "@/components/codex/LazyCodexModal";
 import { LazyPdfModal } from "@/components/pdf";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -47,6 +48,11 @@ export default function App() {
   const [sound, setSound] = usePreference("sound");
   const [ambient, setAmbient] = usePreference("ambient");
   const fx = useFx();
+  // The visitors' chronicle. It lives beside the codex rather than inside the
+  // header, because the header carries a `backdrop-filter` — which is a
+  // containing block for anything `fixed` inside it, so a full-screen overlay
+  // mounted there would be positioned against the bar, not the viewport.
+  const [statsOpen, setStatsOpen] = useState(false);
 
   // Hidden entries stay out of the grid, the search and the facets, but keep
   // their route — so `listed` drives the browse UI and `bySlug` covers all.
@@ -279,10 +285,20 @@ export default function App() {
           from the same tokens, so the clearance follows the bar automatically. */}
       <header className="topbar fixed inset-x-0 top-0 z-30 flex items-center justify-between border-b border-gold-600/25 bg-paper-100/70 backdrop-blur-sm">
         <div className="topbar-group">
-          <span className="anim-floaty topbar-mark text-gold-700" aria-hidden>
-            ✦
-          </span>
-          <span className="topbar-brand font-display font-bold tracking-[0.25em] text-burgundy-700">{t("app.brand")}</span>
+          {/* Where the wordmark used to stand. With the counter switched off in
+              `config.ts` the bar keeps the plain mark and the name. */}
+          {COUNTER.enabled ? (
+            <VisitorCounter onOpen={() => setStatsOpen(true)} />
+          ) : (
+            <>
+              <span className="anim-floaty topbar-mark text-gold-700" aria-hidden>
+                ✦
+              </span>
+              <span className="topbar-brand font-display font-bold tracking-[0.25em] text-burgundy-700">
+                {t("app.brand")}
+              </span>
+            </>
+          )}
         </div>
         <div className="topbar-group">
           <LanguageMenu
@@ -422,6 +438,22 @@ export default function App() {
           </AnimatePresence>
         </Suspense>
       </ErrorBoundary>
+
+      {/* Its own boundary and its own Suspense: a chunk that will not import,
+          or a figure that will not render, must cost the reader the statistics
+          and nothing else. No fallback — a counter is chrome, and a spinner
+          over the whole page is a worse answer than no panel. */}
+      {statsOpen && (
+        <ErrorBoundary label="stats" resetKey="stats" fallback={null}>
+          <Suspense fallback={null}>
+            <LazyStatsModal
+              onClose={() => setStatsOpen(false)}
+              resolveTitle={(slug) => catalog.bySlug.get(slug)?.display ?? null}
+              onOpenEntry={openEntry}
+            />
+          </Suspense>
+        </ErrorBoundary>
+      )}
     </div>
   );
 }

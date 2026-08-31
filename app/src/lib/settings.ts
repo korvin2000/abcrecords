@@ -55,6 +55,14 @@ export interface Preferences {
   /** The search filter as last left, or null when never refined — which is
    *  what lets a first visit seed a filter from the reader's language. */
   readonly search: StoredSearch | null;
+  /**
+   * The visitor tally as it last stood. Not a preference but a *memory*: the
+   * odometer opens on this number and turns from it to the one the server
+   * returns, so a returning reader sees a short roll of the digits that have
+   * actually changed instead of six drums spinning up from zero. Null on a
+   * first visit, which is exactly when spinning up from zero is the truth.
+   */
+  readonly counter: number | null;
 }
 
 export type PreferenceKey = keyof Preferences;
@@ -65,6 +73,7 @@ const DEFAULTS: Preferences = {
   ambient: false,
   effects: null,
   search: null,
+  counter: null,
 };
 
 let current: Preferences = load();
@@ -167,6 +176,7 @@ function load(): Preferences {
     search: row.v === VERSION && row.search && typeof row.search === "object"
       ? (row.search as StoredSearch)
       : null,
+    counter: pickNumber(row.v === VERSION ? row.counter : undefined),
   };
 }
 
@@ -203,6 +213,10 @@ function pickString(value: unknown): string | null {
 
 function pickBoolean(value: unknown): boolean | null {
   return typeof value === "boolean" ? value : null;
+}
+
+function pickNumber(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
 // One line in the console beats reading five files when a preference will not

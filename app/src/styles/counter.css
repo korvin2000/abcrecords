@@ -1,0 +1,588 @@
+/* ============================================================
+   The visitor counter — the plate in the top bar, the mechanical drums in it,
+   and the visitors' chronicle behind it.
+   (components/counter/, lib/counter/, `--counter-*` in tokens.css)
+
+   Three things worth knowing before editing:
+
+   • **The plate scales with the bar, not with the viewport.** Every size in
+     the first two sections is derived from `--counter-digit`, which is derived
+     from `--topbar-text`. Retune the bar and the counter follows it; there is
+     no second breakpoint family to keep in step.
+   • **The panel adapts to its own width, not to the screen's.** Its grid is
+     driven by container queries on `.stats-body`, because the thing that
+     decides whether three columns of figures fit is the plate's inline size —
+     which on a wide screen is capped at 62 rem and has nothing to do with the
+     viewport. Height is treated as its own dimension at the foot of the file.
+   • **Digits may take a `font-size` here.** 0–9 are in Cormorant; the rule
+     that a sign must go through `<Glyph>` applies to the symbol faces, and
+     the two ✦ and the ✕ in the panel do exactly that.
+   ============================================================ */
+
+/* --------------------------------------------------------------- the plate */
+
+.counter-plate {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--counter-digit) * 0.55);
+  block-size: var(--topbar-ctrl);
+  padding-inline: calc(var(--counter-digit) * 0.5);
+  border: 1px solid rgba(184, 144, 42, 0.45);
+  border-radius: 3px;
+  background: linear-gradient(180deg, rgba(250, 245, 230, 0.8), rgba(236, 223, 192, 0.62));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    0 1px 3px rgba(51, 34, 15, 0.12);
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+/* Hover is an enhancement, never the way in: the plate is a button and reads
+   as one on a touch screen too. */
+@media (hover: hover) and (pointer: fine) {
+  .counter-plate:hover {
+    border-color: rgba(184, 144, 42, 0.85);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.6),
+      0 0 14px rgba(184, 144, 42, 0.35);
+  }
+}
+.counter-plate:focus-visible {
+  outline: 2px solid var(--color-gold-600);
+  outline-offset: 2px;
+}
+.counter-plate:active {
+  box-shadow: inset 0 1px 3px rgba(51, 34, 15, 0.28);
+}
+
+.counter-mark {
+  flex: none;
+  color: var(--color-gold-700);
+}
+
+.counter-label {
+  font-family: var(--font-heading);
+  font-size: var(--topbar-text);
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--color-burgundy-700);
+  white-space: nowrap;
+}
+
+/* The word goes before the digits do. Below this the bar has to hold four
+   controls, a language menu and the plate, and the plate is the part that
+   still has to be readable. `.topbar` declares the container (topbar.css). */
+@container topbar (max-inline-size: 30rem) {
+  .counter-label {
+    display: none;
+  }
+}
+
+/* ------------------------------------------------------------ the odometer */
+
+.odometer {
+  display: inline-flex;
+  flex: none;
+  gap: var(--counter-drum-gap);
+  padding: calc(var(--counter-drum-gap) * 1.6);
+  border-radius: 2px;
+  /* The brass bezel the drums are set into. */
+  background: linear-gradient(180deg, var(--color-gold-800) 0%, var(--color-sepia-700) 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(26, 15, 8, 0.5),
+    0 1px 2px rgba(51, 34, 15, 0.25);
+}
+.odometer.is-silent {
+  opacity: 0.5;
+  filter: saturate(0.55);
+}
+
+.odometer-drum {
+  position: relative;
+  overflow: hidden;
+  flex: none;
+  inline-size: var(--counter-drum-w);
+  block-size: var(--counter-drum-h);
+  border-radius: 1px;
+  /* Four stops, not two: the seam across the middle of a flap counter is where
+     the drum's two halves catch the light differently. The one literal is the
+     shadow *in* that seam — a shade below `ink-950`, which the palette has no
+     name for because nothing else in the app is ever that dark. */
+  background: linear-gradient(
+    180deg,
+    var(--color-ink-900) 0%,
+    var(--color-ink-700) 46%,
+    #17100a 52%,
+    var(--color-ink-800) 100%
+  );
+}
+/* The cylinder's shading, and the hairline the flap would hinge on. */
+.odometer-drum::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0.55) 0%,
+      rgba(0, 0, 0, 0) 27%,
+      rgba(0, 0, 0, 0) 73%,
+      rgba(0, 0, 0, 0.55) 100%
+    ),
+    linear-gradient(
+      180deg,
+      transparent calc(50% - 1px),
+      rgba(0, 0, 0, 0.55) 50%,
+      transparent calc(50% + 1px)
+    );
+}
+
+.odometer-strip {
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  /* Declared once, so the reduced-motion re-arm at the foot of this file can
+     restate the transition without restating the curve. */
+  --counter-ease: cubic-bezier(0.33, 1.15, 0.62, 1);
+  transform: translateY(calc(var(--cell, 0) * var(--counter-drum-h) * -1));
+}
+/* Added by the component only while a drum is actually turning, so the silent
+   jump back from the spare zero cannot be animated. See Odometer.tsx. */
+.odometer-strip--turning {
+  transition: transform var(--counter-roll) var(--counter-ease);
+}
+
+.odometer-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  block-size: var(--counter-drum-h);
+  font-family: var(--font-body);
+  font-size: var(--counter-digit);
+  font-weight: 600;
+  font-variant-numeric: lining-nums tabular-nums;
+  line-height: 1;
+  color: var(--color-paper-100);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.55);
+}
+
+/* ------------------------------------------------------- the chronicle: shell */
+
+.stats-overlay {
+  padding:
+    max(var(--codex-frame-pad), env(safe-area-inset-top))
+    max(var(--codex-frame-pad), env(safe-area-inset-right))
+    max(var(--codex-frame-pad), env(safe-area-inset-bottom))
+    max(var(--codex-frame-pad), env(safe-area-inset-left));
+}
+
+.stats-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  inline-size: min(100%, 62rem);
+  /* `svh`, not `dvh`: a panel that resizes while the mobile URL bar retracts
+     re-lays out its whole grid mid-scroll. */
+  max-block-size: min(92svh, 56rem);
+  border-radius: 3px;
+
+  /* The panel's own scale. Everything inside spends these four. */
+  --stats-pad: clamp(0.75rem, 0.45rem + 1.6vw, 1.9rem);
+  --stats-gap: clamp(0.6rem, 0.4rem + 0.8vw, 1.1rem);
+  --stats-kicker-glyph: clamp(0.5rem, 0.44rem + 0.2vw, 0.7rem);
+  --stats-close-glyph: clamp(0.6rem, 0.5rem + 0.3vw, 0.8rem);
+  --stats-meter-glyph: clamp(0.5rem, 0.45rem + 0.2vw, 0.66rem);
+}
+
+.stats-corner {
+  position: absolute;
+  z-index: 1;
+  inline-size: clamp(1.1rem, 0.9rem + 0.8vw, 1.6rem);
+  block-size: clamp(1.1rem, 0.9rem + 0.8vw, 1.6rem);
+  pointer-events: none;
+}
+.stats-corner--tl {
+  inset-block-start: 3px;
+  inset-inline-start: 3px;
+}
+.stats-corner--tr {
+  inset-block-start: 3px;
+  inset-inline-end: 3px;
+}
+.stats-corner--bl {
+  inset-block-end: 3px;
+  inset-inline-start: 3px;
+}
+.stats-corner--br {
+  inset-block-end: 3px;
+  inset-inline-end: 3px;
+}
+
+.stats-header {
+  position: relative;
+  flex: none;
+  padding: var(--stats-pad) calc(var(--stats-pad) + var(--codex-ctrl-size)) calc(var(--stats-pad) * 0.55);
+  text-align: center;
+  border-block-end: 1px solid rgba(184, 144, 42, 0.4);
+}
+.stats-kicker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7em;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(0.78rem, 0.66rem + 0.5vw, 1.05rem);
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-burgundy-700);
+}
+.stats-subtitle {
+  margin: 0.35rem 0 0;
+  font-size: clamp(0.64rem, 0.58rem + 0.25vw, 0.8rem);
+  letter-spacing: 0.05em;
+  color: var(--color-sepia-600);
+}
+.stats-close {
+  position: absolute;
+  inset-block-start: calc(var(--stats-pad) * 0.7);
+  inset-inline-end: calc(var(--stats-pad) * 0.7);
+  display: grid;
+  place-items: center;
+  inline-size: var(--codex-ctrl-size);
+  block-size: var(--codex-ctrl-size);
+  padding: 0;
+}
+
+.stats-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--stats-pad);
+  /* The panel's width — not the screen's — decides how many columns of
+     figures fit, so the queries below ask this element. */
+  container-type: inline-size;
+  container-name: stats;
+}
+
+.stats-footer {
+  flex: none;
+  padding: calc(var(--stats-pad) * 0.5) var(--stats-pad);
+  border-block-start: 1px solid rgba(184, 144, 42, 0.35);
+  text-align: center;
+  font-size: clamp(0.56rem, 0.52rem + 0.18vw, 0.68rem);
+  letter-spacing: 0.07em;
+  color: var(--color-sepia-500);
+}
+
+.stats-note {
+  padding-block: 1.2rem;
+  text-align: center;
+  font-size: clamp(0.72rem, 0.66rem + 0.25vw, 0.9rem);
+  color: var(--color-sepia-600);
+}
+
+/* ----------------------------------------------- the chronicle: the figures */
+
+.stats-tiles {
+  display: grid;
+  /* `min(100%, …)` so the track can never be wider than the column it is in —
+     that is the whole of what keeps five figures from overflowing a phone. */
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 7.5rem), 1fr));
+  gap: var(--stats-gap);
+  margin-block-end: var(--stats-gap);
+}
+.stats-tile {
+  min-inline-size: 0;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid rgba(184, 144, 42, 0.35);
+  border-radius: 2px;
+  background: rgba(250, 245, 230, 0.55);
+  text-align: center;
+}
+.stats-tile-value {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4em;
+  font-family: var(--font-display);
+  font-size: clamp(1.05rem, 0.85rem + 1vw, 1.7rem);
+  font-weight: 700;
+  font-variant-numeric: lining-nums tabular-nums;
+  line-height: 1.1;
+  color: var(--color-ink-800);
+}
+.stats-tile--accent .stats-tile-value {
+  color: var(--color-burgundy-600);
+}
+.stats-tile-caption {
+  display: block;
+  margin-block-start: 0.15rem;
+  font-size: clamp(0.56rem, 0.52rem + 0.18vw, 0.7rem);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-sepia-600);
+}
+.stats-live-dot {
+  flex: none;
+  inline-size: 0.4em;
+  block-size: 0.4em;
+  border-radius: 50%;
+  background: var(--color-burgundy-500);
+  animation: counter-breathe 2.6s ease-in-out infinite;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--stats-gap);
+}
+.stats-card {
+  min-inline-size: 0;
+  padding: calc(var(--stats-pad) * 0.6);
+  border: 1px solid rgba(184, 144, 42, 0.32);
+  border-radius: 2px;
+  background: rgba(250, 245, 230, 0.42);
+}
+.stats-card-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(0.72rem, 0.65rem + 0.3vw, 0.9rem);
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--color-burgundy-700);
+}
+.stats-card-hint {
+  margin: 0.2rem 0 0.6rem;
+  font-size: clamp(0.62rem, 0.58rem + 0.2vw, 0.76rem);
+  color: var(--color-sepia-600);
+}
+.stats-group + .stats-group {
+  margin-block-start: 0.6rem;
+}
+.stats-group-title {
+  margin: 0 0 0.15rem;
+  font-family: var(--font-heading);
+  font-size: clamp(0.58rem, 0.54rem + 0.18vw, 0.7rem);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-sepia-500);
+}
+
+/* Two columns once the panel is wide enough to hold two readable ones, three
+   when it is wide enough for three. The charts always take a whole row. */
+@container stats (min-inline-size: 34rem) {
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .stats-card--wide {
+    grid-column: 1 / -1;
+  }
+}
+@container stats (min-inline-size: 56rem) {
+  .stats-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* --------------------------------------------------------------- the meters */
+
+.stats-meter {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  inline-size: 100%;
+  padding: 0.22rem 0;
+  border: 0;
+  background: none;
+  font-family: inherit;
+  font-size: clamp(0.66rem, 0.6rem + 0.25vw, 0.82rem);
+  color: var(--color-ink-800);
+  text-align: start;
+}
+.stats-meter-icon {
+  flex: none;
+  display: flex;
+  align-items: center;
+}
+.stats-meter-label {
+  flex: 1 1 40%;
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.stats-meter-track {
+  flex: 1 1 34%;
+  min-inline-size: 1.5rem;
+  block-size: 0.4rem;
+  overflow: hidden;
+  border-radius: 99px;
+  background: rgba(107, 74, 42, 0.14);
+}
+.stats-meter-fill {
+  display: block;
+  block-size: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--color-gold-500), var(--color-burgundy-500));
+}
+.stats-meter-value {
+  flex: none;
+  min-inline-size: 2.6ch;
+  font-variant-numeric: lining-nums tabular-nums;
+  text-align: end;
+  color: var(--color-sepia-700);
+}
+
+.stats-meter--link {
+  border-radius: 2px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.stats-meter--link:focus-visible {
+  outline: 2px solid var(--color-gold-600);
+  outline-offset: 1px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .stats-meter--link:hover {
+    background: rgba(212, 175, 55, 0.14);
+    color: var(--color-burgundy-600);
+  }
+}
+/* A row that opens an entry is a target, and a coarse pointer needs one it can
+   actually hit (WCAG 2.2 SC 2.5.8). Rows that only report a number are text
+   and stay as tight as the type. */
+@media (pointer: coarse) {
+  .stats-meter--link {
+    min-block-size: 2.5rem;
+  }
+}
+
+.stats-flag {
+  block-size: clamp(0.62rem, 0.58rem + 0.2vw, 0.8rem);
+  inline-size: clamp(1rem, 0.92rem + 0.32vw, 1.28rem);
+  filter: drop-shadow(0 1px 1px rgba(51, 34, 15, 0.25));
+}
+
+/* --------------------------------------------------------------- the charts */
+
+.stats-chart {
+  --stats-plot: clamp(3rem, 2rem + 6svh, 5.5rem);
+}
+.stats-chart-plot {
+  display: flex;
+  align-items: flex-end;
+  gap: max(1px, 0.1rem);
+  block-size: var(--stats-plot);
+  padding-inline: 1px;
+  border-block-end: 1px solid rgba(184, 144, 42, 0.45);
+}
+.stats-bar {
+  flex: 1 1 0;
+  min-inline-size: 0;
+  border-radius: 1px 1px 0 0;
+  background: linear-gradient(180deg, var(--color-gold-500), var(--color-gold-700));
+}
+.stats-bar--now {
+  background: linear-gradient(180deg, var(--color-burgundy-400), var(--color-burgundy-700));
+}
+@media (hover: hover) and (pointer: fine) {
+  .stats-bar:hover {
+    filter: brightness(1.18);
+  }
+}
+.stats-chart-axis {
+  display: flex;
+  justify-content: space-between;
+  margin-block-start: 0.3rem;
+  font-size: clamp(0.55rem, 0.52rem + 0.15vw, 0.66rem);
+  letter-spacing: 0.04em;
+  color: var(--color-sepia-500);
+}
+
+/* -------------------------------------------------------------- the records */
+
+.stats-records {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0;
+}
+.stats-record {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.7rem;
+  font-size: clamp(0.66rem, 0.6rem + 0.25vw, 0.82rem);
+}
+.stats-record dt {
+  min-inline-size: 0;
+  color: var(--color-sepia-600);
+}
+.stats-record dd {
+  margin: 0;
+  font-weight: 600;
+  font-variant-numeric: lining-nums tabular-nums;
+  white-space: nowrap;
+  color: var(--color-ink-800);
+}
+
+/* ------------------------------------------------------------------ motion */
+
+@keyframes counter-breathe {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.82);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Both halves of the counter's movement are decorative — the number is right
+   whether or not the drum turns to it — so both are off by default here.
+   The two then part company, on purpose:
+
+   • The **drums** are re-armed for a reader who has switched the ornaments on
+     themselves (`html[data-fx]` is written by App from the fx store, and
+     `VisitorCounter` reads the same switch — so the CSS and the component can
+     never disagree). Without this pair, the component would drive the wrap
+     sequence with no transition to hide the jump back from the spare zero.
+   • The **breathing dot** stays off, with no way back. It carries nothing the
+     figure beside it does not already say, and a pulsing dot is precisely what
+     someone who asks for less motion is asking to be rid of. */
+@media (prefers-reduced-motion: reduce) {
+  .odometer-strip--turning {
+    transition: none;
+  }
+  html[data-fx="on"] .odometer-strip--turning {
+    transition: transform var(--counter-roll) var(--counter-ease);
+  }
+  .stats-live-dot {
+    animation: none;
+    opacity: 0.85;
+  }
+}
+
+/* -------------------------------------------------------- height as a limit */
+
+/* A landscape phone has width to spare and no height at all: the panel keeps
+   every section, and gives back padding and plot height instead. */
+@media (max-height: 30rem) {
+  .stats-panel {
+    --stats-pad: clamp(0.5rem, 0.35rem + 0.8vw, 0.95rem);
+    --stats-gap: 0.5rem;
+    max-block-size: 96svh;
+  }
+  .stats-chart {
+    --stats-plot: 2.6rem;
+  }
+}

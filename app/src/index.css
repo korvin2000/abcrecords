@@ -10,7 +10,7 @@
 @import "tailwindcss";
 
 /* ============================================================
-   КОДЕКС ГИТАРИСТОВ — the stylesheet, in fourteen parts
+   КОДЕКС ГИТАРИСТОВ — the stylesheet, in fifteen parts
 
    This file is the running order, nothing else. The sheet is unlayered on
    purpose (see `styles/base.css`), so **the order of these imports is the
@@ -39,6 +39,9 @@
 
 /* topbar — the fixed top bar */
 @import "./styles/topbar.css";
+
+/* counter — the visitor plate in the bar and the visitors' chronicle */
+@import "./styles/counter.css";
 
 /* home — frontispiece, page band, catalogue grid and card cell */
 @import "./styles/home.css";

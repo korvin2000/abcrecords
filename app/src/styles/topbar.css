@@ -4,6 +4,15 @@
    conditional. Every number comes from the `--topbar-*` family in `@theme`.
    ============================================================ */
 .topbar {
+  /* The bar is a query container so the counter's wordmark can step aside when
+     the row runs out of room (see `.counter-label` in counter.css). It asks the
+     *bar's* inline size rather than the viewport's, which is the honest
+     question: the bar is inset by the page gutter and by the safe area, so on
+     a notched phone held sideways it is a good deal narrower than the screen.
+     `inline-size` containment does not clip, so the language menu still hangs
+     out of the bar as before. */
+  container-type: inline-size;
+  container-name: topbar;
   gap: var(--topbar-gap);
   padding-block: var(--topbar-pad-block);
   padding-inline: max(var(--spacing-gutter), env(safe-area-inset-left))

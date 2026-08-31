@@ -171,3 +171,46 @@ export const HERALD: HeraldConfig = {
   anniversaries: true,
   quotes: true,
 };
+
+interface CounterConfig {
+  /** Master switch. Off removes the widget, the statistics panel and every
+   *  request to the endpoint — the header then carries the plain wordmark. */
+  enabled: boolean;
+  /**
+   * The PHP endpoint, resolved against the **site root** (like index.json's
+   * `pdf`), not against the application base: the counter lives beside the
+   * app, so it survives a `--base=/fable/` deploy. See `server/counter.php`.
+   */
+  endpoint: string;
+  /** Which figure the odometer shows. The panel always shows all of them. */
+  display: "uniques" | "views" | "visits";
+  /** Drums on the odometer. A longer number grows the plate; a shorter one is
+   *  padded with leading zeros, the way a mechanical counter reads. */
+  digits: number;
+  /**
+   * Whether a page view is *recorded* (`?a=hit`) or merely read (`?a=pulse`).
+   * Development reads by default, so a morning of hot reloads does not inflate
+   * the public tally; flip it to `true` to exercise the recording path.
+   */
+  record: boolean;
+  /** How long a request may take before the widget gives up (ms). */
+  timeoutMs: number;
+}
+
+/**
+ * The visitor counter (lib/counter + components/counter).
+ *
+ * The reason this feature has a server at all: a count of visitors cannot be
+ * kept in the browser — every reader would have their own. The endpoint is one
+ * PHP file with no database (`server/counter.php`); everything here is about
+ * asking it as little as possible. One request on load, one more when the
+ * reader opens the panel, and nothing on a timer.
+ */
+export const COUNTER: CounterConfig = {
+  enabled: true,
+  endpoint: "/counter/counter.php",
+  display: "uniques",
+  digits: 6,
+  record: import.meta.env.PROD,
+  timeoutMs: 8000,
+};
