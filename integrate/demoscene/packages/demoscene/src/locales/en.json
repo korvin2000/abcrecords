@@ -1,0 +1,63 @@
+{
+  "tag": "en",
+  "ui": {
+    "music": "Music",
+    "musicOn": "Music ♪",
+    "text": "Text",
+    "restart": "Restart",
+    "close": "Close",
+    "hint": "M · music    T · text    ESC · close",
+    "canvasLabel": "Animated title sequence",
+    "dialogLabel": "About this work"
+  },
+  "content": {
+    "work": "ABC - GUITARS",
+    "title": "Guitarists and Composers",
+    "subtitle": "About the creators of the encyclopedia",
+    "edition": "<< 2003 - 2026 >>",
+    "dropcap": "G",
+    "dedication": "Quod potui, perfeci — what I could, I did.",
+    "colophon": "With gratitude to everyone who helped expand and enrich our articles. The music for this demoscene production was written by Opus 5, synthesised entirely in the browser. We are glad to welcome you to the pages of our music encyclopedia.",
+    "credits": [
+      {
+        "role": "PROJECT CREATOR",
+        "sub": "Doctor of Philosophy",
+        "names": ["Тавровский Виктор"]
+      },
+      {
+        "role": "CO-AUTHOR",
+        "sub": "musician and guitarist",
+        "names": ["Тавровский Сергей"]
+      },
+      {
+        "role": "SUPPORT",
+        "sub": "programmer",
+        "names": ["Тавровский Александр"]
+      },
+      {
+        "role": "TRANSLATION",
+        "sub": "language models",
+        "names": ["Gemma 4", "DeepSeek 4", "MiniMax M3"]
+      },
+      {
+        "role": "VIBE CODING",
+        "sub": "language models",
+        "names": ["Opus 5", "GPT Sol"]
+      },
+      {
+        "role": "ACKNOWLEDGEMENTS",
+        "sub": "to our visitors",
+        "names": ["everyone who still remembers us", "and lends their support."]
+      }
+    ],
+    "blocks": [
+      "Dedicated to",
+      "the classical six-string guitar",
+      "guitarists and composers",
+      "musicians — professional and amateur alike",
+      "Music is magic, conveyed through sound.",
+      "M · music      T · text      ESC · close the book",
+      "Words can lie, but music never does."
+    ]
+  }
+}

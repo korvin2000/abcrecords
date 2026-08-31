@@ -1,0 +1,63 @@
+{
+  "tag": "pt",
+  "ui": {
+    "music": "Música",
+    "musicOn": "Música ♪",
+    "text": "Texto",
+    "restart": "Reiniciar",
+    "close": "Fechar",
+    "hint": "M · música    T · texto    ESC · fechar",
+    "canvasLabel": "Sequência de título animada",
+    "dialogLabel": "Sobre esta obra"
+  },
+  "content": {
+    "work": "ABC - GUITARS",
+    "title": "Violonistas e Compositores",
+    "subtitle": "Sobre os criadores da enciclopédia",
+    "edition": "<< 2003 - 2026 >>",
+    "dropcap": "V",
+    "dedication": "Quod potui, perfeci — fiz o que pude.",
+    "colophon": "Com gratidão a todos que ajudaram a ampliar e enriquecer nossos artigos. A música desta produção demoscene foi composta por Opus 5, sintetizada inteiramente no navegador. Temos o prazer de dar as boas-vindas às páginas da nossa enciclopédia musical.",
+    "credits": [
+      {
+        "role": "CRIADOR DO PROJETO",
+        "sub": "doutor em filosofia",
+        "names": ["Тавровский Виктор"]
+      },
+      {
+        "role": "COAUTOR",
+        "sub": "músico e violonista",
+        "names": ["Тавровский Сергей"]
+      },
+      {
+        "role": "SUPORTE",
+        "sub": "programador",
+        "names": ["Тавровский Александр"]
+      },
+      {
+        "role": "TRADUÇÃO",
+        "sub": "modelos de linguagem",
+        "names": ["Gemma 4", "DeepSeek 4", "MiniMax M3"]
+      },
+      {
+        "role": "VIBE CODING",
+        "sub": "modelos de linguagem",
+        "names": ["Opus 5", "GPT Sol"]
+      },
+      {
+        "role": "AGRADECIMENTOS",
+        "sub": "aos nossos visitantes",
+        "names": ["todos os que ainda se lembram de nós", "e nos dão o seu apoio."]
+      }
+    ],
+    "blocks": [
+      "Dedicado a",
+      "o violão clássico de seis cordas",
+      "aos violonistas e compositores",
+      "aos músicos, profissionais e amadores",
+      "Música é magia transmitida através do som.",
+      "M · música      T · texto      ESC · fechar o livro",
+      "As palavras podem mentir, a música jamais."
+    ]
+  }
+}

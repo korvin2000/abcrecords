@@ -1,0 +1,170 @@
+{
+  "app": {
+    "title": "Livro de visitas",
+    "subtitle": "Mensagens dos visitantes"
+  },
+  "language": {
+    "label": "Idioma",
+    "ru": "Русский",
+    "en": "English",
+    "es": "Español",
+    "ja": "日本語",
+    "de": "Deutsch",
+    "fr": "Français",
+    "it": "Italiano",
+    "pt": "Português",
+    "uk": "Українська",
+    "zh": "中文",
+    "ko": "한국어"
+  },
+  "list": {
+    "loading": "Carregando mensagens…",
+    "error": "Não foi possível carregar as mensagens.",
+    "retry": "Tentar novamente",
+    "empty": "Ainda não há mensagens.",
+    "total": "Total de mensagens: {{count}}"
+  },
+  "entry": {
+    "number": "Mensagem n.º {{number}}",
+    "permalink": "Link para esta mensagem (ID {{id}})",
+    "sticky": "Fixado",
+    "email": "E-mail",
+    "homepage": "Página inicial",
+    "country": "País",
+    "countryUnspecified": "Não especificado",
+    "gender": {
+      "male": "masculino",
+      "female": "feminino"
+    },
+    "picture": "Imagem da mensagem",
+    "adminReply": "Resposta da administração",
+    "rating": "Avaliação “{{box}}”",
+    "customField": "Campo {{field}}",
+    "comments": "{{count}} comentários",
+    "commentsNone": "Nenhum comentário",
+    "commentsClosed": "Comentários fechados",
+    "client": "Navegador",
+    "messenger": {
+      "icq": "ICQ",
+      "aim": "AIM",
+      "msn": "MSN",
+      "yahoo": "Yahoo",
+      "skype": "Skype",
+      "jabber": "Jabber",
+      "gaduGadu": "Gadu-Gadu"
+    }
+  },
+  "comments": {
+    "show": "Mostrar comentários ({{count}})",
+    "hide": "Ocultar comentários",
+    "loading": "Carregando comentários…",
+    "error": "Não foi possível carregar os comentários.",
+    "admin": "Administração",
+    "write": "Responder",
+    "submit": "Enviar comentário",
+    "disabled": "Os comentários estão desativados no momento.",
+    "success": {
+      "published": "O comentário foi salvo.",
+      "moderated": "O comentário foi salvo e está aguardando aprovação."
+    }
+  },
+  "locked": {
+    "title": "Mensagem privada",
+    "hint": "Esta mensagem é protegida por senha e será exibida após a senha ser informada."
+  },
+  "form": {
+    "open": "Escrever uma mensagem",
+    "close": "Fechar",
+    "title": "Nova mensagem",
+    "loading": "Carregando o formulário…",
+    "preview": "Pré-visualização",
+    "previewTitle": "Pré-visualização",
+    "submit": "Enviar",
+    "busy": "Aguarde…",
+    "moderationHint": "As novas mensagens são publicadas após a aprovação da administração.",
+    "field": {
+      "name": "Nome",
+      "email": "E-mail",
+      "hideEmail": "Não exibir o endereço publicamente",
+      "homepage": "Página inicial",
+      "country": "País",
+      "countryNone": "Não especificado",
+      "gender": "Sexo",
+      "genderNone": "Não especificado",
+      "text": "Mensagem",
+      "private": "Senha para mensagem privada",
+      "ratingNone": "Sem avaliação",
+      "captcha": "Código da imagem",
+      "captchaAlt": "Caracteres a serem digitados",
+      "captchaReload": "Outra imagem",
+      "picture": "Imagem",
+      "pictureRemove": "Remover imagem",
+      "pictureCaption": "Legenda da imagem"
+    },
+    "hint": {
+      "homepage": "Sem “http://” — ele será adicionado automaticamente.",
+      "private": "Somente letras e números. Sem essa senha não será possível ler a mensagem.",
+      "maxChars": "{{used}} de {{max}} caracteres",
+      "picture": "GIF ou JPEG, no máximo {{maxWidth}} × {{maxHeight}} pixels e {{maxKb}} KB."
+    },
+    "toolbar": {
+      "label": "Formatação de texto",
+      "b": "Negrito",
+      "i": "Itálico",
+      "u": "Sublinhado",
+      "code": "Código",
+      "quote": "Citação",
+      "left": "Alinhar à esquerda",
+      "center": "Centralizar",
+      "right": "Alinhar à direita",
+      "list": "Lista",
+      "url": "Inserir link",
+      "urlShort": "Link",
+      "urlPrompt": "Endereço do link:",
+      "color": "Cor",
+      "size": "Tamanho"
+    },
+    "fieldError": {
+      "required": "Este campo é obrigatório.",
+      "too_long": "O valor é muito longo.",
+      "invalid": "O valor tem um formato inválido.",
+      "out_of_range": "O valor está fora do intervalo permitido.",
+      "unknown_option": "Essa opção não é permitida.",
+      "duplicate": "Já existe uma mensagem idêntica."
+    },
+    "error": {
+      "setup": "Não foi possível carregar o formulário.",
+      "validation": "Verifique os campos destacados.",
+      "csrf": "A sessão expirou. Envie novamente.",
+      "captcha_wrong": "O código informado está incorreto. Informe um novo código.",
+      "captcha_invalid": "O código não é mais válido. Informe um novo código.",
+      "captcha_expired": "O código expirou. Informe um novo código.",
+      "captcha_required": "Informe o código da imagem.",
+      "rateLimited": "Muitas mensagens em pouco tempo. Aguarde {{seconds}} s.",
+      "spam": "A solicitação foi identificada como automatizada.",
+      "unknown": "Não foi possível salvar a mensagem.",
+      "pictureTooLarge": "A imagem é muito grande (no máximo {{max}} KB).",
+      "pictureDimensions": "As dimensões da imagem são muito grandes (no máximo {{maxWidth}} × {{maxHeight}} pixels).",
+      "pictureType": "Somente imagens GIF e JPEG são permitidas.",
+      "pictureUpload": "Não foi possível enviar a imagem."
+    },
+    "success": {
+      "published": "A mensagem foi salva.",
+      "moderated": "A mensagem foi salva e está aguardando aprovação."
+    },
+    "uploading": "Enviando a imagem…"
+  },
+  "pagination": {
+    "previous": "Anterior",
+    "next": "Próxima",
+    "status": "Página {{page}} de {{total}}",
+    "label": "Paginação"
+  },
+  "error": {
+    "banned": "O acesso a este livro de visitas está bloqueado.",
+    "network": "Não foi possível conectar ao servidor. Verifique sua conexão.",
+    "unknown": "Ocorreu um erro inesperado.",
+    "crashed": "Ocorreu um erro: não foi possível apresentar o livro de visitas.",
+    "crashedAction": "Recarregar"
+  }
+}

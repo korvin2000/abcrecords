@@ -1,0 +1,170 @@
+{
+  "app": {
+    "title": "Libro de visitas",
+    "subtitle": "Entradas de los visitantes"
+  },
+  "language": {
+    "label": "Idioma",
+    "ru": "Русский",
+    "en": "English",
+    "es": "Español",
+    "ja": "日本語",
+    "de": "Deutsch",
+    "fr": "Français",
+    "it": "Italiano",
+    "pt": "Português",
+    "uk": "Українська",
+    "zh": "中文",
+    "ko": "한국어"
+  },
+  "list": {
+    "loading": "Cargando entradas…",
+    "error": "No se pudieron cargar las entradas.",
+    "retry": "Reintentar",
+    "empty": "Todavía no hay entradas.",
+    "total": "Total de entradas: {{count}}"
+  },
+  "entry": {
+    "number": "Entrada n.º {{number}}",
+    "permalink": "Enlace a esta entrada (ID {{id}})",
+    "sticky": "Fijado",
+    "email": "Correo electrónico",
+    "homepage": "Página web",
+    "country": "País",
+    "countryUnspecified": "No especificado",
+    "gender": {
+      "male": "masculino",
+      "female": "femenino"
+    },
+    "picture": "Imagen de la entrada",
+    "adminReply": "Respuesta de la administración",
+    "rating": "Valoración «{{box}}»",
+    "customField": "Campo {{field}}",
+    "comments": "{{count}} comentarios",
+    "commentsNone": "Sin comentarios",
+    "commentsClosed": "Comentarios cerrados",
+    "client": "Navegador",
+    "messenger": {
+      "icq": "ICQ",
+      "aim": "AIM",
+      "msn": "MSN",
+      "yahoo": "Yahoo",
+      "skype": "Skype",
+      "jabber": "Jabber",
+      "gaduGadu": "Gadu-Gadu"
+    }
+  },
+  "comments": {
+    "show": "Mostrar comentarios ({{count}})",
+    "hide": "Ocultar comentarios",
+    "loading": "Cargando comentarios…",
+    "error": "No se pudieron cargar los comentarios.",
+    "admin": "Administración",
+    "write": "Responder",
+    "submit": "Enviar comentario",
+    "disabled": "Los comentarios están desactivados actualmente.",
+    "success": {
+      "published": "El comentario se ha guardado.",
+      "moderated": "El comentario se ha guardado y está pendiente de revisión."
+    }
+  },
+  "locked": {
+    "title": "Entrada privada",
+    "hint": "Esta entrada está protegida con contraseña y se mostrará una vez introducida."
+  },
+  "form": {
+    "open": "Escribir una entrada",
+    "close": "Cerrar",
+    "title": "Nueva entrada",
+    "loading": "Cargando el formulario…",
+    "preview": "Vista previa",
+    "previewTitle": "Vista previa",
+    "submit": "Enviar",
+    "busy": "Espere…",
+    "moderationHint": "Las nuevas entradas se publican tras la revisión de la administración.",
+    "field": {
+      "name": "Nombre",
+      "email": "Correo electrónico",
+      "hideEmail": "No mostrar la dirección públicamente",
+      "homepage": "Página web",
+      "country": "País",
+      "countryNone": "No especificado",
+      "gender": "Sexo",
+      "genderNone": "No especificado",
+      "text": "Mensaje",
+      "private": "Contraseña para entrada privada",
+      "ratingNone": "Sin valoración",
+      "captcha": "Código de la imagen",
+      "captchaAlt": "Caracteres que hay que introducir",
+      "captchaReload": "Otra imagen",
+      "picture": "Imagen",
+      "pictureRemove": "Eliminar imagen",
+      "pictureCaption": "Pie de la imagen"
+    },
+    "hint": {
+      "homepage": "Sin «http://»: se añadirá automáticamente.",
+      "private": "Solo letras y números. Sin esta contraseña no se podrá leer la entrada.",
+      "maxChars": "{{used}} de {{max}} caracteres",
+      "picture": "GIF o JPEG, como máximo {{maxWidth}} × {{maxHeight}} píxeles y {{maxKb}} KB."
+    },
+    "toolbar": {
+      "label": "Formato de texto",
+      "b": "Negrita",
+      "i": "Cursiva",
+      "u": "Subrayado",
+      "code": "Código",
+      "quote": "Cita",
+      "left": "Alinear a la izquierda",
+      "center": "Centrar",
+      "right": "Alinear a la derecha",
+      "list": "Lista",
+      "url": "Insertar enlace",
+      "urlShort": "Enlace",
+      "urlPrompt": "Dirección del enlace:",
+      "color": "Color",
+      "size": "Tamaño"
+    },
+    "fieldError": {
+      "required": "Este campo es obligatorio.",
+      "too_long": "El valor es demasiado largo.",
+      "invalid": "El valor tiene un formato no válido.",
+      "out_of_range": "El valor está fuera del rango permitido.",
+      "unknown_option": "Esa opción no es válida.",
+      "duplicate": "Ya existe una entrada idéntica."
+    },
+    "error": {
+      "setup": "No se pudo cargar el formulario.",
+      "validation": "Revise los campos marcados.",
+      "csrf": "La sesión ha caducado. Vuelva a enviarlo.",
+      "captcha_wrong": "El código introducido es incorrecto. Introduzca uno nuevo.",
+      "captcha_invalid": "El código ya no es válido. Introduzca uno nuevo.",
+      "captcha_expired": "El código ha caducado. Introduzca uno nuevo.",
+      "captcha_required": "Introduzca el código de la imagen.",
+      "rateLimited": "Demasiadas entradas en poco tiempo. Espere {{seconds}} s.",
+      "spam": "La solicitud se ha identificado como automática.",
+      "unknown": "No se pudo guardar la entrada.",
+      "pictureTooLarge": "La imagen es demasiado grande (máximo {{max}} KB).",
+      "pictureDimensions": "Las dimensiones de la imagen son demasiado grandes (máximo {{maxWidth}} × {{maxHeight}} píxeles).",
+      "pictureType": "Solo se permiten imágenes GIF y JPEG.",
+      "pictureUpload": "No se pudo subir la imagen."
+    },
+    "success": {
+      "published": "La entrada se ha guardado.",
+      "moderated": "La entrada se ha guardado y está pendiente de revisión."
+    },
+    "uploading": "Subiendo la imagen…"
+  },
+  "pagination": {
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "status": "Página {{page}} de {{total}}",
+    "label": "Paginación"
+  },
+  "error": {
+    "banned": "El acceso a este libro de visitas está bloqueado.",
+    "network": "No se puede contactar con el servidor. Compruebe la conexión.",
+    "unknown": "Se ha producido un error inesperado.",
+    "crashed": "Se ha producido un error: no se ha podido mostrar el libro de visitas.",
+    "crashedAction": "Volver a cargar"
+  }
+}

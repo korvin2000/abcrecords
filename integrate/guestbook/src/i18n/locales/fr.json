@@ -1,0 +1,170 @@
+{
+  "app": {
+    "title": "Livre d'or",
+    "subtitle": "Messages des visiteurs"
+  },
+  "language": {
+    "label": "Langue",
+    "ru": "Русский",
+    "en": "English",
+    "es": "Español",
+    "ja": "日本語",
+    "de": "Deutsch",
+    "fr": "Français",
+    "it": "Italiano",
+    "pt": "Português",
+    "uk": "Українська",
+    "zh": "中文",
+    "ko": "한국어"
+  },
+  "list": {
+    "loading": "Chargement des messages…",
+    "error": "Impossible de charger les messages.",
+    "retry": "Réessayer",
+    "empty": "Il n'y a pas encore de messages.",
+    "total": "{{count}} messages au total"
+  },
+  "entry": {
+    "number": "Message n° {{number}}",
+    "permalink": "Lien vers ce message (ID {{id}})",
+    "sticky": "Épinglé",
+    "email": "E-mail",
+    "homepage": "Site web",
+    "country": "Pays",
+    "countryUnspecified": "Non précisé",
+    "gender": {
+      "male": "masculin",
+      "female": "féminin"
+    },
+    "picture": "Image jointe au message",
+    "adminReply": "Réponse de l'administration",
+    "rating": "Note « {{box}} »",
+    "customField": "Champ {{field}}",
+    "comments": "{{count}} commentaires",
+    "commentsNone": "Aucun commentaire",
+    "commentsClosed": "Commentaires fermés",
+    "client": "Navigateur",
+    "messenger": {
+      "icq": "ICQ",
+      "aim": "AIM",
+      "msn": "MSN",
+      "yahoo": "Yahoo",
+      "skype": "Skype",
+      "jabber": "Jabber",
+      "gaduGadu": "Gadu-Gadu"
+    }
+  },
+  "comments": {
+    "show": "Afficher les commentaires ({{count}})",
+    "hide": "Masquer les commentaires",
+    "loading": "Chargement des commentaires…",
+    "error": "Impossible de charger les commentaires.",
+    "admin": "Administration",
+    "write": "Répondre",
+    "submit": "Envoyer le commentaire",
+    "disabled": "Les commentaires sont actuellement désactivés.",
+    "success": {
+      "published": "Le commentaire a été enregistré.",
+      "moderated": "Le commentaire a été enregistré et est en attente de validation."
+    }
+  },
+  "locked": {
+    "title": "Message privé",
+    "hint": "Ce message est protégé par un mot de passe et s'affichera une fois celui-ci saisi."
+  },
+  "form": {
+    "open": "Écrire un message",
+    "close": "Fermer",
+    "title": "Nouveau message",
+    "loading": "Chargement du formulaire…",
+    "preview": "Aperçu",
+    "previewTitle": "Aperçu",
+    "submit": "Envoyer",
+    "busy": "Veuillez patienter…",
+    "moderationHint": "Les nouveaux messages s'affichent après validation par l'administration.",
+    "field": {
+      "name": "Nom",
+      "email": "E-mail",
+      "hideEmail": "Ne pas afficher l'adresse publiquement",
+      "homepage": "Site web",
+      "country": "Pays",
+      "countryNone": "Non précisé",
+      "gender": "Sexe",
+      "genderNone": "Non précisé",
+      "text": "Message",
+      "private": "Mot de passe pour message privé",
+      "ratingNone": "Aucune note",
+      "captcha": "Code de l'image",
+      "captchaAlt": "Caractères à saisir",
+      "captchaReload": "Autre image",
+      "picture": "Image",
+      "pictureRemove": "Supprimer l'image",
+      "pictureCaption": "Légende de l'image"
+    },
+    "hint": {
+      "homepage": "Sans « http:// » — il sera ajouté automatiquement.",
+      "private": "Lettres et chiffres uniquement. Ce mot de passe est nécessaire pour lire le message.",
+      "maxChars": "{{used}} sur {{max}} caractères",
+      "picture": "GIF ou JPEG, au maximum {{maxWidth}} × {{maxHeight}} pixels et {{maxKb}} Ko."
+    },
+    "toolbar": {
+      "label": "Mise en forme du texte",
+      "b": "Gras",
+      "i": "Italique",
+      "u": "Souligné",
+      "code": "Code",
+      "quote": "Citation",
+      "left": "Aligner à gauche",
+      "center": "Centrer",
+      "right": "Aligner à droite",
+      "list": "Liste",
+      "url": "Insérer un lien",
+      "urlShort": "Lien",
+      "urlPrompt": "Adresse du lien :",
+      "color": "Couleur",
+      "size": "Taille"
+    },
+    "fieldError": {
+      "required": "Ce champ est obligatoire.",
+      "too_long": "La valeur est trop longue.",
+      "invalid": "La valeur a un format non valide.",
+      "out_of_range": "La valeur est hors de la plage autorisée.",
+      "unknown_option": "Cette option n'est pas autorisée.",
+      "duplicate": "Un message identique existe déjà."
+    },
+    "error": {
+      "setup": "Le formulaire n'a pas pu être chargé.",
+      "validation": "Veuillez vérifier les champs signalés.",
+      "csrf": "La session a expiré. Veuillez renvoyer le formulaire.",
+      "captcha_wrong": "Le code saisi est incorrect. Veuillez en saisir un nouveau.",
+      "captcha_invalid": "Le code n'est plus valide. Veuillez en saisir un nouveau.",
+      "captcha_expired": "Le code a expiré. Veuillez en saisir un nouveau.",
+      "captcha_required": "Veuillez saisir le code de l'image.",
+      "rateLimited": "Trop de messages en peu de temps. Veuillez patienter {{seconds}} s.",
+      "spam": "La requête a été identifiée comme automatisée.",
+      "unknown": "Le message n'a pas pu être enregistré.",
+      "pictureTooLarge": "L'image est trop volumineuse (maximum {{max}} Ko).",
+      "pictureDimensions": "Les dimensions de l'image sont trop grandes (maximum {{maxWidth}} × {{maxHeight}} pixels).",
+      "pictureType": "Seules les images GIF et JPEG sont autorisées.",
+      "pictureUpload": "L'image n'a pas pu être envoyée."
+    },
+    "success": {
+      "published": "Le message a été enregistré.",
+      "moderated": "Le message a été enregistré et est en attente de validation."
+    },
+    "uploading": "Envoi de l'image…"
+  },
+  "pagination": {
+    "previous": "Précédent",
+    "next": "Suivant",
+    "status": "Page {{page}} sur {{total}}",
+    "label": "Pagination"
+  },
+  "error": {
+    "banned": "L'accès à ce livre d'or est bloqué.",
+    "network": "Le serveur est injoignable. Vérifiez votre connexion.",
+    "unknown": "Une erreur inattendue s'est produite.",
+    "crashed": "Une erreur est survenue : le livre d'or n'a pas pu être affiché.",
+    "crashedAction": "Recharger"
+  }
+}

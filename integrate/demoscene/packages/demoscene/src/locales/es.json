@@ -1,0 +1,63 @@
+{
+  "tag": "es",
+  "ui": {
+    "music": "Música",
+    "musicOn": "Música ♪",
+    "text": "Texto",
+    "restart": "Reiniciar",
+    "close": "Cerrar",
+    "hint": "M · música    T · texto    ESC · cerrar",
+    "canvasLabel": "Secuencia de título animada",
+    "dialogLabel": "Acerca de esta obra"
+  },
+  "content": {
+    "work": "ABC - GUITARS",
+    "title": "Guitarristas y Compositores",
+    "subtitle": "Sobre los creadores de la enciclopedia",
+    "edition": "<< 2003 - 2026 >>",
+    "dropcap": "G",
+    "dedication": "Quod potui, perfeci — lo que pude, hice.",
+    "colophon": "Con gratitud a todos los que ayudaron a ampliar y enriquecer nuestros artículos. La música de esta producción demoscene fue compuesta por Opus 5, sintetizada enteramente en el navegador. Nos alegra darte la bienvenida a las páginas de nuestra enciclopedia musical.",
+    "credits": [
+      {
+        "role": "CREADOR DEL PROYECTO",
+        "sub": "doctor en filosofía",
+        "names": ["Тавровский Виктор"]
+      },
+      {
+        "role": "COAUTOR",
+        "sub": "músico y guitarrista",
+        "names": ["Тавровский Сергей"]
+      },
+      {
+        "role": "APOYO",
+        "sub": "programador",
+        "names": ["Тавровский Александр"]
+      },
+      {
+        "role": "TRADUCCIÓN",
+        "sub": "modelos de lenguaje",
+        "names": ["Gemma 4", "DeepSeek 4", "MiniMax M3"]
+      },
+      {
+        "role": "VIBE CODING",
+        "sub": "modelos de lenguaje",
+        "names": ["Opus 5", "GPT Sol"]
+      },
+      {
+        "role": "AGRADECIMIENTOS",
+        "sub": "a nuestros visitantes",
+        "names": ["todos los que aún nos recuerdan", "y nos brindan su apoyo."]
+      }
+    ],
+    "blocks": [
+      "Dedicado a",
+      "la guitarra clásica de seis cuerdas",
+      "guitarristas y compositores",
+      "a los músicos, profesionales y aficionados",
+      "La música es magia transmitida a través del sonido.",
+      "M · música      T · texto      ESC · cerrar el libro",
+      "Las palabras pueden mentir, pero la música jamás."
+    ]
+  }
+}

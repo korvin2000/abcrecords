@@ -1,0 +1,52 @@
+:root{
+  --vellum:#efe4c6; --ivory:#f8f0dc; --ivory-2:#f0e5c9;
+  --gold:#b58b34; --gold-edge:#c9a969;
+  --burgundy:#6e1b23; --rubric:#8c2b2b; --ink:#2b1e10; --sepia:#6b4c25;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; min-height:100%; display:flex; align-items:center; justify-content:center;
+  padding:40px 20px; background:var(--vellum);
+  background-image:
+    radial-gradient(1200px 680px at 50% -12%, rgba(255,251,238,.9), rgba(255,251,238,0)),
+    radial-gradient(820px 560px at 90% 112%, rgba(110,27,35,.075), rgba(110,27,35,0));
+  font-family:"Iowan Old Style","Palatino Linotype","Book Antiqua",Palatino,Georgia,serif;
+  color:var(--ink); -webkit-font-smoothing:antialiased;
+}
+.leaf{
+  position:relative; width:100%; max-width:600px; text-align:center;
+  background:linear-gradient(178deg,var(--ivory),var(--ivory-2));
+  border:1px solid var(--gold-edge); border-radius:16px;
+  box-shadow:0 1px 1px rgba(70,50,24,.12), 0 12px 34px rgba(38,26,12,.16);
+  padding:46px 40px 38px;
+}
+.leaf::after{
+  content:''; position:absolute; inset:6px; border-radius:11px;
+  border:1px solid rgba(181,139,52,.3); pointer-events:none;
+}
+.eyebrow{margin:0; font-size:11px; letter-spacing:.42em; text-transform:uppercase;
+  color:var(--sepia); opacity:.85}
+h1{margin:14px 0 0; font-size:clamp(26px,5vw,36px); font-weight:600;
+  letter-spacing:.2em; text-transform:uppercase; color:var(--burgundy); text-wrap:balance}
+.sub{margin:9px 0 0; font-size:14.5px; font-style:italic; color:var(--sepia)}
+.rule{display:flex; align-items:center; gap:11px; margin:24px auto; max-width:360px;
+  color:rgba(181,139,52,.9)}
+.rule i{flex:1; height:1px; background:currentColor; opacity:.8}
+.rule b{font-size:11px; font-weight:400; color:var(--rubric)}
+p.lede{margin:0 auto; max-width:46ch; font-size:15.5px; line-height:1.72;
+  color:#3f2d19; text-wrap:pretty}
+.actions{margin-top:30px; display:flex; gap:14px; justify-content:center;
+  align-items:center; flex-wrap:wrap}
+button{appearance:none; font:inherit; font-size:13px; letter-spacing:.18em;
+  text-transform:uppercase; cursor:pointer; border-radius:10px; padding:12px 26px;
+  transition:filter .2s, color .2s, border-color .2s}
+button.open{color:var(--ivory); background:linear-gradient(180deg,#7d2029,#63161e);
+  border:1px solid #4e1017}
+button.open:hover{filter:brightness(1.14)}
+button.ghost{background:none; color:var(--sepia);
+  border:1px solid rgba(181,139,52,.55); font-size:12px; padding:11px 20px}
+button.ghost:hover{color:var(--burgundy); border-color:#8c2b2b}
+button:focus-visible{outline:1px dotted var(--gold); outline-offset:4px}
+.foot{margin:26px 0 0; font-size:12px; font-style:italic; color:rgba(107,76,37,.8)}
+@media (prefers-reduced-motion:reduce){button{transition:none}}

@@ -1,0 +1,170 @@
+{
+  "app": {
+    "title": "방명록",
+    "subtitle": "방문자 게시글"
+  },
+  "language": {
+    "label": "언어",
+    "ru": "Русский",
+    "en": "English",
+    "es": "Español",
+    "ja": "日本語",
+    "de": "Deutsch",
+    "fr": "Français",
+    "it": "Italiano",
+    "pt": "Português",
+    "uk": "Українська",
+    "zh": "中文",
+    "ko": "한국어"
+  },
+  "list": {
+    "loading": "게시글을 불러오는 중…",
+    "error": "게시글을 불러오지 못했습니다.",
+    "retry": "다시 시도",
+    "empty": "아직 게시글이 없습니다.",
+    "total": "전체 게시글 수: {{count}}"
+  },
+  "entry": {
+    "number": "게시글 번호 {{number}}",
+    "permalink": "이 게시글의 링크 (ID {{id}})",
+    "sticky": "고정됨",
+    "email": "이메일",
+    "homepage": "홈페이지",
+    "country": "국가",
+    "countryUnspecified": "지정되지 않음",
+    "gender": {
+      "male": "남성",
+      "female": "여성"
+    },
+    "picture": "게시글에 첨부된 이미지",
+    "adminReply": "관리자 답변",
+    "rating": "평점 “{{box}}”",
+    "customField": "필드 {{field}}",
+    "comments": "댓글 {{count}}개",
+    "commentsNone": "댓글 없음",
+    "commentsClosed": "댓글이 마감되었습니다",
+    "client": "브라우저",
+    "messenger": {
+      "icq": "ICQ",
+      "aim": "AIM",
+      "msn": "MSN",
+      "yahoo": "Yahoo",
+      "skype": "Skype",
+      "jabber": "Jabber",
+      "gaduGadu": "Gadu-Gadu"
+    }
+  },
+  "comments": {
+    "show": "댓글 보기 ({{count}})",
+    "hide": "댓글 숨기기",
+    "loading": "댓글을 불러오는 중…",
+    "error": "댓글을 불러오지 못했습니다.",
+    "admin": "관리자",
+    "write": "답글 작성",
+    "submit": "댓글 등록",
+    "disabled": "현재 댓글 기능이 비활성화되어 있습니다.",
+    "success": {
+      "published": "댓글이 저장되었습니다.",
+      "moderated": "댓글이 저장되었으며 승인 대기 중입니다."
+    }
+  },
+  "locked": {
+    "title": "비공개 게시글",
+    "hint": "이 게시글은 비밀번호로 보호되어 있으며, 비밀번호를 입력하면 표시됩니다."
+  },
+  "form": {
+    "open": "게시글 작성",
+    "close": "닫기",
+    "title": "새 게시글",
+    "loading": "양식을 불러오는 중…",
+    "preview": "미리보기",
+    "previewTitle": "미리보기",
+    "submit": "제출",
+    "busy": "잠시만 기다려 주세요…",
+    "moderationHint": "새 게시글은 관리자의 승인 후에 게시됩니다.",
+    "field": {
+      "name": "이름",
+      "email": "이메일",
+      "hideEmail": "이메일 주소를 공개하지 않음",
+      "homepage": "홈페이지",
+      "country": "국가",
+      "countryNone": "지정되지 않음",
+      "gender": "성별",
+      "genderNone": "지정되지 않음",
+      "text": "메시지",
+      "private": "비공개 게시글 비밀번호",
+      "ratingNone": "평점 없음",
+      "captcha": "이미지의 코드",
+      "captchaAlt": "입력해야 하는 문자",
+      "captchaReload": "다른 이미지",
+      "picture": "이미지",
+      "pictureRemove": "이미지 삭제",
+      "pictureCaption": "이미지 설명"
+    },
+    "hint": {
+      "homepage": "「http://」는 입력하지 않아도 자동으로 추가됩니다.",
+      "private": "영문과 숫자만 사용할 수 있습니다. 이 비밀번호가 없으면 게시글을 열람할 수 없습니다.",
+      "maxChars": "{{max}}자 중 {{used}}자 사용",
+      "picture": "GIF 또는 JPEG 형식, 최대 {{maxWidth}} × {{maxHeight}} 픽셀, {{maxKb}} KB 이하."
+    },
+    "toolbar": {
+      "label": "텍스트 서식",
+      "b": "굵게",
+      "i": "기울임꼴",
+      "u": "밑줄",
+      "code": "코드",
+      "quote": "인용",
+      "left": "왼쪽 정렬",
+      "center": "가운데 정렬",
+      "right": "오른쪽 정렬",
+      "list": "목록",
+      "url": "링크 삽입",
+      "urlShort": "링크",
+      "urlPrompt": "링크 주소:",
+      "color": "색상",
+      "size": "크기"
+    },
+    "fieldError": {
+      "required": "필수 입력 항목입니다.",
+      "too_long": "값이 너무 깁니다.",
+      "invalid": "값의 형식이 올바르지 않습니다.",
+      "out_of_range": "값이 허용 범위를 벗어났습니다.",
+      "unknown_option": "허용되지 않는 옵션입니다.",
+      "duplicate": "동일한 게시글이 이미 존재합니다."
+    },
+    "error": {
+      "setup": "양식을 불러오지 못했습니다.",
+      "validation": "표시된 항목을 확인해 주세요.",
+      "csrf": "세션이 만료되었습니다. 다시 제출해 주세요.",
+      "captcha_wrong": "입력한 코드가 올바르지 않습니다. 새 코드를 입력해 주세요.",
+      "captcha_invalid": "코드가 더 이상 유효하지 않습니다. 새 코드를 입력해 주세요.",
+      "captcha_expired": "코드가 만료되었습니다. 새 코드를 입력해 주세요.",
+      "captcha_required": "이미지의 코드를 입력해 주세요.",
+      "rateLimited": "짧은 시간에 너무 많은 게시글이 등록되었습니다. {{seconds}}초 후에 다시 시도해 주세요.",
+      "spam": "요청이 자동화된 요청으로 판단되었습니다.",
+      "unknown": "게시글을 저장하지 못했습니다.",
+      "pictureTooLarge": "이미지가 너무 큽니다 (최대 {{max}} KB).",
+      "pictureDimensions": "이미지 크기가 너무 큽니다 (최대 {{maxWidth}} × {{maxHeight}} 픽셀).",
+      "pictureType": "GIF 및 JPEG 이미지만 허용됩니다.",
+      "pictureUpload": "이미지를 업로드하지 못했습니다."
+    },
+    "success": {
+      "published": "게시글이 저장되었습니다.",
+      "moderated": "게시글이 저장되었으며 승인 대기 중입니다."
+    },
+    "uploading": "이미지를 업로드하는 중…"
+  },
+  "pagination": {
+    "previous": "이전",
+    "next": "다음",
+    "status": "{{total}} 페이지 중 {{page}} 페이지",
+    "label": "페이지 탐색"
+  },
+  "error": {
+    "banned": "이 방명록에 대한 접근이 차단되었습니다.",
+    "network": "서버에 연결할 수 없습니다. 연결 상태를 확인해 주세요.",
+    "unknown": "예기치 않은 오류가 발생했습니다.",
+    "crashed": "오류가 발생하여 방명록을 표시할 수 없습니다.",
+    "crashedAction": "다시 불러오기"
+  }
+}

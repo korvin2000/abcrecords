@@ -1,0 +1,63 @@
+{
+  "tag": "de",
+  "ui": {
+    "music": "Musik",
+    "musicOn": "Musik ♪",
+    "text": "Text",
+    "restart": "Neu starten",
+    "close": "Schließen",
+    "hint": "M · Musik    T · Text    ESC · Schließen",
+    "canvasLabel": "Animierte Titelsequenz",
+    "dialogLabel": "Über dieses Werk"
+  },
+  "content": {
+    "work": "ABC - GUITARS",
+    "title": "Gitarristen und Komponisten",
+    "subtitle": "Über die Schöpfer der Enzyklopädie",
+    "edition": "<< 2003 - 2026 >>",
+    "dropcap": "G",
+    "dedication": "Quod potui, perfeci — was ich konnte, habe ich getan.",
+    "colophon": "Mit Dank an alle, die geholfen haben, unsere Artikel zu erweitern und zu ergänzen. Die Musik dieser Demoszene-Produktion wurde von Opus 5 komponiert und vollständig im Browser synthetisiert. Wir heißen Sie herzlich auf den Seiten unserer Musik-Enzyklopädie willkommen.",
+    "credits": [
+      {
+        "role": "PROJEKTGRÜNDER",
+        "sub": "Doktor der Philosophie",
+        "names": ["Тавровский Виктор"]
+      },
+      {
+        "role": "MITAUTOR",
+        "sub": "Musiker und Gitarrist",
+        "names": ["Тавровский Сергей"]
+      },
+      {
+        "role": "UNTERSTÜTZUNG",
+        "sub": "Programmierer",
+        "names": ["Тавровский Александр"]
+      },
+      {
+        "role": "ÜBERSETZUNG",
+        "sub": "Sprachmodelle",
+        "names": ["Gemma 4", "DeepSeek 4", "MiniMax M3"]
+      },
+      {
+        "role": "VIBE-CODING",
+        "sub": "Sprachmodelle",
+        "names": ["Opus 5", "GPT Sol"]
+      },
+      {
+        "role": "DANKSAGUNG",
+        "sub": "an unsere Besucher",
+        "names": ["alle, die sich noch an uns erinnern", "und uns ihre Unterstützung schenken."]
+      }
+    ],
+    "blocks": [
+      "Gewidmet",
+      "der klassischen sechssaitigen Gitarre",
+      "Gitarristen und Komponisten",
+      "Musikerinnen und Musikern — professionell wie leidenschaftlich",
+      "Musik ist Magie, übermittelt durch Klang.",
+      "M · Musik      T · Text      ESC · Buch schließen",
+      "Worte können lügen, Musik niemals."
+    ]
+  }
+}

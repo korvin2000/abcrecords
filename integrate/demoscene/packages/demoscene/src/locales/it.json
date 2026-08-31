@@ -1,0 +1,63 @@
+{
+  "tag": "it",
+  "ui": {
+    "music": "Musica",
+    "musicOn": "Musica ♪",
+    "text": "Testo",
+    "restart": "Ricomincia",
+    "close": "Chiudi",
+    "hint": "M · musica    T · testo    ESC · chiudi",
+    "canvasLabel": "Sequenza del titolo animata",
+    "dialogLabel": "Informazioni su quest'opera"
+  },
+  "content": {
+    "work": "ABC - GUITARS",
+    "title": "Chitarristi e Compositori",
+    "subtitle": "Sui creatori dell'enciclopedia",
+    "edition": "<< 2003 - 2026 >>",
+    "dropcap": "C",
+    "dedication": "Quod potui, perfeci — ho fatto quel che ho potuto.",
+    "colophon": "Con gratitudine verso tutti coloro che hanno contribuito ad ampliare e arricchire i nostri articoli. La musica di questa produzione demoscene è stata composta da Opus 5, sintetizzata interamente nel browser. Siamo lieti di darvi il benvenuto tra le pagine della nostra enciclopedia musicale.",
+    "credits": [
+      {
+        "role": "CREATORE DEL PROGETTO",
+        "sub": "dottore in filosofia",
+        "names": ["Тавровский Виктор"]
+      },
+      {
+        "role": "CO-AUTORE",
+        "sub": "musicista e chitarrista",
+        "names": ["Тавровский Сергей"]
+      },
+      {
+        "role": "SUPPORTO",
+        "sub": "programmatore",
+        "names": ["Тавровский Александр"]
+      },
+      {
+        "role": "TRADUZIONE",
+        "sub": "modelli linguistici",
+        "names": ["Gemma 4", "DeepSeek 4", "MiniMax M3"]
+      },
+      {
+        "role": "VIBE CODING",
+        "sub": "modelli linguistici",
+        "names": ["Opus 5", "GPT Sol"]
+      },
+      {
+        "role": "RINGRAZIAMENTI",
+        "sub": "ai nostri visitatori",
+        "names": ["tutti coloro che ancora si ricordano di noi", "e ci offrono il loro sostegno."]
+      }
+    ],
+    "blocks": [
+      "Dedicato a",
+      "la chitarra classica a sei corde",
+      "ai chitarristi e ai compositori",
+      "ai musicisti, professionisti e dilettanti",
+      "La musica è magia trasmessa attraverso il suono.",
+      "M · musica      T · testo      ESC · chiudi il libro",
+      "Le parole possono mentire, la musica mai."
+    ]
+  }
+}

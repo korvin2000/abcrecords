@@ -1,0 +1,170 @@
+{
+  "app": {
+    "title": "Libro degli ospiti",
+    "subtitle": "Messaggi dei visitatori"
+  },
+  "language": {
+    "label": "Lingua",
+    "ru": "Русский",
+    "en": "English",
+    "es": "Español",
+    "ja": "日本語",
+    "de": "Deutsch",
+    "fr": "Français",
+    "it": "Italiano",
+    "pt": "Português",
+    "uk": "Українська",
+    "zh": "中文",
+    "ko": "한국어"
+  },
+  "list": {
+    "loading": "Caricamento dei messaggi…",
+    "error": "Impossibile caricare i messaggi.",
+    "retry": "Riprova",
+    "empty": "Non ci sono ancora messaggi.",
+    "total": "Totale messaggi: {{count}}"
+  },
+  "entry": {
+    "number": "Messaggio n. {{number}}",
+    "permalink": "Link a questo messaggio (ID {{id}})",
+    "sticky": "In evidenza",
+    "email": "E-mail",
+    "homepage": "Sito web",
+    "country": "Paese",
+    "countryUnspecified": "Non specificato",
+    "gender": {
+      "male": "maschile",
+      "female": "femminile"
+    },
+    "picture": "Immagine allegata al messaggio",
+    "adminReply": "Risposta dell'amministrazione",
+    "rating": "Valutazione «{{box}}»",
+    "customField": "Campo {{field}}",
+    "comments": "{{count}} commenti",
+    "commentsNone": "Nessun commento",
+    "commentsClosed": "Commenti chiusi",
+    "client": "Browser",
+    "messenger": {
+      "icq": "ICQ",
+      "aim": "AIM",
+      "msn": "MSN",
+      "yahoo": "Yahoo",
+      "skype": "Skype",
+      "jabber": "Jabber",
+      "gaduGadu": "Gadu-Gadu"
+    }
+  },
+  "comments": {
+    "show": "Mostra commenti ({{count}})",
+    "hide": "Nascondi commenti",
+    "loading": "Caricamento dei commenti…",
+    "error": "Impossibile caricare i commenti.",
+    "admin": "Amministrazione",
+    "write": "Rispondi",
+    "submit": "Invia commento",
+    "disabled": "I commenti sono attualmente disattivati.",
+    "success": {
+      "published": "Il commento è stato salvato.",
+      "moderated": "Il commento è stato salvato ed è in attesa di approvazione."
+    }
+  },
+  "locked": {
+    "title": "Messaggio privato",
+    "hint": "Questo messaggio è protetto da password e verrà mostrato dopo averla inserita."
+  },
+  "form": {
+    "open": "Scrivi un messaggio",
+    "close": "Chiudi",
+    "title": "Nuovo messaggio",
+    "loading": "Caricamento del modulo…",
+    "preview": "Anteprima",
+    "previewTitle": "Anteprima",
+    "submit": "Invia",
+    "busy": "Attendere…",
+    "moderationHint": "I nuovi messaggi vengono pubblicati dopo l'approvazione dell'amministrazione.",
+    "field": {
+      "name": "Nome",
+      "email": "E-mail",
+      "hideEmail": "Non mostrare l'indirizzo pubblicamente",
+      "homepage": "Sito web",
+      "country": "Paese",
+      "countryNone": "Non specificato",
+      "gender": "Sesso",
+      "genderNone": "Non specificato",
+      "text": "Messaggio",
+      "private": "Password per il messaggio privato",
+      "ratingNone": "Nessuna valutazione",
+      "captcha": "Codice dall'immagine",
+      "captchaAlt": "Caratteri da digitare",
+      "captchaReload": "Altra immagine",
+      "picture": "Immagine",
+      "pictureRemove": "Rimuovi immagine",
+      "pictureCaption": "Didascalia dell'immagine"
+    },
+    "hint": {
+      "homepage": "Senza «http://»: verrà aggiunto automaticamente.",
+      "private": "Solo lettere e numeri. Senza questa password non sarà possibile leggere il messaggio.",
+      "maxChars": "{{used}} di {{max}} caratteri",
+      "picture": "GIF o JPEG, al massimo {{maxWidth}} × {{maxHeight}} pixel e {{maxKb}} KB."
+    },
+    "toolbar": {
+      "label": "Formattazione del testo",
+      "b": "Grassetto",
+      "i": "Corsivo",
+      "u": "Sottolineato",
+      "code": "Codice",
+      "quote": "Citazione",
+      "left": "Allinea a sinistra",
+      "center": "Centra",
+      "right": "Allinea a destra",
+      "list": "Elenco",
+      "url": "Inserisci link",
+      "urlShort": "Link",
+      "urlPrompt": "Indirizzo del link:",
+      "color": "Colore",
+      "size": "Dimensione"
+    },
+    "fieldError": {
+      "required": "Questo campo è obbligatorio.",
+      "too_long": "Il valore è troppo lungo.",
+      "invalid": "Il valore ha un formato non valido.",
+      "out_of_range": "Il valore è fuori dall'intervallo consentito.",
+      "unknown_option": "Questa opzione non è consentita.",
+      "duplicate": "Esiste già un messaggio identico."
+    },
+    "error": {
+      "setup": "Impossibile caricare il modulo.",
+      "validation": "Controllare i campi evidenziati.",
+      "csrf": "La sessione è scaduta. Invia di nuovo.",
+      "captcha_wrong": "Il codice inserito non è corretto. Inseriscine uno nuovo.",
+      "captcha_invalid": "Il codice non è più valido. Inseriscine uno nuovo.",
+      "captcha_expired": "Il codice è scaduto. Inseriscine uno nuovo.",
+      "captcha_required": "Inserisci il codice dall'immagine.",
+      "rateLimited": "Troppi messaggi in poco tempo. Attendere {{seconds}} s.",
+      "spam": "La richiesta è stata identificata come automatizzata.",
+      "unknown": "Impossibile salvare il messaggio.",
+      "pictureTooLarge": "L'immagine è troppo grande (massimo {{max}} KB).",
+      "pictureDimensions": "Le dimensioni dell'immagine sono troppo grandi (massimo {{maxWidth}} × {{maxHeight}} pixel).",
+      "pictureType": "Sono consentite solo immagini GIF e JPEG.",
+      "pictureUpload": "Impossibile caricare l'immagine."
+    },
+    "success": {
+      "published": "Il messaggio è stato salvato.",
+      "moderated": "Il messaggio è stato salvato ed è in attesa di approvazione."
+    },
+    "uploading": "Caricamento dell'immagine…"
+  },
+  "pagination": {
+    "previous": "Precedente",
+    "next": "Successivo",
+    "status": "Pagina {{page}} di {{total}}",
+    "label": "Paginazione"
+  },
+  "error": {
+    "banned": "L'accesso a questo libro degli ospiti è bloccato.",
+    "network": "Il server non è raggiungibile. Controllare la connessione.",
+    "unknown": "Si è verificato un errore imprevisto.",
+    "crashed": "Si è verificato un errore: non è stato possibile mostrare il libro degli ospiti.",
+    "crashedAction": "Ricarica"
+  }
+}

@@ -1,0 +1,170 @@
+{
+  "app": {
+    "title": "Gästebuch",
+    "subtitle": "Einträge der Besucher"
+  },
+  "language": {
+    "label": "Sprache",
+    "ru": "Русский",
+    "en": "English",
+    "es": "Español",
+    "ja": "日本語",
+    "de": "Deutsch",
+    "fr": "Français",
+    "it": "Italiano",
+    "pt": "Português",
+    "uk": "Українська",
+    "zh": "中文",
+    "ko": "한국어"
+  },
+  "list": {
+    "loading": "Einträge werden geladen…",
+    "error": "Die Einträge konnten nicht geladen werden.",
+    "retry": "Erneut versuchen",
+    "empty": "Es sind noch keine Einträge vorhanden.",
+    "total": "{{count}} Einträge insgesamt"
+  },
+  "entry": {
+    "number": "Eintrag Nr. {{number}}",
+    "permalink": "Link zu diesem Eintrag (ID {{id}})",
+    "sticky": "Angepinnt",
+    "email": "E-Mail",
+    "homepage": "Homepage",
+    "country": "Land",
+    "countryUnspecified": "Keine Angabe",
+    "gender": {
+      "male": "männlich",
+      "female": "weiblich"
+    },
+    "picture": "Bild zum Eintrag",
+    "adminReply": "Antwort der Administration",
+    "rating": "Bewertung „{{box}}“",
+    "customField": "Feld {{field}}",
+    "comments": "{{count}} Kommentare",
+    "commentsNone": "Keine Kommentare",
+    "commentsClosed": "Kommentare geschlossen",
+    "client": "Browser",
+    "messenger": {
+      "icq": "ICQ",
+      "aim": "AIM",
+      "msn": "MSN",
+      "yahoo": "Yahoo",
+      "skype": "Skype",
+      "jabber": "Jabber",
+      "gaduGadu": "Gadu-Gadu"
+    }
+  },
+  "comments": {
+    "show": "Kommentare anzeigen ({{count}})",
+    "hide": "Kommentare ausblenden",
+    "loading": "Kommentare werden geladen…",
+    "error": "Die Kommentare konnten nicht geladen werden.",
+    "admin": "Administration",
+    "write": "Antworten",
+    "submit": "Kommentar absenden",
+    "disabled": "Kommentare sind derzeit deaktiviert.",
+    "success": {
+      "published": "Der Kommentar wurde gespeichert.",
+      "moderated": "Der Kommentar wurde gespeichert und wartet auf Freigabe."
+    }
+  },
+  "locked": {
+    "title": "Privater Eintrag",
+    "hint": "Dieser Eintrag ist mit einem Passwort geschützt und wird erst nach Eingabe angezeigt."
+  },
+  "form": {
+    "open": "Eintrag schreiben",
+    "close": "Schließen",
+    "title": "Neuer Eintrag",
+    "loading": "Formular wird geladen…",
+    "preview": "Vorschau",
+    "previewTitle": "Vorschau",
+    "submit": "Absenden",
+    "busy": "Bitte warten…",
+    "uploading": "Bild wird hochgeladen…",
+    "moderationHint": "Neue Einträge werden erst nach Freigabe durch die Administration angezeigt.",
+    "field": {
+      "name": "Name",
+      "email": "E-Mail",
+      "hideEmail": "E-Mail-Adresse nicht öffentlich anzeigen",
+      "homepage": "Homepage",
+      "country": "Land",
+      "countryNone": "Keine Angabe",
+      "gender": "Geschlecht",
+      "genderNone": "Keine Angabe",
+      "text": "Nachricht",
+      "picture": "Bild",
+      "pictureRemove": "Bild entfernen",
+      "pictureCaption": "Bildunterschrift",
+      "private": "Passwort für privaten Eintrag",
+      "ratingNone": "Keine Bewertung",
+      "captcha": "Code aus dem Bild",
+      "captchaAlt": "Zeichenfolge, die eingegeben werden muss",
+      "captchaReload": "Neues Bild"
+    },
+    "hint": {
+      "homepage": "Ohne „http://“ – das wird ergänzt.",
+      "private": "Nur Buchstaben und Zahlen. Wer den Eintrag lesen will, braucht dieses Passwort.",
+      "maxChars": "{{used}} von {{max}} Zeichen",
+      "picture": "GIF oder JPEG, höchstens {{maxWidth}} × {{maxHeight}} Pixel und {{maxKb}} KB."
+    },
+    "toolbar": {
+      "label": "Textformatierung",
+      "b": "Fett",
+      "i": "Kursiv",
+      "u": "Unterstrichen",
+      "code": "Code",
+      "quote": "Zitat",
+      "left": "Linksbündig",
+      "center": "Zentriert",
+      "right": "Rechtsbündig",
+      "list": "Liste",
+      "url": "Link einfügen",
+      "urlShort": "Link",
+      "urlPrompt": "Ziel-Adresse des Links:",
+      "color": "Farbe",
+      "size": "Größe"
+    },
+    "fieldError": {
+      "required": "Dieses Feld ist erforderlich.",
+      "too_long": "Der Wert ist zu lang.",
+      "invalid": "Der Wert hat ein ungültiges Format.",
+      "out_of_range": "Der Wert liegt außerhalb des erlaubten Bereichs.",
+      "unknown_option": "Diese Auswahl ist nicht zulässig.",
+      "duplicate": "Ein identischer Eintrag existiert bereits."
+    },
+    "error": {
+      "setup": "Das Formular konnte nicht geladen werden.",
+      "validation": "Bitte die markierten Felder prüfen.",
+      "csrf": "Die Sitzung ist abgelaufen. Bitte erneut absenden.",
+      "captcha_wrong": "Der eingegebene Code war falsch. Bitte neuen Code eingeben.",
+      "captcha_invalid": "Der Code ist nicht mehr gültig. Bitte neuen Code eingeben.",
+      "captcha_expired": "Der Code ist abgelaufen. Bitte neuen Code eingeben.",
+      "captcha_required": "Bitte den Code aus dem Bild eingeben.",
+      "rateLimited": "Zu viele Einträge in kurzer Zeit. Bitte {{seconds}} Sekunden warten.",
+      "spam": "Die Anfrage wurde als automatisiert eingestuft.",
+      "pictureTooLarge": "Das Bild ist zu groß (höchstens {{max}} KB).",
+      "pictureDimensions": "Die Bildmaße sind zu groß (höchstens {{maxWidth}} × {{maxHeight}} Pixel).",
+      "pictureType": "Nur GIF- und JPEG-Bilder sind erlaubt.",
+      "pictureUpload": "Das Bild konnte nicht hochgeladen werden.",
+      "unknown": "Der Eintrag konnte nicht gespeichert werden."
+    },
+    "success": {
+      "published": "Der Eintrag wurde gespeichert.",
+      "moderated": "Der Eintrag wurde gespeichert und wartet auf Freigabe."
+    }
+  },
+  "pagination": {
+    "previous": "Zurück",
+    "next": "Weiter",
+    "status": "Seite {{page}} von {{total}}",
+    "label": "Seitennavigation"
+  },
+  "error": {
+    "banned": "Der Zugriff auf dieses Gästebuch ist gesperrt.",
+    "network": "Der Server ist nicht erreichbar. Bitte Verbindung prüfen.",
+    "unknown": "Es ist ein unerwarteter Fehler aufgetreten.",
+    "crashed": "Es ist ein Fehler aufgetreten — das Gästebuch konnte nicht angezeigt werden.",
+    "crashedAction": "Neu laden"
+  }
+}

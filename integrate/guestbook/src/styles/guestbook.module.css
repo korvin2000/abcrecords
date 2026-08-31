@@ -1,0 +1,952 @@
+/*
+ * Styles des Guestbook-Feature-Packages, als CSS Module.
+ *
+ * Zwei Regeln gelten hier, die fuer die frueher eigenstaendige SPA nicht galten
+ * (docs/react-modular-architecture.md, Abschnitt 20):
+ *
+ * 1. KEINE globalen Selektoren (:root, body, *, a, button). Aus einem
+ *    eingebetteten Package heraus wuerden sie die gesamte Host-Seite umfaerben —
+ *    und geladenes CSS wird beim Verlassen der Route nicht wieder entfernt.
+ *    Alles haengt deshalb am Feature-Root ".root".
+ * 2. Alle Design-Tokens tragen das Praefix "--gb-" und werden auf ".root"
+ *    definiert. Damit sind sie zugleich die oeffentliche Theming-Schnittstelle:
+ *    die Host-Anwendung ueberschreibt jeden Wert, indem sie ihn auf einem
+ *    beliebigen Vorfahren oder per style-Prop am Guestbook setzt.
+ *
+ * Die Klassennamen sind bewusst camelCase (entryTitle statt entry__title):
+ * unter css.modules.localsConvention: 'camelCaseOnly' — eine Einstellung, die
+ * die Host-Anwendung treffen darf und die wir nicht kontrollieren — waeren
+ * BEM-Namen im JS-Export nicht mehr auffindbar.
+ *
+ * Vom Backend geliefertes HTML (gb-emoticon, gb-quote, …) steht in :global(),
+ * weil diese Klassen serverseitig entstehen und nicht gehasht werden duerfen.
+ */
+
+/* ----------------------------------------------- Feature-Root und Tokens */
+
+.root {
+  --gb-bg: #f6f6f4;
+  --gb-surface: #ffffff;
+  --gb-surface-alt: #f0efec;
+  --gb-border: #dcd9d2;
+  --gb-text: #1e1c1a;
+  --gb-text-muted: #6b6660;
+  --gb-accent: #8a5a2b;
+  --gb-accent-contrast: #ffffff;
+  --gb-sticky: #b8860b;
+  --gb-radius: 10px;
+  --gb-shadow: 0 1px 2px rgb(0 0 0 / 6%), 0 4px 12px rgb(0 0 0 / 4%);
+
+  /* Layout des Wurzelelements — ueberschreibbar, z. B. --gb-max-width: none. */
+  --gb-max-width: 52rem;
+  --gb-font-size: 16px;
+
+  color-scheme: light dark;
+
+  /*
+   * Ersetzt die frueheren body-Regeln; sie gelten jetzt nur noch fuer diesen
+   * Teilbaum. "background: var(--gb-bg)" laesst sich mit
+   * "--gb-bg: transparent" abschalten, wenn der Hintergrund des Hosts
+   * durchscheinen soll.
+   */
+  max-width: var(--gb-max-width);
+  margin: 0 auto;
+  padding: 1.5rem 1rem 4rem;
+  background: var(--gb-bg);
+  color: var(--gb-text);
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: var(--gb-font-size);
+  line-height: 1.6;
+}
+
+/*
+ * Dunkelmodus. data-theme setzt GuestbookApp aus dem gleichnamigen Prop:
+ * "system" (Standard) folgt dem Betriebssystem, "light"/"dark" erzwingen einen
+ * Modus — noetig, weil die Host-Anwendung einen eigenen Umschalter haben kann,
+ * von dem prefers-color-scheme nichts weiss.
+ */
+@media (prefers-color-scheme: dark) {
+  .root[data-theme='system'],
+  .root:not([data-theme]) {
+    --gb-bg: #17161a;
+    --gb-surface: #201f24;
+    --gb-surface-alt: #2a282f;
+    --gb-border: #3a3742;
+    --gb-text: #ece9e4;
+    --gb-text-muted: #a49e96;
+    --gb-accent: #d9a066;
+    --gb-accent-contrast: #17161a;
+    --gb-sticky: #e0b64a;
+    --gb-shadow: 0 1px 2px rgb(0 0 0 / 40%), 0 4px 14px rgb(0 0 0 / 30%);
+  }
+}
+
+.root[data-theme='dark'] {
+  --gb-bg: #17161a;
+  --gb-surface: #201f24;
+  --gb-surface-alt: #2a282f;
+  --gb-border: #3a3742;
+  --gb-text: #ece9e4;
+  --gb-text-muted: #a49e96;
+  --gb-accent: #d9a066;
+  --gb-accent-contrast: #17161a;
+  --gb-sticky: #e0b64a;
+  --gb-shadow: 0 1px 2px rgb(0 0 0 / 40%), 0 4px 14px rgb(0 0 0 / 30%);
+
+  color-scheme: dark;
+}
+
+.root[data-theme='light'] {
+  color-scheme: light;
+}
+
+.root,
+.root *,
+.root *::before,
+.root *::after {
+  box-sizing: border-box;
+}
+
+/* ---------------------------------------------------------------- Layout */
+
+.pageHeader {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--gb-border);
+}
+
+.pageTitle {
+  margin: 0;
+  font-size: 1.6rem;
+  line-height: 1.2;
+}
+
+.pageSubtitle {
+  margin: 0.25rem 0 0;
+  color: var(--gb-text-muted);
+  font-size: 0.9rem;
+}
+
+.pageMain {
+  margin-top: 1.5rem;
+}
+
+/* ------------------------------------------------------ Sprachumschalter */
+
+.languageSwitcher {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.languageSwitcherLabel {
+  color: var(--gb-text-muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.languageSwitcherOptions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.languageSwitcherOption {
+  padding: 0.3rem 0.6rem;
+  border: 1px solid var(--gb-border);
+  border-radius: 6px;
+  background: var(--gb-surface);
+  color: var(--gb-text);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.languageSwitcherOption:hover {
+  border-color: var(--gb-accent);
+}
+
+.languageSwitcherOption[aria-pressed='true'] {
+  border-color: var(--gb-accent);
+  background: var(--gb-accent);
+  color: var(--gb-accent-contrast);
+}
+
+/* --------------------------------------------------------------- Zustand */
+
+.status {
+  padding: 1.5rem;
+  border: 1px solid var(--gb-border);
+  border-radius: var(--gb-radius);
+  background: var(--gb-surface);
+  text-align: center;
+  color: var(--gb-text-muted);
+}
+
+.statusLoading,
+.statusEmpty {
+  color: var(--gb-text-muted);
+}
+
+.statusError {
+  border-color: #b4544a;
+  color: var(--gb-text);
+}
+
+.button {
+  margin-top: 0.75rem;
+  padding: 0.45rem 1rem;
+  border: 1px solid var(--gb-accent);
+  border-radius: 6px;
+  background: var(--gb-accent);
+  color: var(--gb-accent-contrast);
+  font: inherit;
+  cursor: pointer;
+}
+
+.statusSuccess {
+  border-color: #4a8a5a;
+  color: var(--gb-text);
+}
+
+/* ---------------------------------------------------------------- Formular */
+
+.formLauncher {
+  margin-bottom: 1.5rem;
+}
+
+.formSection {
+  margin-bottom: 2rem;
+  padding: 1.1rem 1.25rem;
+  border: 1px solid var(--gb-border);
+  border-radius: var(--gb-radius);
+  background: var(--gb-surface);
+  box-shadow: var(--gb-shadow);
+}
+
+.formSectionHeader {
+  display: flex;
+  gap: 1rem;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.formSectionTitle {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.formSectionClose {
+  border: none;
+  background: none;
+  color: var(--gb-accent);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.formNotice {
+  margin: 0 0 0.75rem;
+  color: var(--gb-text-muted);
+  font-size: 0.85rem;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.formError {
+  margin: 0;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid #b4544a;
+  border-radius: 6px;
+  color: var(--gb-text);
+  font-size: 0.9rem;
+}
+
+.formField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.formLabel {
+  color: var(--gb-text-muted);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.formRequired {
+  color: #b4544a;
+}
+
+.form input[type='text'],
+.form input[type='email'],
+.form input[type='number'],
+.form select,
+.form textarea {
+  width: 100%;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--gb-border);
+  border-radius: 6px;
+  background: var(--gb-bg);
+  color: var(--gb-text);
+  font: inherit;
+  font-size: 0.95rem;
+}
+
+.form textarea {
+  min-height: 8rem;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.formFieldInvalid input,
+.formFieldInvalid select,
+.formFieldInvalid textarea {
+  border-color: #b4544a;
+}
+
+.formHint,
+.formFieldError {
+  margin: 0;
+  font-size: 0.8rem;
+}
+
+.formHint {
+  color: var(--gb-text-muted);
+}
+
+.formFieldError {
+  color: #b4544a;
+}
+
+.formCheckbox {
+  display: flex;
+  gap: 0.45rem;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.formCheckbox input {
+  margin: 0;
+}
+
+.formPicture {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  margin-top: 0.4rem;
+}
+
+.formPicture img {
+  max-width: 120px;
+  height: auto;
+  border: 1px solid var(--gb-border);
+  border-radius: 6px;
+}
+
+.formPreview {
+  padding: 0.8rem 1rem;
+  border: 1px dashed var(--gb-border);
+  border-radius: var(--gb-radius);
+  background: var(--gb-surface-alt);
+}
+
+.formPreviewTitle {
+  margin: 0 0 0.4rem;
+  color: var(--gb-text-muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.formActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.3rem;
+}
+
+.formActions .button {
+  margin-top: 0;
+}
+
+.buttonSecondary {
+  border-color: var(--gb-border);
+  background: transparent;
+  color: var(--gb-accent);
+}
+
+.button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ------------------------------------------------------- BBCode-Werkzeuge */
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  align-items: center;
+  margin-bottom: 0.35rem;
+}
+
+.toolbarButton {
+  min-width: 2rem;
+  padding: 0.2rem 0.45rem;
+  border: 1px solid var(--gb-border);
+  border-radius: 5px;
+  background: var(--gb-surface-alt);
+  color: var(--gb-text);
+  font: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.toolbarButton:hover {
+  border-color: var(--gb-accent);
+}
+
+.toolbarSelect select {
+  width: auto;
+  padding: 0.2rem 0.35rem;
+  font-size: 0.78rem;
+}
+
+/* ----------------------------------------------------------------- Captcha */
+
+.captcha {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  margin-bottom: 0.35rem;
+}
+
+.captchaImage {
+  border: 1px solid var(--gb-border);
+  border-radius: 6px;
+}
+
+.captchaReload {
+  border: 1px solid var(--gb-border);
+  border-radius: 6px;
+  padding: 0.25rem 0.55rem;
+  background: var(--gb-surface-alt);
+  color: var(--gb-accent);
+  font: inherit;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+/*
+ * Honeypot: aus dem Blickfeld genommen, aber nicht per display:none — manche
+ * Bots ignorieren versteckte Felder gezielt. Fuer Screenreader ist der Container
+ * per aria-hidden ausgeblendet, per Tabulator nicht erreichbar (tabIndex={-1}).
+ */
+.honeypot {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  clip: rect(0 0 0 0);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.listTotal {
+  margin: 0 0 1rem;
+  color: var(--gb-text-muted);
+  font-size: 0.85rem;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* --------------------------------------------------------------- Eintrag */
+
+.entry {
+  padding: 1.1rem 1.25rem;
+  border: 1px solid var(--gb-border);
+  border-radius: var(--gb-radius);
+  background: var(--gb-surface);
+  box-shadow: var(--gb-shadow);
+  /*
+   * Ersetzt SETTINGS.FORCEBREAK der Alt-App (dort wurden nach 28 Zeichen
+   * Umbrueche IN den Text eingefuegt). So bleibt der Text unveraendert und
+   * kopierbar, das Layout haelt trotzdem.
+   */
+  overflow-wrap: break-word;
+}
+
+.entrySticky {
+  border-left: 3px solid var(--gb-sticky);
+}
+
+.entryLocked {
+  border-style: dashed;
+  background: var(--gb-surface-alt);
+}
+
+.entryHeader {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.entryTitle {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.entryGender {
+  color: var(--gb-text-muted);
+  font-weight: 400;
+  font-size: 0.85rem;
+}
+
+.entryNumber {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  color: var(--gb-text-muted);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.entryPermalink {
+  color: inherit;
+  text-decoration: none;
+}
+
+.entryPermalink:hover {
+  color: var(--gb-accent);
+  text-decoration: underline;
+}
+
+.entryBadge {
+  padding: 0.05rem 0.4rem;
+  border-radius: 4px;
+  background: var(--gb-sticky);
+  color: var(--gb-accent-contrast);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.entryDate {
+  display: block;
+  margin-top: 0.15rem;
+  color: var(--gb-text-muted);
+  font-size: 0.8rem;
+}
+
+.entryText {
+  margin-top: 0.75rem;
+}
+
+.entryLockedHint {
+  margin: 0.75rem 0 0;
+  color: var(--gb-text-muted);
+  font-style: italic;
+}
+
+.entryFigure {
+  margin: 0.9rem 0 0;
+}
+
+.entryImage {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--gb-border);
+  border-radius: 6px;
+}
+
+.entryCaption {
+  display: block;
+  margin-top: 0.3rem;
+  color: var(--gb-text-muted);
+  font-size: 0.85rem;
+}
+
+.entryCustom {
+  margin: 0.9rem 0 0;
+}
+
+.entryCustomRow {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.entryCustomRow dt {
+  color: var(--gb-text-muted);
+}
+
+.entryCustomRow dd {
+  margin: 0;
+}
+
+.entryRatings {
+  margin: 0.9rem 0 0;
+  padding-left: 1.2rem;
+  font-size: 0.9rem;
+}
+
+.entryAdminReply {
+  margin-top: 0.9rem;
+  padding: 0.7rem 0.9rem;
+  border-left: 3px solid var(--gb-accent);
+  border-radius: 0 6px 6px 0;
+  background: var(--gb-surface-alt);
+}
+
+.entryAdminReplyTitle {
+  margin: 0 0 0.3rem;
+  color: var(--gb-text-muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.entryMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.9rem;
+  align-items: center;
+  margin-top: 1rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--gb-border);
+  font-size: 0.8rem;
+}
+
+.entryMetaItem {
+  display: inline-flex;
+  gap: 0.3rem;
+  align-items: center;
+  color: var(--gb-text-muted);
+}
+
+.entryMetaItemMuted {
+  opacity: 0.75;
+}
+
+a.entryMetaItem {
+  color: var(--gb-accent);
+  text-decoration: none;
+}
+
+a.entryMetaItem:hover {
+  text-decoration: underline;
+}
+
+.entryFlag {
+  border: 1px solid var(--gb-border);
+  vertical-align: middle;
+}
+
+/* ------------------------------------------------------------ Kommentare */
+
+.comments {
+  margin-top: 0.75rem;
+}
+
+.commentsActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.commentsClosed {
+  color: var(--gb-text-muted);
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
+.commentsReply,
+.commentsToggle {
+  padding: 0.25rem 0.6rem;
+  border: 1px solid var(--gb-border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--gb-accent);
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.commentsReply:hover,
+.commentsToggle:hover {
+  border-color: var(--gb-accent);
+}
+
+.commentForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  width: 100%;
+  margin-top: 0.75rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--gb-border);
+  border-radius: var(--gb-radius);
+  background: var(--gb-surface-alt);
+}
+
+.commentFormRow {
+  display: grid;
+  gap: 0.7rem;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+}
+
+.commentForm input[type='text'],
+.commentForm input[type='email'],
+.commentForm textarea {
+  width: 100%;
+  padding: 0.4rem 0.55rem;
+  border: 1px solid var(--gb-border);
+  border-radius: 6px;
+  background: var(--gb-bg);
+  color: var(--gb-text);
+  font: inherit;
+  font-size: 0.92rem;
+}
+
+.commentForm textarea {
+  min-height: 5rem;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.commentsPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 0.75rem;
+  padding-left: 0.9rem;
+  border-left: 2px solid var(--gb-border);
+}
+
+.commentsStatus {
+  margin: 0;
+  color: var(--gb-text-muted);
+  font-size: 0.85rem;
+}
+
+.commentsStatusError {
+  color: #b4544a;
+}
+
+.comment {
+  padding: 0.6rem 0.75rem;
+  border-radius: 6px;
+  background: var(--gb-surface-alt);
+  font-size: 0.92rem;
+  overflow-wrap: break-word;
+}
+
+.commentAdmin {
+  border-left: 3px solid var(--gb-accent);
+}
+
+.commentHeader {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: baseline;
+}
+
+.commentName {
+  font-weight: 600;
+}
+
+.commentBadge {
+  padding: 0.05rem 0.4rem;
+  border-radius: 4px;
+  background: var(--gb-accent);
+  color: var(--gb-accent-contrast);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.commentDate {
+  color: var(--gb-text-muted);
+  font-size: 0.75rem;
+}
+
+.commentText {
+  margin-top: 0.3rem;
+}
+
+.commentText :global(.gb-emoticon) {
+  vertical-align: text-bottom;
+}
+
+.commentText a {
+  color: var(--gb-accent);
+}
+
+/* ------------------------------------------------------------ Paginierung */
+
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.paginationPages {
+  display: flex;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.paginationPage,
+.paginationStep {
+  min-width: 2.1rem;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--gb-border);
+  border-radius: 6px;
+  background: var(--gb-surface);
+  color: var(--gb-text);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.paginationPage:hover:not([aria-current]),
+.paginationStep:hover:not(:disabled) {
+  border-color: var(--gb-accent);
+}
+
+.paginationPage[aria-current='page'] {
+  border-color: var(--gb-accent);
+  background: var(--gb-accent);
+  color: var(--gb-accent-contrast);
+  cursor: default;
+}
+
+.paginationStep:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.paginationGap {
+  padding: 0.35rem 0.2rem;
+  color: var(--gb-text-muted);
+}
+
+.paginationStatus {
+  flex-basis: 100%;
+  color: var(--gb-text-muted);
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+/* ------------------------------- Vom Backend geliefertes Nachrichten-HTML */
+
+/*
+ * Diese Klassen erzeugt backend/src/Service/BBCodeParser.php. Sie ersetzen die
+ * Inline-Styles der Alt-App (SETTINGS.QUOTESTYLE / CODESTYLE), damit die
+ * Darstellung im Frontend liegt und nicht in der Datenbank.
+ */
+
+.entryText :global(.gb-emoticon),
+.entryCaption :global(.gb-emoticon) {
+  vertical-align: text-bottom;
+}
+
+.entryText :global(.gb-inline-image) {
+  max-width: 100%;
+  height: auto;
+}
+
+.entryText :global(.gb-quote) {
+  margin: 0.6rem 0;
+  padding: 0.5rem 0.8rem;
+  border-left: 3px solid var(--gb-border);
+  background: var(--gb-surface-alt);
+}
+
+.entryText :global(.gb-quote) cite {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: var(--gb-text-muted);
+  font-size: 0.8rem;
+  font-style: normal;
+}
+
+.entryText :global(.gb-code) {
+  overflow-x: auto;
+  margin: 0.6rem 0;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--gb-border);
+  border-radius: 6px;
+  background: var(--gb-surface-alt);
+  font-size: 0.85rem;
+}
+
+.entryText :global(.gb-align-left) {
+  text-align: left;
+}
+
+.entryText :global(.gb-align-center) {
+  text-align: center;
+}
+
+.entryText :global(.gb-align-right) {
+  text-align: right;
+}
+
+.entryText :global(.gb-list) {
+  margin: 0.4rem 0;
+  padding-left: 1.4rem;
+}
+
+.entryText a {
+  color: var(--gb-accent);
+}
+
+/* ---------------------------------------------------------- Barrierefrei */
+
+.root :focus-visible {
+  outline: 2px solid var(--gb-accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .root,
+  .root * {
+    scroll-behavior: auto !important;
+  }
+}

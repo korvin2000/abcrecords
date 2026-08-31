@@ -1,0 +1,170 @@
+{
+  "app": {
+    "title": "Guestbook",
+    "subtitle": "Visitor entries"
+  },
+  "language": {
+    "label": "Language",
+    "ru": "Русский",
+    "en": "English",
+    "es": "Español",
+    "ja": "日本語",
+    "de": "Deutsch",
+    "fr": "Français",
+    "it": "Italiano",
+    "pt": "Português",
+    "uk": "Українська",
+    "zh": "中文",
+    "ko": "한국어"
+  },
+  "list": {
+    "loading": "Loading entries…",
+    "error": "The entries could not be loaded.",
+    "retry": "Try again",
+    "empty": "There are no entries yet.",
+    "total": "{{count}} entries in total"
+  },
+  "entry": {
+    "number": "Entry no. {{number}}",
+    "permalink": "Link to this entry (ID {{id}})",
+    "sticky": "Pinned",
+    "email": "E-mail",
+    "homepage": "Homepage",
+    "country": "Country",
+    "countryUnspecified": "Not specified",
+    "gender": {
+      "male": "male",
+      "female": "female"
+    },
+    "picture": "Image attached to the entry",
+    "adminReply": "Reply from the administration",
+    "rating": "Rating “{{box}}”",
+    "customField": "Field {{field}}",
+    "comments": "{{count}} comments",
+    "commentsNone": "No comments",
+    "commentsClosed": "Comments closed",
+    "client": "Browser",
+    "messenger": {
+      "icq": "ICQ",
+      "aim": "AIM",
+      "msn": "MSN",
+      "yahoo": "Yahoo",
+      "skype": "Skype",
+      "jabber": "Jabber",
+      "gaduGadu": "Gadu-Gadu"
+    }
+  },
+  "comments": {
+    "show": "Show comments ({{count}})",
+    "hide": "Hide comments",
+    "loading": "Loading comments…",
+    "error": "The comments could not be loaded.",
+    "admin": "Administration",
+    "write": "Reply",
+    "submit": "Post comment",
+    "disabled": "Comments are currently disabled.",
+    "success": {
+      "published": "The comment has been saved.",
+      "moderated": "The comment has been saved and is awaiting approval."
+    }
+  },
+  "locked": {
+    "title": "Private entry",
+    "hint": "This entry is password protected and will be shown once the password is entered."
+  },
+  "form": {
+    "open": "Write an entry",
+    "close": "Close",
+    "title": "New entry",
+    "loading": "Loading the form…",
+    "preview": "Preview",
+    "previewTitle": "Preview",
+    "submit": "Submit",
+    "busy": "Please wait…",
+    "moderationHint": "New entries appear once the administration has approved them.",
+    "field": {
+      "name": "Name",
+      "email": "E-mail",
+      "hideEmail": "Do not show my address publicly",
+      "homepage": "Homepage",
+      "country": "Country",
+      "countryNone": "Not specified",
+      "gender": "Gender",
+      "genderNone": "Not specified",
+      "text": "Message",
+      "private": "Password for a private entry",
+      "ratingNone": "No rating",
+      "captcha": "Code from the image",
+      "captchaAlt": "Characters that need to be typed in",
+      "captchaReload": "New image",
+      "picture": "Image",
+      "pictureRemove": "Remove image",
+      "pictureCaption": "Image caption"
+    },
+    "hint": {
+      "homepage": "Without “http://” — it will be added.",
+      "private": "Letters and digits only. Readers need this password to see the entry.",
+      "maxChars": "{{used}} of {{max}} characters",
+      "picture": "GIF or JPEG, at most {{maxWidth}} × {{maxHeight}} pixels and {{maxKb}} KB."
+    },
+    "toolbar": {
+      "label": "Text formatting",
+      "b": "Bold",
+      "i": "Italic",
+      "u": "Underline",
+      "code": "Code",
+      "quote": "Quote",
+      "left": "Align left",
+      "center": "Centre",
+      "right": "Align right",
+      "list": "List",
+      "url": "Insert link",
+      "urlShort": "Link",
+      "urlPrompt": "Link target:",
+      "color": "Colour",
+      "size": "Size"
+    },
+    "fieldError": {
+      "required": "This field is required.",
+      "too_long": "The value is too long.",
+      "invalid": "The value has an invalid format.",
+      "out_of_range": "The value is outside the allowed range.",
+      "unknown_option": "That option is not allowed.",
+      "duplicate": "An identical entry already exists."
+    },
+    "error": {
+      "setup": "The form could not be loaded.",
+      "validation": "Please check the highlighted fields.",
+      "csrf": "The session expired. Please submit again.",
+      "captcha_wrong": "The code was wrong. Please enter a new one.",
+      "captcha_invalid": "The code is no longer valid. Please enter a new one.",
+      "captcha_expired": "The code expired. Please enter a new one.",
+      "captcha_required": "Please enter the code from the image.",
+      "rateLimited": "Too many entries in a short time. Please wait {{seconds}} seconds.",
+      "spam": "The request was classified as automated.",
+      "unknown": "The entry could not be saved.",
+      "pictureTooLarge": "The image is too large (at most {{max}} KB).",
+      "pictureDimensions": "The image dimensions are too large (at most {{maxWidth}} × {{maxHeight}} pixels).",
+      "pictureType": "Only GIF and JPEG images are allowed.",
+      "pictureUpload": "The image could not be uploaded."
+    },
+    "success": {
+      "published": "The entry has been saved.",
+      "moderated": "The entry has been saved and is awaiting approval."
+    },
+    "uploading": "Uploading the image…"
+  },
+  "pagination": {
+    "previous": "Previous",
+    "next": "Next",
+    "status": "Page {{page}} of {{total}}",
+    "label": "Pagination"
+  },
+  "error": {
+    "banned": "Access to this guestbook is blocked.",
+    "network": "The server cannot be reached. Please check your connection.",
+    "unknown": "An unexpected error occurred.",
+    "crashed": "Something went wrong — the guestbook could not be displayed.",
+    "crashedAction": "Reload"
+  }
+}

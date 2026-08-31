@@ -1,0 +1,170 @@
+{
+  "app": {
+    "title": "ゲストブック",
+    "subtitle": "訪問者からのメッセージ"
+  },
+  "language": {
+    "label": "言語",
+    "ru": "Русский",
+    "en": "English",
+    "es": "Español",
+    "ja": "日本語",
+    "de": "Deutsch",
+    "fr": "Français",
+    "it": "Italiano",
+    "pt": "Português",
+    "uk": "Українська",
+    "zh": "中文",
+    "ko": "한국어"
+  },
+  "list": {
+    "loading": "投稿を読み込み中…",
+    "error": "投稿を読み込めませんでした。",
+    "retry": "再試行",
+    "empty": "投稿はまだありません。",
+    "total": "投稿総数：{{count}} 件"
+  },
+  "entry": {
+    "number": "投稿 No.{{number}}",
+    "permalink": "この投稿へのリンク（ID {{id}}）",
+    "sticky": "固定表示",
+    "email": "メールアドレス",
+    "homepage": "ホームページ",
+    "country": "国",
+    "countryUnspecified": "未指定",
+    "gender": {
+      "male": "男性",
+      "female": "女性"
+    },
+    "picture": "投稿に添付された画像",
+    "adminReply": "管理者からの返信",
+    "rating": "評価「{{box}}」",
+    "customField": "項目 {{field}}",
+    "comments": "コメント {{count}} 件",
+    "commentsNone": "コメントはありません",
+    "commentsClosed": "コメントは受け付けていません",
+    "client": "ブラウザ",
+    "messenger": {
+      "icq": "ICQ",
+      "aim": "AIM",
+      "msn": "MSN",
+      "yahoo": "Yahoo",
+      "skype": "Skype",
+      "jabber": "Jabber",
+      "gaduGadu": "Gadu-Gadu"
+    }
+  },
+  "comments": {
+    "show": "コメントを表示（{{count}}）",
+    "hide": "コメントを非表示",
+    "loading": "コメントを読み込み中…",
+    "error": "コメントを読み込めませんでした。",
+    "admin": "管理者",
+    "write": "返信する",
+    "submit": "コメントを送信",
+    "disabled": "現在コメントは無効になっています。",
+    "success": {
+      "published": "コメントを保存しました。",
+      "moderated": "コメントを保存しました。承認をお待ちください。"
+    }
+  },
+  "locked": {
+    "title": "非公開の投稿",
+    "hint": "この投稿はパスワードで保護されています。パスワードを入力すると表示されます。"
+  },
+  "form": {
+    "open": "投稿する",
+    "close": "閉じる",
+    "title": "新規投稿",
+    "loading": "フォームを読み込み中…",
+    "preview": "プレビュー",
+    "previewTitle": "プレビュー",
+    "submit": "送信",
+    "busy": "お待ちください…",
+    "moderationHint": "新しい投稿は管理者の承認後に公開されます。",
+    "field": {
+      "name": "お名前",
+      "email": "メールアドレス",
+      "hideEmail": "メールアドレスを公開しない",
+      "homepage": "ホームページ",
+      "country": "国",
+      "countryNone": "未指定",
+      "gender": "性別",
+      "genderNone": "未指定",
+      "text": "メッセージ",
+      "private": "非公開投稿用のパスワード",
+      "ratingNone": "評価なし",
+      "captcha": "画像に表示されたコード",
+      "captchaAlt": "入力する文字列",
+      "captchaReload": "別の画像",
+      "picture": "画像",
+      "pictureRemove": "画像を削除",
+      "pictureCaption": "画像のキャプション"
+    },
+    "hint": {
+      "homepage": "「http://」は不要です（自動的に付加されます）。",
+      "private": "半角英数字のみ使用できます。このパスワードがないと投稿を閲覧できません。",
+      "maxChars": "{{max}} 文字中 {{used}} 文字使用",
+      "picture": "GIFまたはJPEG形式、{{maxWidth}} × {{maxHeight}} ピクセル以内、{{maxKb}} KB以内。"
+    },
+    "toolbar": {
+      "label": "テキスト書式",
+      "b": "太字",
+      "i": "斜体",
+      "u": "下線",
+      "code": "コード",
+      "quote": "引用",
+      "left": "左揃え",
+      "center": "中央揃え",
+      "right": "右揃え",
+      "list": "リスト",
+      "url": "リンクを挿入",
+      "urlShort": "リンク",
+      "urlPrompt": "リンク先のURL：",
+      "color": "文字色",
+      "size": "サイズ"
+    },
+    "fieldError": {
+      "required": "この項目は必須です。",
+      "too_long": "入力内容が長すぎます。",
+      "invalid": "入力内容の形式が正しくありません。",
+      "out_of_range": "入力値が許容範囲外です。",
+      "unknown_option": "この選択肢は使用できません。",
+      "duplicate": "同じ内容の投稿がすでに存在します。"
+    },
+    "error": {
+      "setup": "フォームを読み込めませんでした。",
+      "validation": "エラーのある項目を確認してください。",
+      "csrf": "セッションの有効期限が切れました。もう一度送信してください。",
+      "captcha_wrong": "コードが正しくありません。新しいコードを入力してください。",
+      "captcha_invalid": "このコードは無効になりました。新しいコードを入力してください。",
+      "captcha_expired": "コードの有効期限が切れました。新しいコードを入力してください。",
+      "captcha_required": "画像に表示されたコードを入力してください。",
+      "rateLimited": "短時間に投稿が集中しています。{{seconds}} 秒お待ちください。",
+      "spam": "このリクエストは自動送信と判定されました。",
+      "unknown": "投稿を保存できませんでした。",
+      "pictureTooLarge": "画像サイズが大きすぎます（最大 {{max}} KB）。",
+      "pictureDimensions": "画像の寸法が大きすぎます（最大 {{maxWidth}} × {{maxHeight}} ピクセル）。",
+      "pictureType": "GIFまたはJPEG形式の画像のみ使用できます。",
+      "pictureUpload": "画像をアップロードできませんでした。"
+    },
+    "success": {
+      "published": "投稿を保存しました。",
+      "moderated": "投稿を保存しました。承認をお待ちください。"
+    },
+    "uploading": "画像をアップロード中…"
+  },
+  "pagination": {
+    "previous": "前へ",
+    "next": "次へ",
+    "status": "{{total}} ページ中 {{page}} ページ目",
+    "label": "ページ送り"
+  },
+  "error": {
+    "banned": "このゲストブックへのアクセスはブロックされています。",
+    "network": "サーバーに接続できません。接続状態を確認してください。",
+    "unknown": "予期しないエラーが発生しました。",
+    "crashed": "エラーが発生したため、ゲストブックを表示できませんでした。",
+    "crashedAction": "再読み込み"
+  }
+}
