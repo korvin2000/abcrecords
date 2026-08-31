@@ -1,4 +1,4 @@
-# 15 · `app/` — Critique & Improvement Backlog (2026-07-21)
+# 15 · `apps/guitar-codex/` — Critique & Improvement Backlog (2026-07-21)
 
 > Honest strengths/weaknesses + a prioritized backlog, distilled from a deep
 > read of every subsystem. Findings cite `file:line` **anchors** (they drift);

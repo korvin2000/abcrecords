@@ -1,0 +1,13 @@
+# Workspace layout, per docs/react-modular-architecture.md §7.1.
+#
+# This repository is developed with **npm workspaces** — see the root
+# package.json, which is where `npm install` reads the same two globs. The file
+# below is kept so the layout is also valid for a pnpm checkout unchanged; §7
+# is explicit that pnpm is not required and that either package manager
+# implements the same architecture.
+#
+# If you switch: replace the workspace deps `"*"` with `"workspace:*"` in
+# apps/*/package.json, and delete package-lock.json.
+packages:
+  - "apps/*"
+  - "packages/*"

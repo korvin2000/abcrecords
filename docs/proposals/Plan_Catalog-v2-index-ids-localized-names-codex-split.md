@@ -21,7 +21,7 @@ Decisions D4, D6, D11, D12 signed off by the owner; **D10 was accepted then
 reversed** (dates stay in the dossier); D1–D3, D5, D7–D9 stand as
 recommendations unless contested.
 **Scope:** `pages/index.json`, new `pages/index-<lang>.json`, all `*.bio.json`,
-`docs/` specs, `.claude-memory/`, and `app/src/{lib,components}`.
+`docs/` specs, `.claude-memory/`, and `apps/guitar-codex/src/{lib,components}`.
 **Read first:** `CLAUDE.md` → [`.claude-memory/INDEX.md`](../../.claude-memory/INDEX.md) →
 [`13-app-code-map.md`](../../.claude-memory/13-app-code-map.md) →
 [`14-app-patterns-and-gotchas.md`](../../.claude-memory/14-app-patterns-and-gotchas.md) →
@@ -61,7 +61,7 @@ production LOC is expected to be roughly flat despite six new files.
 
 | # | Decision | Recommendation |
 |---|---|---|
-| D1 | `index-ch.json` in the request → the ISO 639-1 code for Chinese is **`zh`**, which is what `app/src/lib/languages.ts` already uses. `ch` would never be loaded (and `CH` is Switzerland). | Use **`index-zh.json`** — and the same applies to the content directory, which is `pages/zh/`, not `pages/ch/`: `localizeContentPath` builds `/<lang>/…` from the very same `Lang` code. Treated as a typo throughout. |
+| D1 | `index-ch.json` in the request → the ISO 639-1 code for Chinese is **`zh`**, which is what `apps/guitar-codex/src/lib/languages.ts` already uses. `ch` would never be loaded (and `CH` is Switzerland). | Use **`index-zh.json`** — and the same applies to the content directory, which is `pages/zh/`, not `pages/ch/`: `localizeContentPath` builds `/<lang>/…` from the very same `Lang` code. Treated as a typo throughout. |
 | D2 | Request C says "*change the **bio.md** format*" but lists `id`, `title`, `gender`, `type`, `country`, `bio`, `dataStatus` — those live in **`*.bio.json`**; the `.bio.md` files have no front-matter at all (verified across all 15). | Read C as **`*.bio.json`**. No `.bio.md` change. |
 | D3 | `id` = "порядковый номер". A literal *position* renumbers every row on insert/delete and silently breaks every `index-<lang>.json` key. | **Assign sequentially, never renumber, never reuse.** Looks identical today; safe forever. Store as a **string** (JSON object keys are strings — `"7"` vs `7` would be a live bug class). |
 | D4 | **Codex biography header.** | ✅ **DECIDED — keep `<h1>forename</h1>` + `<h2>surname</h2>` as today.** `*.bio.json` is a **per-language edition**, so `forename`/`surname` are *already* the localized name in the edition being displayed — the header therefore follows `contentLang`, which is more correct than following the UI language. My earlier objection was wrong because it was reasoning from the **test data, which is not internationalized** (`pages/ru/andres-segovia.bio.json` holds Latin `"Andrés"/"Segovia"`, `pages/de/…` holds a Cyrillic `title`). That is a data defect, fixed in Step 2 — see §3.3 and [Step 2.3](#step2-i18n). |
@@ -238,7 +238,7 @@ that edition's language** — not just `forename`/`surname`, but also
 codex header (D4) and the Lore tab correct without any runtime translation
 layer.
 
-> Consequence: `LoreTab.localizeJob()` ([LoreTab.tsx:164](../../app/src/components/codex/LoreTab.tsx)) —
+> Consequence: `LoreTab.localizeJob()` ([LoreTab.tsx:164](../../apps/guitar-codex/src/components/codex/LoreTab.tsx)) —
 > which routes job strings through `typeLabel` to half-translate English data —
 > becomes obsolete and is **deleted** in Step 6. It exists only because the
 > test data is not internationalized.
@@ -845,10 +845,10 @@ reference content.
 | 1 | Specs: new `docs/Catalog-Index.md` + 5 doc updates + 9 memory notes | `docs/`, `.claude-memory/`, `CLAUDE.md` |
 | 2 | `index.json` v2 (11 rows, ids + lowercase ISO countries + 4 reclassified `hidden`) · 12 `bio.json` slimmed **and internationalized** · 3 default portraits | `pages/` |
 | 3 | 5 `index-<lang>.json` · 5 technical pages (ids 12–15) → 15 rows, 7 listed | `pages/` |
-| 4 | Data layer: `types` `names` `entry` `catalog` `hooks` `metadata` `paths` + routing fix | `app/src/lib/` |
-| 5 | Search rewrite + scoring · browse UI (App, SearchBar, Grid, Card) | `app/src/{lib,components}/` |
-| 6 | CodexModal → 8 focused files · tab re-sourcing | `app/src/components/codex/` |
-| 7 | `lint-content` · Vitest specs · browser verification · memory update | `scripts/`, `app/`, `.claude-memory/` |
+| 4 | Data layer: `types` `names` `entry` `catalog` `hooks` `metadata` `paths` + routing fix | `apps/guitar-codex/src/lib/` |
+| 5 | Search rewrite + scoring · browse UI (App, SearchBar, Grid, Card) | `apps/guitar-codex/src/{lib,components}/` |
+| 6 | CodexModal → 8 focused files · tab re-sourcing | `apps/guitar-codex/src/components/codex/` |
+| 7 | `lint-content` · Vitest specs · browser verification · memory update | `scripts/`, `apps/guitar-codex/`, `.claude-memory/` |
 
 ---
 

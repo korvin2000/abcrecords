@@ -107,7 +107,7 @@ They are independent by design: a `lang: "ru"` entry with a Chinese name in
 `index-zh.json` lets a Chinese reader find it and open the Russian edition.
 **The catalogue is searchable in more languages than it is written in.**
 
-Codes are ISO 639-1 from `app/src/lib/languages.ts`. **Chinese is `zh`, not
+Codes are ISO 639-1 from `apps/guitar-codex/src/lib/languages.ts`. **Chinese is `zh`, not
 `ch`** — for `index-zh.json` and for `pages/zh/` alike.
 
 ## Portraits

@@ -2,7 +2,7 @@
 
 **Companion to:** [`Biography-Markup.md`](Biography-Markup.md) (normative specification, v1.3)
 **Covers:** `::: align` · the image `frame:` property · `::: nav` · the repaired `alt:` / `link:` image properties
-**Status:** implemented in the production renderer (`app/src/lib/biomd/`)
+**Status:** implemented in the production renderer (`apps/guitar-codex/src/lib/biomd/`)
 **Audience:** anyone — human or LLM — authoring or converting `*.bio.md` content
 
 This appendix is the practical guide to everything that changed in BioMD Lite 1.3.

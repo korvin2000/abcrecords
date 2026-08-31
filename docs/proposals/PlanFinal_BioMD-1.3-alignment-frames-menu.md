@@ -9,8 +9,8 @@ Normative spec is `docs/Biography-Markup.md` v1.3 · **Date:** 2026-07-29
 **Base:** Plan A (format decisions, doc-first sequencing, CSS strategy) + Plan B's
 verified code detail, compatibility matrix, CSS specificity analysis and
 verification recipe.
-**Target code:** `app/src/lib/biomd/{parse.ts,BioArticle.tsx}` ·
-`app/src/components/CurlFrame.tsx` · `app/src/index.css`
+**Target code:** `apps/guitar-codex/src/lib/biomd/{parse.ts,BioArticle.tsx}` ·
+`apps/guitar-codex/src/components/CurlFrame.tsx` · `apps/guitar-codex/src/index.css`
 
 > **Read before implementing:** `CLAUDE.md` → `.claude-memory/INDEX.md` →
 > [`13-app-code-map.md`](../../.claude-memory/13-app-code-map.md) →
@@ -75,8 +75,8 @@ Key anchors (line numbers drift; treat as anchors):
 | `Md` + link-rewiring hub | `BioArticle.tsx:33-134` |
 | `Figure` | `BioArticle.tsx:154-182` |
 | `renderNode` switch | `BioArticle.tsx:184-244` |
-| `CurlFrame` markup | `app/src/components/CurlFrame.tsx` |
-| Article CSS / `.fx-curl` | `app/src/index.css:485-675` |
+| `CurlFrame` markup | `apps/guitar-codex/src/components/CurlFrame.tsx` |
+| Article CSS / `.fx-curl` | `apps/guitar-codex/src/index.css:485-675` |
 | Codex tab bar (visual reference for nav) | `codex/CodexModal.tsx:210-228` |
 | **Nav dead-link limitation** | `App.tsx:90-96` — `navigateByMdPath` no-ops when the slug is absent from `index.json` |
 
@@ -312,7 +312,7 @@ render as plain links · an empty/malformed nav keeps its readable body and warn
 
 ## 5. Implementation — file by file
 
-### 5.1 `app/src/lib/biomd/parse.ts`
+### 5.1 `apps/guitar-codex/src/lib/biomd/parse.ts`
 
 **(a) Types** — add to the existing exports and to the `BioNode` union:
 
@@ -459,7 +459,7 @@ touch the `images` column inference.
 recovery, unknown-directive body preservation, title extraction, or source-order
 traversal. Do **not** add unknown-key warnings (§1 note).
 
-### 5.2 `app/src/lib/biomd/BioArticle.tsx`
+### 5.2 `apps/guitar-codex/src/lib/biomd/BioArticle.tsx`
 
 **(a) `Md` gains one optional prop** — nav mode, which does two things and is
 inert when absent:
@@ -565,7 +565,7 @@ the frame. Ordinary Markdown `img` nodes pass no variant ⇒ default curl.
 `useMemo(parseBioMd)`, the `table` overflow wrapper, the DEV warning dump. No new
 state, effect or context.
 
-### 5.3 `app/src/components/CurlFrame.tsx`
+### 5.3 `apps/guitar-codex/src/components/CurlFrame.tsx`
 
 Extend in place — do not rename or split:
 
@@ -598,7 +598,7 @@ Static map — never an interpolated, content-derived class string.
 `import type { ImageFrame } from "@/lib/biomd/parse"` (`verbatimModuleSyntax`).
 `GalleryTab` and the Markdown `img` path omit `variant` ⇒ byte-identical markup.
 
-### 5.4 `app/src/index.css` (append-only; never edit an existing rule)
+### 5.4 `apps/guitar-codex/src/index.css` (append-only; never edit an existing rule)
 
 ```css
 /* ============================================================
@@ -813,7 +813,7 @@ keep the row (living conformance fixture) or drop it and keep the file.
 authoring forms) · `13-app-code-map.md` (new node kinds + frame variants) ·
 `14-app-patterns-and-gotchas.md` (extend the "Add a BioMD block" recipe: scope new
 CSS as `.bio-article .x`; note `frame:` vs `::: frame`) · `12-app-architecture.md`
-+ `app/README.md` (recognised directives/properties). Mark this proposal
++ `apps/guitar-codex/README.md` (recognised directives/properties). Mark this proposal
 implemented; delete Plan A and Plan B.
 
 **Phase 7 — optional, separate diff:** figure keyboard accessibility (`<button>`
@@ -903,7 +903,7 @@ generalised style DSL, a directive registry refactor.
 - [ ] Nav wraps at 375 px with no page-level horizontal overflow; keyboard tab order and focus ring verified.
 - [ ] `npx tsc -b` clean; no new dependency; codex/markdown chunks still lazy.
 - [ ] The four float/columns-heavy existing pages are visually unchanged; the only content-facing delta is the 8 `alt` attributes.
-- [ ] `.claude-memory/02/12/13/14` and `app/README.md` match the delivered behaviour; Plan A and Plan B deleted.
+- [ ] `.claude-memory/02/12/13/14` and `apps/guitar-codex/README.md` match the delivered behaviour; Plan A and Plan B deleted.
 
 ---
 

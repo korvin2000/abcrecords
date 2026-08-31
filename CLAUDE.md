@@ -21,12 +21,37 @@ Each entry combines:
 
 ## Repository layout
 
+The repository is an **npm workspace** holding three React projects — one
+deployable app and two lazy-loaded feature packages it composes at runtime.
+The architecture is specified in
+[`docs/react-modular-architecture.md`](docs/react-modular-architecture.md);
+read [`.claude-memory/17-workspace-and-features.md`](.claude-memory/17-workspace-and-features.md)
+before touching the boundary between them.
+
+```text
+guitar-codex-workspace/          npm workspaces: apps/* + packages/*
+├─ apps/
+│  ├─ guitar-codex/              the one deployable product — the host
+│  └─ demoscene-dev-host/        runs the demoscene alone; never deployed
+├─ packages/
+│  ├─ guestbook/                 @guitar-codex/guestbook  → footer VI
+│  └─ demoscene/                 @site/demoscene          → top bar "I"
+└─ pages/ docs/ server/ .claude-memory/
+```
+
+One `npm install`, one `npm run build`, one `dist/`. Both feature packages are
+**source-exported** (no build step of their own) and reach the reader only
+through a dynamic `import()`, so neither is in the initial bundle.
+
 | Path            | Purpose                                                              |
 |-----------------|---------------------------------------------------------------------|
-| `app/`          | **The production catalogue app** (Vite + React + TS). Renders `pages/` content at runtime; see `app/README.md` and [`.claude-memory/12-app-architecture.md`](.claude-memory/12-app-architecture.md) (overview). For real work in `app/` read the deep-dive triad: [`13`](.claude-memory/13-app-code-map.md) code map · [`14`](.claude-memory/14-app-patterns-and-gotchas.md) patterns/gotchas/recipes · [`15`](.claude-memory/15-app-critique.md) critique/backlog. |
+| `apps/guitar-codex/`          | **The production catalogue app** (Vite + React + TS). Renders `pages/` content at runtime; see `apps/guitar-codex/README.md` and [`.claude-memory/12-app-architecture.md`](.claude-memory/12-app-architecture.md) (overview). For real work in `apps/guitar-codex/` read the deep-dive triad: [`13`](.claude-memory/13-app-code-map.md) code map · [`14`](.claude-memory/14-app-patterns-and-gotchas.md) patterns/gotchas/recipes · [`15`](.claude-memory/15-app-critique.md) critique/backlog. |
 | `docs/`         | Source specifications & guides (the source of truth — see below).   |
 | `pages/`        | Content pages / migrated entries. (PDFs are **not** here — the document archive, e.g. `magazine/<year>/*.pdf`, sits at the site root; see `pdf` in `docs/Catalog-Index.md` §9.1.) `index.json` + `index-<lang>.json` at the root are the catalogue index ([`docs/Catalog-Index.md`](docs/Catalog-Index.md)); each entry's article (+ dossier, if it has one) lives in `pages/<iso-lang>/` (`ru/`, `en/`, `de/`, …) per the `lang` field; `pages/photos/` and other media stay at the root and are never localized. `pages/quotes/quote-<lang>.json` holds the localized book of sayings shown in the herald block — one fully localized edition per UI language ([`pages/quotes/README.md`](pages/quotes/README.md); **the shipped texts are placeholder fixtures, not verified quotations**). |
 | `server/`       | **The one server-side script the project has**: `counter.php`, the visitor counter and statistics endpoint behind the header's odometer (no database — three flat files; see `server/README.md`). Uploaded to the site at `/counter/counter.php`; the app reads it site-root-relative, like `pdf`. |
+| `packages/guestbook/` | **The visitors' book** — `@guitar-codex/guestbook`, a private, source-exported React feature package. Opened from the footer's "VI · Guestbook" at the reserved route `#/guestbook`; talks to the legacy PHP REST API under `/gbook/api`. Contract: [`docs/guestbook-integration.md`](docs/guestbook-integration.md). Also runs standalone (`npm run dev:guestbook`). |
+| `packages/demoscene/` | **The About/credits demoscene** — `@site/demoscene`, likewise private and source-exported. Opened from the `I` button in the top bar. Renders into its own **shadow root**, synthesises everything it draws and plays, and releases every side effect on unmount. Contract: [`docs/demoscene-integration.md`](docs/demoscene-integration.md). |
+| `apps/demoscene-dev-host/` | A throwaway React app standing in for the host so the demoscene can be run and reviewed alone (`npm run dev:demoscene`), plus the pencil-study plate viewers (`npm run plates`). **Never deployed**; it is the one sanctioned place that deep-imports demoscene internals. |
 | `prototypes/`   | Two throwaway React reference apps (`CodexLegends`, `Copendum`) exploring the codex UI. Not production code — see below. |
 | `.claude-memory/` | Condensed, indexed knowledge distilled from `docs/`, `pages/`, and `prototypes/` for fast recall. |
 
@@ -91,7 +116,7 @@ Each entry combines:
   never goes in the article.**
 - `index.json` `json` present ⟺ the entry is a **biography** (4-tab codex);
   absent ⟺ a **page** (article only); **`pdf` in place of `md` ⟺ a document**,
-  which opens in the PDF viewer (`app/src/components/pdf/`) instead of the
+  which opens in the PDF viewer (`apps/guitar-codex/src/components/pdf/`) instead of the
   codex — no tabs, no header, no dossier. `type: "hidden"` keeps an entry
   routable but out of the grid, search and facets.
 - **Three path bases, not two.** `md`/`json`/`img` resolve against the
@@ -133,17 +158,59 @@ Each entry combines:
   ◀ ▶ ✦ ❖ ✕ are not in the text faces, so the platform draws each of them from
   Segoe UI Symbol / Apple Symbols / Noto — three unrelated designs that disagree
   about ink size, baseline position *and* line-box height. Draw every one of them
-  with `<Glyph>` (`app/src/components/Glyph.tsx`), take the character from
-  `app/src/lib/signs.ts`, and give it an **ink height**, never a `font-size`.
+  with `<Glyph>` (`apps/guitar-codex/src/components/Glyph.tsx`), take the character from
+  `apps/guitar-codex/src/lib/signs.ts`, and give it an **ink height**, never a `font-size`.
   A literal `font-size` or a `translateY` nudge for a sign is a Windows-only
   guess that will be wrong on Android and iOS — this has recurred three times.
   Full rationale and checklist:
   [`.claude-memory/16-cross-platform-glyphs.md`](.claude-memory/16-cross-platform-glyphs.md).
 - **Cross-entry metadata is read in the browser, never precomputed into a file.**
-  The dossier facts index (`app/src/lib/dossier/`) crawls `pages/<lang>/*.bio.json`
+  The dossier facts index (`apps/guitar-codex/src/lib/dossier/`) crawls `pages/<lang>/*.bio.json`
   and caches in memory for the session. A generated `facts-<lang>.json` beside the
   index froze the deployed answer at build time, so an edited birth year did not
   reach the search until the next rebuild; `pages/` is the only home for a fact.
+
+## Feature-package rules (the workspace boundary)
+
+The two packages under `packages/` are **not folders in the host** — they are
+separate units with their own manifests, their own dependencies and one public
+entry each. What keeps them that way:
+
+- **The host reaches a feature only through its package name** —
+  `@guitar-codex/guestbook`, `@site/demoscene`. Never a relative path into
+  `packages/`, never a deep import: neither package's `exports` map has a
+  wildcard, so a deep import fails rather than works quietly.
+- **A feature never imports from the host.** Not a component, not a token, not
+  `@/lib/…`. Everything it needs crosses as a prop: primitives, plain objects
+  and stable callbacks. No store, no router, no context. The two features do
+  not import each other either.
+- **The `import()` lives in exactly one file per feature**, and that file is
+  never in the startup path: `components/about/LazyAboutDemoscene.ts` and
+  `components/guestbook/LazyGuestbookOverlay.ts`. A **static** `import` of
+  either package from `App.tsx`, `main.tsx` or a barrel one of them reads puts
+  the whole feature in the initial bundle and *nothing visibly breaks* — it is
+  the single most damaging mistake available here. The barrels beside those
+  files re-export only the lazy entry, for exactly that reason.
+- **The language is one string prop.** `locale={lang}` — both packages ship the
+  same eleven tongues the codex speaks, and both fall back rather than render
+  blank on a tag they do not know. The host keeps owning i18n; neither feature
+  reads `navigator.language`, the host's dictionaries or the URL.
+- **Styles do not cross either way.** The demoscene renders inside a shadow
+  root; the guestbook uses hashed CSS Modules with every rule on its own
+  `.root` and no global selectors. The host's only lever is the documented
+  `--gb-*` tokens, set in `apps/guitar-codex/src/styles/guestbook.css` — with
+  the class name written twice, because the feature's stylesheet loads *after*
+  `index.css` and would otherwise win the specificity tie. Never write a rule
+  against a hashed class inside a package.
+- **`#/guestbook` is a reserved route.** No `index.json` row may use
+  `guestbook` as its slug; it is the one name in the catalogue's address space
+  that is spoken for (`components/guestbook/route.ts`).
+- **Turn either feature off in one place:** `FEATURES.guestbook` /
+  `FEATURES.demoscene` in `apps/guitar-codex/src/config.ts`. Off removes the
+  UI *and* the chunk request.
+- **Verify the boundary after touching it:** `npm run verify` (typecheck →
+  build → `scripts/verify-lazy-boundary.mjs`). The last step fails the build if
+  either feature reaches the entry chunk or gets preloaded from `index.html`.
 
 ## Working agreements
 
@@ -154,3 +221,10 @@ Each entry combines:
 - Reply to the user in **English** (their stated preference overrides the
   harness's German default); keep code identifiers and format keywords in
   their original form.
+- **Run npm from the workspace root**, not from inside a package: `npm install`,
+  `npm run dev`, `npm run build`, `npm run typecheck`. One lockfile, one copy of
+  React. A `npm install` inside `apps/guitar-codex/` creates a second one and
+  every hook in a linked package then throws "Invalid hook call".
+- `docs/react-modular-architecture.md` is the **canonical architecture guide**
+  and is upstream — treat it as read-only. The two integration guides beside it
+  are the per-feature contracts; keep them in step with the code.

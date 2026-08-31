@@ -1,0 +1,23 @@
+{
+  "name": "guitar-codex-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Кодекс Гитаристов — the guitar-codex catalogue and its two lazy-loaded feature applications (guestbook, demoscene), built and deployed as one product.",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w guitar-codex",
+    "build": "npm run build -w guitar-codex",
+    "verify:boundary": "node scripts/verify-lazy-boundary.mjs",
+    "verify": "npm run typecheck && npm run build && npm run verify:boundary",
+    "build:fable": "npm run build:fable -w guitar-codex",
+    "preview": "npm run preview -w guitar-codex",
+    "dev:guestbook": "npm run dev -w @guitar-codex/guestbook",
+    "dev:demoscene": "npm run dev -w @site/demoscene-dev-host",
+    "plates": "npm run plates -w @site/demoscene-dev-host",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  }
+}

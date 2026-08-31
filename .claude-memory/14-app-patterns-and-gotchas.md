@@ -1,6 +1,6 @@
-# 14 · `app/` — Patterns, Gotchas & Task Recipes (2026-07-21)
+# 14 · `apps/guitar-codex/` — Patterns, Gotchas & Task Recipes (2026-07-21)
 
-> How to work in `app/` without stepping on mines. Companion to
+> How to work in `apps/guitar-codex/` without stepping on mines. Companion to
 > [`13-app-code-map.md`](13-app-code-map.md) (where things live) and
 > [`15-app-critique.md`](15-app-critique.md) (what's weak).
 

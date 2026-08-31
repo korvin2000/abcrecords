@@ -1,7 +1,7 @@
 # 16 · Unicode signs across platforms — why they keep breaking, and the one rule (2026-08-30)
 
 > **The rule, in one line:** a Unicode sign that is not in the text faces is
-> drawn with `<Glyph>` (`app/src/components/Glyph.tsx`), never with a
+> drawn with `<Glyph>` (`apps/guitar-codex/src/components/Glyph.tsx`), never with a
 > `font-size`, and never with a hand-tuned offset.
 >
 > Read this before adding, resizing, or "nudging" any of ♀ ♂ ⚥ 𝄞 ♪ ◀ ▶ ✦ ❖ ❧ ✕.
@@ -62,8 +62,8 @@ Noto Color Emoji readily.
 
 Two files, one primitive:
 
-- **`app/src/lib/glyph.ts`** — the measurement.
-- **`app/src/components/Glyph.tsx`** + **`app/src/styles/glyph.css`** — the element.
+- **`apps/guitar-codex/src/lib/glyph.ts`** — the measurement.
+- **`apps/guitar-codex/src/components/Glyph.tsx`** + **`apps/guitar-codex/src/styles/glyph.css`** — the element.
 
 ### 2.1 Take the font out of layout entirely
 
@@ -102,7 +102,7 @@ is scaled by that single factor. Centring, by contrast, is per glyph.
 
 ### 2.4 Pin the text presentation
 
-Every emoji-capable sign is written **once**, in `app/src/lib/signs.ts`, with
+Every emoji-capable sign is written **once**, in `apps/guitar-codex/src/lib/signs.ts`, with
 U+FE0E appended. `--font-symbol` and `--font-music` (tokens.css) additionally
 carry no emoji face at all. `--font-emoji` exists for the one place a picture is
 actually wanted (the unknown-document 📜).

@@ -32,6 +32,9 @@ jspm_packages/
 
 # Distribution directories
 dist/
+# The demoscene dev host's single-file IIFE build (escape hatch, never shipped).
+dist-standalone/
+.verify/
 
 # Typescript v1 declaration files
 typings/
@@ -64,17 +67,19 @@ typings/
 .idea/modules.xml
 # Comment next line if keeping position of elements in Navigation Editor is relevant for you
 .idea/navEditor.xml
-app/.idea/
+apps/guitar-codex/.idea/
 .orca/
 prototypes/tetris/
 pages/
 pages.old/
 images/
-app/package-lock.json
+# One lockfile for the whole workspace, kept out of the tree exactly as
+# app/package-lock.json used to be. `npm install` at the root regenerates it.
+package-lock.json
 # The odometer's reference photographs — leading slash so this matches ONLY the
 # folder at the repository root. Written bare, it also matched
-# `app/src/lib/counter/` and `app/src/components/counter/`, which silently kept
+# `apps/guitar-codex/src/lib/counter/` and `.../components/counter/`, which silently kept
 # the whole visitor-counter feature out of every commit.
 /counter/
-integrate/guestbook/.env
+packages/guestbook/.env
 .idea/vcs.xml

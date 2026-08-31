@@ -1,9 +1,0 @@
-# Workspace layout, per react-modular-architecture.md 7.1.
-#
-# This repository is developed with npm workspaces (see the root package.json)
-# because that is what its lockfile is; the file below is here so the layout
-# drops into a pnpm host repo unchanged. Either package manager implements the
-# same architecture -- 7 is explicit that pnpm is not required.
-packages:
-  - "apps/*"
-  - "packages/*"

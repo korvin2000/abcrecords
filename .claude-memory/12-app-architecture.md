@@ -1,9 +1,9 @@
-# 12 · `app/` — The Production Catalogue App (2026-07-19)
+# 12 · `apps/guitar-codex/` — The Production Catalogue App (2026-07-19)
 
-**Source:** [`app/`](../app/) — the real, working implementation of the
+**Source:** [`apps/guitar-codex/`](../apps/guitar-codex/) — the real, working implementation of the
 catalogue (Vite + React 19 + TS + Tailwind 4 + framer-motion), built per the
 component decision in [`10-ui-component-decision.md`](10-ui-component-decision.md).
-See [`app/README.md`](../app/README.md) for the full layer table.
+See [`apps/guitar-codex/README.md`](../apps/guitar-codex/README.md) for the full layer table.
 
 > **This note is the high-level overview.** For depth added 2026-07-21, use the
 > triad: [`13-app-code-map.md`](13-app-code-map.md) (file-by-file map + flows +
@@ -86,7 +86,10 @@ See [`app/README.md`](../app/README.md) for the full layer table.
 - **Deep links**: `#/<slug>` opens the codex modal; ← → turn between entries
   in the current filtered order; body scroll lock is owned by `App` (per-modal
   locking broke during AnimatePresence overlaps — don't move it back).
-- Launch config: `.claude/launch.json` → `npm run dev` in `app/`, port 5173.
+- Launch config: `.claude/launch.json` → `npm run dev` **at the workspace
+  root** (it forwards to `apps/guitar-codex`), port 5173. Two more entries run
+  the feature packages alone: `guestbook-standalone` (5174) and
+  `demoscene-dev-host` (8791).
 - Production splitting: `LazyCodexModal.ts` defers the modal and Markdown
   parser, while Vite manual chunks keep React, Motion, and Markdown cacheable.
   Card pointer/focus intent preloads the modal and an actual click starts its

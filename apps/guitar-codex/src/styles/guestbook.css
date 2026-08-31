@@ -1,0 +1,78 @@
+/* ============================================================
+   Guestbook — dressing the feature package for the codex.
+
+   `@guitar-codex/guestbook` (packages/guestbook) ships its own CSS Modules,
+   hashed at build time and every rule hung off its `.root` element. It has no
+   global selectors, so nothing here is undoing anything it did, and nothing it
+   ships can reach the catalogue behind it. What it *does* expose is a set of
+   custom properties on that root element — the documented `--gb-*` tokens
+   (docs/guestbook-integration.md §10) — plus `className`, which lands on the
+   same element. This file is the whole of the host's side of that contract:
+   the codex palette, restated in the names the package reads.
+
+   The alternative was a `style={{ ['--gb-bg' as string]: … }}` literal in the
+   overlay component, which the package's own guide offers first. Colours
+   belong in the stylesheet with the rest of the theme, not in a prop, and the
+   cast is not free either.
+
+   ── Why the selector is written twice ──────────────────────────────────────
+
+   `.guestbook-skin` and the package's `.root` are both a single class, so they
+   tie on specificity, and a tie is settled by which stylesheet comes later.
+   The package's CSS arrives in the guestbook's *async chunk* — after
+   index.css, always — so it wins the tie and every token below is silently
+   discarded. Repeating the class doubles specificity (0-2-0) without an
+   `!important` and without depending on load order, which is the property that
+   matters: the two sheets are loaded at different times by construction.
+
+   Add only token assignments and things the package explicitly hands over
+   (`className`, `style`) here. A rule that reaches at a hashed class inside
+   the package is host CSS in a feature's internals — it will break silently on
+   the package's next build. Ask for a prop instead.
+   ============================================================ */
+
+.guestbook-skin.guestbook-skin {
+  /* No ground of its own: the parchment panel behind it is the page, and a
+     second sheet of near-white on top of it reads as a pasted-in web form. */
+  --gb-bg: transparent;
+  --gb-surface: var(--color-paper-50);
+  --gb-surface-alt: var(--color-paper-200);
+  --gb-border: var(--color-paper-400);
+
+  --gb-text: var(--color-ink-800);
+  --gb-text-muted: var(--color-sepia-600);
+
+  --gb-accent: var(--color-burgundy-700);
+  --gb-accent-contrast: var(--color-paper-50);
+  /* Pinned entries get the gilding the rest of the chrome uses. */
+  --gb-sticky: var(--color-gold-600);
+
+  /* 3px, like `.codex-ctrl` and the panel itself: this catalogue's corners are
+     cut, not rounded. */
+  --gb-radius: 3px;
+  /* A muted gold hairline instead of a drop shadow — the house style has no
+     strong shadows in it. */
+  --gb-shadow: 0 0 0 1px rgb(184 144 42 / 0.18);
+
+  /* The codex panel already caps the measure at 84rem and the pane insets it
+     further; a second cap inside would centre a narrow column in a wide one. */
+  --gb-max-width: none;
+
+  /* The package sets `font-family` once, on this element, and every rule
+     inside it inherits — so one declaration here carries the catalogue's
+     serif through the whole guestbook. Not a token, but the same contract:
+     this is the element it gave the host a `className` for.
+
+     Cormorant Garamond runs small, and a form is read at arm's length rather
+     than page-deep, so the base size goes up a step to compensate. */
+  font-family: var(--font-body);
+  --gb-font-size: 17px;
+}
+
+/* The scroll pane the guestbook is mounted into. `.codex-scroll .codex-pane`
+   supply the ribbon scrollbar and the clearance under the control row; this
+   only stops the form from running edge to edge on a wide screen. */
+.guestbook-measure {
+  margin-inline: auto;
+  max-inline-size: 64rem;
+}

@@ -1,4 +1,4 @@
-# 13 · `app/` — Code Map & Control/Data Flow (2026-07-21)
+# 13 · `apps/guitar-codex/` — Code Map & Control/Data Flow (2026-07-21)
 
 > Navigational companion to [`12-app-architecture.md`](12-app-architecture.md).
 > "Where does X live and how does control reach it?" Pair with

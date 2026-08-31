@@ -3,6 +3,12 @@
 Condensed, task-oriented knowledge distilled from the `docs/` directory so future
 Claude Code sessions can work efficiently without re-reading every source file.
 
+> **The repository is an npm workspace of three React projects.** The host is
+> `apps/guitar-codex/` (formerly `app/` — that path is gone), and it composes two
+> lazy-loaded feature packages, `packages/guestbook/` and `packages/demoscene/`.
+> Notes 12–16 describe the host; note **17** describes the workspace and the
+> boundary between the three. Root [`README.md`](../README.md) is the map.
+
 > **Provenance:** Built by scanning `docs/` (specs), `pages/` (worked
 > examples), and `prototypes/` (throwaway UI reference apps), per instruction.
 > **Source of truth = the files in `docs/`** for specs; `pages/` is real
@@ -26,10 +32,11 @@ Claude Code sessions can work efficiently without re-reading every source file.
 | [`09-prototypes.md`](09-prototypes.md) | Need to know what's inside the two `prototypes/` reference apps (`CodexLegends`, `Copendum`). |
 | [`10-ui-component-decision.md`](10-ui-component-decision.md) | **Building the real catalogue UI** — read this first: which prototype components were chosen and the dark→light re-theme plan. |
 | [`11-index-json.md`](11-index-json.md) | **Work with `pages/index.json` or `pages/index-<lang>.json`** — the catalogue index: ids, classification, localized names/aliases, slugs & routing, hidden entries, field ownership & case rules. Spec: [`docs/Catalog-Index.md`](../docs/Catalog-Index.md). |
-| [`12-app-architecture.md`](12-app-architecture.md) | Work on the **production app in `app/`** — data flow, BioMD parser, search/i18n/audio modules, and gotchas (scroll-lock ownership, Cyrillic fonts, country mapping). |
-| [`13-app-code-map.md`](13-app-code-map.md) | Need to **navigate `app/` fast** — file-by-file map by layer, control/data-flow walkthroughs, and a component-relationship diagram. |
-| [`14-app-patterns-and-gotchas.md`](14-app-patterns-and-gotchas.md) | **About to change `app/` code** — the recurring patterns, the landmines to avoid (CSS layering, dates, two bases, audio, search, BioMD), and step-by-step task recipes. |
-| [`15-app-critique.md`](15-app-critique.md) | Want the **honest state of `app/`** — strengths, a severity-tagged weakness/risk register, and a prioritized improvement backlog. |
+| [`12-app-architecture.md`](12-app-architecture.md) | Work on the **production app in `apps/guitar-codex/`** — data flow, BioMD parser, search/i18n/audio modules, and gotchas (scroll-lock ownership, Cyrillic fonts, country mapping). |
+| [`13-app-code-map.md`](13-app-code-map.md) | Need to **navigate `apps/guitar-codex/` fast** — file-by-file map by layer, control/data-flow walkthroughs, and a component-relationship diagram. |
+| [`14-app-patterns-and-gotchas.md`](14-app-patterns-and-gotchas.md) | **About to change `apps/guitar-codex/` code** — the recurring patterns, the landmines to avoid (CSS layering, dates, two bases, audio, search, BioMD), and step-by-step task recipes. |
+| [`15-app-critique.md`](15-app-critique.md) | Want the **honest state of `apps/guitar-codex/`** — strengths, a severity-tagged weakness/risk register, and a prioritized improvement backlog. |
+| [`17-workspace-and-features.md`](17-workspace-and-features.md) | **Working across the workspace, or touching the seam between the host and either feature package** (`packages/guestbook`, `packages/demoscene`) — the layout, the six files that make up the seam, the seven rules that keep it, the gotchas found while wiring it up, and how to verify the lazy boundary still holds. |
 | [`16-cross-platform-glyphs.md`](16-cross-platform-glyphs.md) | **About to add, resize or "nudge" a Unicode sign** (♀ ♂ ⚥ 𝄞 ♪ ◀ ▶ ✦ ❖ ✕) — why a `font-size` for one is a Windows-only guess, and the `<Glyph>` primitive that replaces it. Read it before touching any symbol in the chrome. |
 
 ## 30-second orientation
@@ -65,7 +72,11 @@ Claude Code sessions can work efficiently without re-reading every source file.
   size, baseline position and line-box height. Use `<Glyph>`; never a
   `font-size`, never a `translateY`. Full rationale:
   [`16-cross-platform-glyphs.md`](16-cross-platform-glyphs.md).
-- **Working on the `app/` code?** Read the deep-dive triad:
+- **Two lazy feature apps ride along:** the guestbook (footer VI → `#/guestbook`)
+  and the About demoscene (top bar `I`). Neither is in the initial bundle;
+  neither may be imported from startup code. Rules, seam and verification:
+  [`17-workspace-and-features.md`](17-workspace-and-features.md).
+- **Working on the `apps/guitar-codex/` code?** Read the deep-dive triad:
   [`13`](13-app-code-map.md) (where everything lives + flow) →
   [`14`](14-app-patterns-and-gotchas.md) (patterns, landmines, task recipes) →
   [`15`](15-app-critique.md) (strengths, risks, backlog).

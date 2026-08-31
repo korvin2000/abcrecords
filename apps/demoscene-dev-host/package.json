@@ -1,0 +1,28 @@
+{
+  "name": "@site/demoscene-dev-host",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "A minimal React app that stands in for apps/guitar-codex. Its only job is to exercise @site/demoscene the way a real host would: a lazy import, an open button, and a language handed down as a prop. Nothing here is deployed.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --port 8792",
+    "typecheck": "tsc --noEmit",
+    "build:standalone": "vite build --mode standalone",
+    "plates": "vite --open /sketches.html"
+  },
+  "dependencies": {
+    "@site/demoscene": "*",
+    "react": "19.2.6",
+    "react-dom": "19.2.6"
+  },
+  "devDependencies": {
+    "@types/node": "22.19.17",
+    "@types/react": "19.2.7",
+    "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "5.1.1",
+    "typescript": "5.9.3",
+    "vite": "7.3.2"
+  }
+}
