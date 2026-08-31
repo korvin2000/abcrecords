@@ -71,4 +71,8 @@ pages/
 pages.old/
 images/
 app/package-lock.json
-counter/
+# The odometer's reference photographs — leading slash so this matches ONLY the
+# folder at the repository root. Written bare, it also matched
+# `app/src/lib/counter/` and `app/src/components/counter/`, which silently kept
+# the whole visitor-counter feature out of every commit.
+/counter/
