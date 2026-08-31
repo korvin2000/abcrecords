@@ -8,6 +8,7 @@ import { de } from "./de";
 import { fr } from "./fr";
 import { it } from "./it";
 import { pt } from "./pt";
+import { uk } from "./uk";
 import { zh } from "./zh";
 import { ko } from "./ko";
 
@@ -24,6 +25,7 @@ export const DICTS: Record<Lang, Record<MsgKey, Message>> = {
   it,
   pt,
   ru,
+  uk,
   zh,
   ko,
 };

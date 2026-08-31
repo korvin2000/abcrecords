@@ -1,5 +1,5 @@
 /**
- * The ten tongues of the codex — single source of truth for language codes,
+ * The eleven tongues of the codex — single source of truth for language codes,
  * native names (endonyms, per the design brief) and Intl locales.
  *
  * Content side: index.json rows carry `lang: "ru,en"` (comma-separated ISO
@@ -17,6 +17,7 @@ export const LANGUAGES = [
   { code: "it", native: "Italiano", locale: "it-IT" },
   { code: "pt", native: "Português", locale: "pt-PT" },
   { code: "ru", native: "Русский", locale: "ru-RU" },
+  { code: "uk", native: "Українська", locale: "uk-UA" },
   { code: "zh", native: "中文", locale: "zh-CN" },
   { code: "ko", native: "한국어", locale: "ko-KR" },
 ] as const;

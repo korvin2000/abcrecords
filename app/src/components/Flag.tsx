@@ -2,7 +2,7 @@ import { useId } from "react";
 import type { Lang } from "@/lib/languages";
 
 /**
- * Colorful inline SVG flags for the ten codex languages.
+ * Colorful inline SVG flags for the eleven codex languages.
  *
  * Deliberately NOT emoji: Windows renders flag emoji as bare letter pairs
  * ("DE"), so the language menu would lose its color there. Each flag is a
@@ -98,6 +98,13 @@ const FLAGS: Record<Lang, React.ReactNode> = {
       <rect width="24" height="5.33" fill="#ffffff" />
       <rect y="5.33" width="24" height="5.34" fill="#0039A6" />
       <rect y="10.67" width="24" height="5.33" fill="#D52B1E" />
+    </>
+  ),
+  // Ukraine — azure over gold, split evenly
+  uk: (
+    <>
+      <rect width="24" height="8" fill="#0057B7" />
+      <rect y="8" width="24" height="8" fill="#FFD700" />
     </>
   ),
   // China — red field, one large + four small gold stars

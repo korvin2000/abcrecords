@@ -119,7 +119,7 @@ export function CountryFilter({
            again, which on a phone left the whole catalogue's flags standing
            between the search box and the first card. The glyph carries the
            state visually and `aria-expanded` carries it to a screen reader, so
-           no new string is needed in ten dictionaries. */
+           no new string is needed in eleven dictionaries. */
         <button
           type="button"
           onClick={() => {

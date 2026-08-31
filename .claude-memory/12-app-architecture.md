@@ -59,8 +59,8 @@ See [`app/README.md`](../app/README.md) for the full layer table.
   falling on today (births take precedence), then a saying from
   `pages/quotes/quote-<lang>.json`, taking turns every 30 s. Four tones from one
   static table; gendered sentences pick a whole template (`.m`/`.f`/`.x`).
-- **i18n** (`src/lib/i18n.tsx` + `src/lib/messages/*.ts`): TEN UI languages
-  (en es ja de fr it pt ru zh ko — registry in `src/lib/languages.ts`), one
+- **i18n** (`src/lib/i18n.tsx` + `src/lib/messages/*.ts`): ELEVEN UI languages
+  (en es ja de fr it pt ru uk zh ko — registry in `src/lib/languages.ts`), one
   complete dictionary per language typed against the ru key set,
   Intl.PluralRules per locale, fallback lang→en→ru, stored under localStorage
   key `codex-lang`, navigator.languages detection (default ru). Entry `type`

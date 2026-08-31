@@ -12,7 +12,7 @@ import { DICTS, type Message, type MsgKey } from "./messages";
 import { preferences, setPreference } from "./settings";
 
 /**
- * i18n layer for the UI chrome — ten languages, one dictionary each (see
+ * i18n layer for the UI chrome — eleven languages, one dictionary each (see
  * src/lib/messages/). Russian is the catalogue's primary language and the
  * reference key set; missing runtime lookups fall back en → ru.
  * Plurals use Intl.PluralRules per locale (ru: one/few/many; CJK: other).

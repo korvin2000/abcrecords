@@ -281,7 +281,11 @@ catalogue is searchable in more languages than it is written in.
 
 Language codes are ISO 639-1 and must be one of the codes the application
 supports. **Chinese is `zh`, not `ch`** — this applies to the index filename
-(`index-zh.json`) and to the content directory (`pages/zh/`) alike.
+(`index-zh.json`) and to the content directory (`pages/zh/`) alike. Likewise,
+**Ukrainian is `uk`, not `ua`** — `ua` is the ISO 3166-1 *country* code
+(already in use for Ukraine in `index.json` `country` and in `CountryFlag`),
+not the ISO 639-1 *language* code; the index filename is `index-uk.json` and
+the content directory is `pages/uk/`.
 
 ---
 

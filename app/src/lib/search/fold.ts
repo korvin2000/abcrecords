@@ -16,6 +16,8 @@ const CYR_TO_LAT: Record<string, string[]> = {
   э: ["e"], ю: ["yu", "iu", "u"], я: ["ya", "ia", "a"],
   // Serbian/Macedonian extras seen in the data
   ј: ["j", "y"], ћ: ["c", "ch"], ђ: ["dj", "d"], љ: ["lj"], њ: ["nj"], џ: ["dz"],
+  // Ukrainian extras (и/і are distinct letters there, unlike Russian)
+  і: ["i"], ї: ["yi", "i"], є: ["ye", "ie", "e"], ґ: ["g"],
 };
 
 const MAX_VARIANTS = 64;

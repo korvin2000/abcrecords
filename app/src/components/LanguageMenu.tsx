@@ -26,7 +26,7 @@ interface Props {
 /**
  * The language menu of the codex — a parchment panel listing each tongue by
  * its own name beside its colorful flag, in the same antique gold/burgundy
- * style as the rest of the chrome. Used in the site header (all ten
+ * style as the rest of the chrome. Used in the site header (all eleven
  * languages) and inside the codex modal (only the entry's editions).
  */
 export function LanguageMenu({ value, options, onSelect, variant, title, heading }: Props) {

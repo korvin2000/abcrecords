@@ -180,7 +180,7 @@ export function SearchBar({
  *
  * Splitting on digit runs rather than re-interpolating keeps every dictionary
  * out of it: `t()` has already chosen the plural form and filled the slots, and
- * all ten dictionaries write their figures in Arabic numerals. Odd indices of
+ * all eleven dictionaries write their figures in Arabic numerals. Odd indices of
  * the split are the captured runs — that is `String#split`'s contract with a
  * capturing group, not an assumption about this particular string.
  */

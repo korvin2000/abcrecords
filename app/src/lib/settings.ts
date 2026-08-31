@@ -21,7 +21,7 @@ import type { StoredSearch } from "./search/persist";
  *   `detectLang` in `i18n.tsx` are the two readers of that distinction.
  * - **The owner of a preference keeps its logic.** This module persists values
  *   and notifies; it does not know that effects default to off under
- *   `prefers-reduced-motion` or that a language must be one of ten. Domain
+ *   `prefers-reduced-motion` or that a language must be one of eleven. Domain
  *   modules read and write through it and keep their own rules.
  * - **Writes are cheap enough to do on every keystroke.** They are coalesced
  *   into one serialization per frame-ish window and flushed when the page is
