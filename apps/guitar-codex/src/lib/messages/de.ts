@@ -23,9 +23,23 @@ export const de: Record<MsgKey, Message> = {
   "footer.links": "Verweise",
   "footer.news": "Neuigkeiten",
   "footer.guestbook": "Gästebuch",
-  "footer.search": "Suche",
+  "footer.share": "Teilen",
   "footer.email": "E-Mail",
   "footer.audioMap": "Audio-Karte",
+
+  // The share flyout behind "VII". Service labels are UI text and never
+  // pre-encoded URL values — the builders encode once, at the very end
+  // (docs/social-share-i18n.md §3, §9).
+  "share.menu": "Diese Seite teilen",
+  "share.native": "Teilen…",
+  "share.copy": "Link kopieren",
+  "share.copied": "Link kopiert",
+  "share.vk": "Auf VK teilen",
+  "share.telegram": "Über Telegram senden",
+  "share.whatsapp": "Über WhatsApp senden",
+  "share.x": "Auf X teilen",
+  "share.facebook": "Auf Facebook teilen",
+  "share.ok": "Auf Odnoklassniki teilen",
   "footer.placeholderTitle": "Bereich in Vorbereitung",
   "footer.placeholder": "Der Bereich „{section}“ wird später hinzugefügt.",
   "footer.usageNotice":
@@ -97,6 +111,8 @@ export const de: Record<MsgKey, Message> = {
   "codex.prev": "Vorheriger Eintrag",
   "codex.next": "Nächster Eintrag",
   "codex.notFound": "Die Seite dieses Eintrags wurde noch nicht in den Kodex geschrieben.",
+  "codex.textSmaller": "Kleinere Schrift",
+  "codex.textLarger": "Größere Schrift",
 
   "tabs.biography": "Chronik",
   "tabs.gallery": "Medien",
@@ -159,8 +175,9 @@ export const de: Record<MsgKey, Message> = {
   "docs.external": "externe Quelle",
   "docs.archive": "Archivverweis",
   "docs.embedded": "im Kodex eingebettet",
-  "docs.empty": "Diesem Eintrag sind keine Schriftrollen beigefügt.",
   "docs.open": "Öffnen",
+  "docs.contactAuthors": "Die Autoren kontaktieren",
+  "docs.original": "Originalseite der alten Website",
 
   "lore.title": "Dossier",
   "lore.identity": "Identität",
@@ -194,8 +211,9 @@ export const de: Record<MsgKey, Message> = {
   "bio.archiveLink": "Archivverweis aus der alten Chronik",
   "bio.attachedDocument": "Beigefügte Schriftrolle",
 
-  "sound.on": "Klänge: an",
-  "sound.off": "Klänge: aus",
+  "sound.mode.sfx": "Klänge: an · Musik: aus",
+  "sound.mode.music": "Klänge: an · Musik: an",
+  "sound.mode.off": "Klänge: aus · Musik: aus",
   "ambient.on": "Atmosphäre: an",
   "ambient.off": "Atmosphäre: aus",
   "fx.on": "Effekte: an",

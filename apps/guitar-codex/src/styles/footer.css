@@ -185,6 +185,128 @@
   transform: rotate(12deg) scale(1.15);
 }
 
+/* ============================================================
+   The share flyout (components/ShareMenu)
+   ============================================================ */
+
+/*
+ * The panel the share row sits on. It unfolds inside the footer's own width,
+ * so it has no edges to collide with and needs no collision logic: at 320 px
+ * it is a 320 px-wide strip of parchment, and at 1600 px it is a centred one.
+ * The wrapper above it is what animates (height), which is why the padding
+ * lives here — animating a box's height while its own padding is part of that
+ * height makes the first and last frames disagree about where the content is.
+ */
+.share-flyout {
+  animation: share-unfold 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
+  margin: 0.75rem auto 0;
+  max-inline-size: 34rem;
+  padding: 0.7rem 0.6rem 0.5rem;
+  border: 1px solid rgba(184, 144, 42, 0.5);
+  border-radius: 2px;
+  background: linear-gradient(160deg, rgba(251, 243, 210, 0.9), rgba(236, 223, 192, 0.78));
+  box-shadow: inset 0 0 0 1px rgba(250, 245, 230, 0.6);
+}
+
+/* The unfolding. `clip-path` rather than a height transition, because the
+   panel's height depends on how many marks fit on a row and nothing should
+   have to know that number; a `translateY` under the clip reads as a sheet
+   sliding out from beneath the menu above it. */
+@keyframes share-unfold {
+  from {
+    clip-path: inset(0 0 100% 0);
+    opacity: 0;
+    transform: translateY(-0.6rem);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .share-flyout {
+    animation: none;
+  }
+}
+
+/* Wrapping, not scrolling: eight marks are three rows at 320 px and one from
+   about 420 px up, and a row that wraps needs no arrows, no overflow and no
+   second interaction to reach the last service. */
+.share-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: clamp(0.3rem, 0.15rem + 0.6vw, 0.6rem);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/*
+ * One mark. Square, because they are all the same weight of thing, and never
+ * smaller than 2.4 rem = 38 px: with the gap that clears WCAG 2.2 AA (SC
+ * 2.5.8) on both of its tests, which is the floor for a row of eight targets
+ * a thumb has to hit on a phone.
+ */
+.share-chip {
+  display: grid;
+  place-items: center;
+  inline-size: clamp(2.4rem, 2.1rem + 1.1vw, 3rem);
+  block-size: clamp(2.4rem, 2.1rem + 1.1vw, 3rem);
+  border: 1px solid rgba(184, 144, 42, 0.55);
+  border-radius: 2px;
+  color: var(--color-sepia-700);
+  background: linear-gradient(155deg, rgba(250, 245, 230, 0.85), rgba(236, 223, 192, 0.7));
+  cursor: pointer;
+  transition:
+    color 0.22s,
+    border-color 0.22s,
+    background 0.22s,
+    box-shadow 0.22s,
+    transform 0.22s;
+}
+.share-chip:hover,
+.share-chip:focus-visible {
+  color: var(--color-burgundy-700);
+  border-color: rgba(138, 106, 31, 0.9);
+  background: linear-gradient(155deg, rgba(251, 243, 210, 0.98), rgba(226, 209, 168, 0.85));
+  box-shadow: 0 4px 14px rgba(84, 56, 30, 0.2);
+  transform: translateY(-2px);
+}
+.share-chip:focus-visible {
+  outline: 2px solid var(--color-burgundy-600);
+  outline-offset: 2px;
+}
+.share-chip:active {
+  transform: translateY(0);
+}
+@media (prefers-reduced-motion: reduce) {
+  .share-chip:hover,
+  .share-chip:focus-visible,
+  .share-chip:active {
+    transform: none;
+  }
+}
+
+/* The emblem inside the chip, sized off the chip so the two stay in step. */
+.share-chip-mark {
+  inline-size: 55%;
+  block-size: 55%;
+}
+
+/* The address being shared, and the place "Link copied" is announced from —
+   one line doing both, so the panel does not change height when it speaks. */
+.share-notice {
+  margin: 0.5rem 0 0;
+  color: var(--color-sepia-600);
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-style: italic;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
 .footer-colophon {
   border-top: 1px solid rgba(184, 144, 42, 0.55);
   border-bottom: 1px solid rgba(184, 144, 42, 0.45);

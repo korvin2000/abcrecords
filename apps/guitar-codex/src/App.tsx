@@ -2,7 +2,9 @@ import { Suspense, useCallback, useDeferredValue, useEffect, useMemo, useRef, us
 import { AnimatePresence } from "framer-motion";
 import clsx from "clsx";
 import { COUNTER, DOSSIER, EFFECTS, FEATURES, HERALD } from "@/config";
+import type { MsgKey } from "@/lib/messages";
 import { LANG_CODES, pickContentLang } from "@/lib/languages";
+import { resolveSitePath } from "@/lib/paths";
 import { EMPTY_CATALOG, prefetchEntry } from "@/lib/catalog";
 import { countryName } from "@/lib/metadata";
 import { NO_FACTS, useFacts } from "@/lib/dossier";
@@ -47,12 +49,12 @@ export default function App() {
   const [criteria, setCriteria] = useState<SearchCriteria>(() => restore(preferences().search));
   // Typing stays on the input's own frame; the grid re-ranks behind it.
   const deferredCriteria = useDeferredValue(criteria);
+  // Two preferences, one control. The bar has room for a single audio button
+  // and the reader has two questions to answer, so the button is a three-stop
+  // cycle over the pair rather than a toggle over one of them — see
+  // SOUND_MODES below.
   const [sound, setSound] = usePreference("sound");
-  // Read, never written: the ambience has no switch of its own any more — the
-  // slot it held in the bar is the demoscene's `I` now. The preference is still
-  // honoured for a reader who once turned it on, and `lib/settings.ts` is still
-  // where it would be turned on again.
-  const [ambient] = usePreference("ambient");
+  const [ambient, setAmbient] = usePreference("ambient");
   const fx = useFx();
   // The visitors' chronicle. It lives beside the codex rather than inside the
   // header, because the header carries a `backdrop-filter` — which is a
@@ -224,9 +226,19 @@ export default function App() {
 
   // Both toggles only move the remembered value; the effects above are what
   // carry it to the engine, so mount and toggle take exactly the same path.
-  const toggleSound = () => {
+  //
+  // Which stop of the cycle the reader is at is *derived* from the two
+  // preferences, never stored beside them: an index would be a third fact
+  // about the same state and would disagree with them the first time anything
+  // else wrote one. "Muted" swallows whatever the ambience preference happens
+  // to say, so a stored `sound: false, ambient: true` reads as off and the
+  // next press repairs it.
+  const soundMode = !sound ? 2 : ambient ? 1 : 0;
+  const cycleSound = () => {
     audio.unlock();
-    setSound(!sound);
+    const next = SOUND_MODES[(soundMode + 1) % SOUND_MODES.length];
+    setSound(next.sound);
+    setAmbient(next.ambient);
   };
 
   const toggleEffects = () => {
@@ -347,10 +359,12 @@ export default function App() {
             </CtrlButton>
           )}
           {/* The About demoscene — this is the host's whole connecting point to
-              `@site/demoscene`. `I` is the footer's first numeral, the same
-              section reached from the other end of the page; and it is a plain
-              Latin capital, so unlike ✦ or ✕ it needs no <Glyph> — every face
-              in the text stack carries it, at one weight and one baseline. */}
+              `@site/demoscene`. It used to be a Latin `I`, matching the
+              footer's first numeral; a numeral is a label for a list, though,
+              and in a row of pictograms it read as a stray letter. `AboutMark`
+              below is the same idea said in the shape everything else uses for
+              "what is this?" — and being drawn rather than typed, it needs no
+              <Glyph> and cannot be substituted by a font. */}
           {FEATURES.demoscene && (
             <CtrlButton
               active={aboutOpen}
@@ -358,13 +372,15 @@ export default function App() {
               onIntent={preloadAboutDemoscene}
               title={t("about.open")}
             >
-              <span className="font-display font-bold leading-none" aria-hidden>
-                I
-              </span>
+              <AboutMark />
             </CtrlButton>
           )}
-          <CtrlButton active={sound} onClick={toggleSound} title={sound ? t("sound.on") : t("sound.off")}>
-            <span aria-hidden>{sound ? "🔊" : "🔇"}</span>
+          <CtrlButton
+            active={soundMode !== 2}
+            onClick={cycleSound}
+            title={t(SOUND_MODES[soundMode].label)}
+          >
+            <span aria-hidden>{SOUND_MODES[soundMode].icon}</span>
           </CtrlButton>
         </div>
       </header>
@@ -465,8 +481,14 @@ export default function App() {
             {selectedRecord?.pdf ? (
               <LazyPdfModal
                 key="pdf"
-                record={selectedRecord}
-                pdf={selectedRecord.pdf}
+                title={selectedRecord.display}
+                // `pdf` is site-root-relative — the document archive sits
+                // beside the app, not inside it (docs/Catalog-Index.md §9.1).
+                // Resolving it here rather than in the modal is what lets the
+                // same modal open a `.pdf` met inside an article, whose path
+                // belongs to the resource base instead (lib/pdfViewer).
+                src={resolveSitePath(selectedRecord.pdf)}
+                download={selectedRecord.pdf.split("/").pop()}
                 onClose={() => openEntry(null)}
               />
             ) : (
@@ -531,6 +553,61 @@ export default function App() {
         </ErrorBoundary>
       )}
     </div>
+  );
+}
+
+/**
+ * The bar's audio control, as three stops rather than two.
+ *
+ * A single "sound" switch had to stand for two independent things — the
+ * interface's own cues and the ambient score — and it answered them both with
+ * one word, so a reader who wanted the chimes but not the music had nowhere to
+ * say so. Ordered so the first press from the default reaches for the music
+ * (the thing somebody is most likely to be looking for) and the second silences
+ * everything; a third returns to the default.
+ *
+ * Pictographs, not signs: 🔊 🎶 🔇 are `Emoji_Presentation=Yes` and are meant
+ * to be drawn in colour by the emoji face, exactly like the ✨ beside them —
+ * they are the one place in this bar where a <Glyph> would be wrong.
+ */
+const SOUND_MODES = [
+  { sound: true, ambient: false, icon: "🔊", label: "sound.mode.sfx" },
+  { sound: true, ambient: true, icon: "🎶", label: "sound.mode.music" },
+  { sound: false, ambient: false, icon: "🔇", label: "sound.mode.off" },
+] as const satisfies readonly { sound: boolean; ambient: boolean; icon: string; label: MsgKey }[];
+
+/**
+ * "What is this?" — the mark on the About button.
+ *
+ * Drawn, not typed. A question mark is in every text face, but so is every
+ * *other* weight and shape of one: at 14 px inside a 28 px disc, Cormorant's
+ * finely-drawn `?` all but vanishes beside the solid emoji either side of it.
+ * Two paths sidestep the whole question of which face the platform reaches for
+ * — the ink is this file's, the stroke follows the button's own colour, and
+ * there is nothing here for `lib/glyph.ts` to have to measure.
+ *
+ * The scale around the origin of the box is what makes the mark fill the disc:
+ * the geometry is drawn at the usual icon proportions and then enlarged in
+ * place, so the button needs no size of its own and follows `--topbar-icon`
+ * like every other control in the bar.
+ */
+function AboutMark() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="h-[1.25em] w-[1.25em] text-burgundy-700"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <g transform="translate(12 12) scale(1.5) translate(-12 -12)">
+        <path d="M9.1 9.05a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+        <path d="M12 17h.01" />
+      </g>
+    </svg>
   );
 }
 

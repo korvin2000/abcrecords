@@ -16,9 +16,21 @@ influences**. Feel: refined, archival, scholarly — **not** distressed or medie
   ornamental corner flourishes.
 - **Typography:** serif throughout, generous line height, highly readable
   dark-brown body text.
-- **Controls:** dark rectangular **"Close Codex"** button at the upper-left edge;
-  custom narrow **vertical scrollbar** on the right (dark track, gold thumb),
-  always visible when content exceeds the viewport.
+- **Controls:** dark rectangular **"Close Codex"** button at the upper-left
+  edge; at the upper-right, one row of the same buttons — the entry's language
+  menu, `-` `+`, `◀` `▶`. Plus a custom narrow **vertical scrollbar** on the
+  right (dark track, gold thumb), always visible when content exceeds the
+  viewport.
+- **Reading size:** `-` / `+` step a **ratio applied to the whole reading
+  pane**, not a font size for the prose alone — plates, figures, tables and the
+  dossier grid grow with the text. Remembered between entries and between
+  visits. **No indicator** (the page is the indicator, and a fifth control does
+  not fit a phone); the ends of the range show as a disabled button.
+- **Narrow panels drop the language menu** (below ~25 rem): "Close" on the
+  left, `-` `+` `◀` `▶` on the right. It is the widest control and the least
+  often wanted mid-read, and the header's own menu still has every tongue. The
+  row's margins are the row's, never a button's, so dropping one never moves
+  the corners.
 
 ## Content layout
 
@@ -32,6 +44,17 @@ influences**. Feel: refined, archival, scholarly — **not** distressed or medie
 - Small image galleries / aligned photos with **thin gold borders**.
 - A discreet ornamental **footer** marking the end of the entry.
 - Overall: symmetrical, calm, scholarly, luxurious, historically inspired.
+
+## Documents tab
+
+The dossier's `documents[]` rows, then its primary source, then **two standing
+rows on every entry**, drawn identically to the documents above them: **contact
+the authors** (the reserved `#/guestbook` route; absent when the feature is
+off) and **the original page on the old site** (`/pages/{slug}.htm`, relative
+on purpose, so a staging or offline copy compares against itself). A PDF —
+here, in an article link, or in a `::: document` — opens in the codex's own
+viewer, unless it lives on another origin, which pdf.js cannot fetch without
+that server's consent.
 
 ## Two codex modes
 

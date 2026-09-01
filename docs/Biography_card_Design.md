@@ -6,6 +6,25 @@ Use a warm ivory/parchment background with fine paper grain, soft aging, and res
 
 Place a dark rectangular "✕ Close Codex" button at the upper-left edge. Add a custom narrow vertical scrollbar on the right, using a dark track and gold thumb, always visible when the biography exceeds the viewport.
 
+The upper-right edge carries the rest of the chrome as one row of the same
+dark buttons, in this order: the entry's language menu, then `-` and `+`, then
+the two page turns `◀` `▶`.
+
+`-` / `+` step the **reading size** — a ratio applied to everything in the
+reading pane, not a font size for the prose alone, so plates, figures, tables
+and the dossier grid grow with the text. It is remembered between visits and
+between entries: a reader who needs larger type on a phone needs it on every
+page, and being asked again at each one is the complaint the control answers.
+There is no percentage indicator beside the buttons — the page is the
+indicator, and a fifth control would not fit the row on a phone; the ends of
+the range show as a disabled button instead.
+
+On a narrow panel (below ~25 rem) the **language menu is dropped** and only
+"Close" on the left and `-` `+` `◀` `▶` on the right remain. It is the widest
+control and the one least often wanted mid-read, and the reader's tongue is
+still one Escape and one header menu away. The row's margins belong to the row,
+never to its buttons, so dropping a control never moves the two corners.
+
 The content area should be spacious and centered, with generous horizontal margins. Use:
 
 A large uppercase serif name/title in deep burgundy-red, with wide letter spacing.
@@ -40,6 +59,26 @@ The Lore tab (or Attributes, if that label is preferred internally) should displ
 It should present metadata in a clean dossier-like layout, for example:
 
 The Lore/Attributes section should look more like a scholarly dossier than a generic web form: clean rows, soft separators, serif typography, and the same antique visual language as the rest of the modal.
+
+## Documents Tab
+
+Above the dossier's own `documents[]` rows, the tab lists whatever the entry
+declares as a primary source. Below them it always carries **two more rows,
+drawn exactly like the documents above** — from the reader's side that is what
+they are, two more things this entry lets you open:
+
+- **Contact the authors** — opens the visitors' book at the reserved
+  `#/guestbook` route, so a reader with something to add about *this* page has
+  somewhere to say it. Absent when the guestbook feature is switched off.
+- **Original page on the old site** — the same entry as it stood on the legacy
+  site, at `/pages/{slug}.htm`. Relative rather than absolute on purpose: on a
+  staging or offline copy the comparison should be against the copy in front of
+  the reader, not against the live site.
+
+A PDF listed here — or linked from an article, or attached with `::: document`
+— opens in the codex's own document viewer rather than in a browser tab. The
+one exception is a PDF on somebody else's origin, which the viewer cannot fetch
+without that server's consent and which therefore still opens as a link.
 
 Avoid bright modern colors, strong shadows, neon accents.
 

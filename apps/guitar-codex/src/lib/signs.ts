@@ -50,6 +50,8 @@ export const SIGN = {
   article: "❧",
   /** ✦ BLACK FOUR POINTED STAR — a source. */
   source: "✦",
+  /** ✉ ENVELOPE — correspondence: the row that opens the visitors' book. */
+  mail: `✉${TEXT}`,
   /** 📜 SCROLL — the fallback for an unknown document type. Deliberately the
    *  one pictograph in the set: it *is* a picture, so it keeps its colour
    *  presentation and is drawn by the emoji face on purpose. */

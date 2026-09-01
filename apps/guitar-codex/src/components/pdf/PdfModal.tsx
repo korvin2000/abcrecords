@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { m, useReducedMotion } from "framer-motion";
 import clsx from "clsx";
-import type { CatalogRecord } from "@/lib/catalog";
-import { resolveSitePath } from "@/lib/paths";
 import { audio } from "@/lib/audio";
 import { CornerOrnament } from "../OrnateFrame";
 import { PdfViewer } from "./PdfViewer";
@@ -22,14 +20,30 @@ import { PdfViewer } from "./PdfViewer";
  *
  * Everything below the toolbar is PdfViewer's; this file is only the room it
  * is read in.
+ *
+ * It is addressed by *file*, not by entry: the same room opens for an index row
+ * that is a document (App) and for a `.pdf` link met inside an article or in
+ * the Documents tab (lib/pdfViewer). Resolving the path is the caller's job,
+ * because the two do it against different bases — the site root for `pdf` in
+ * index.json, the resource base for a target written inside an entry.
  */
 
 interface Props {
-  /** The index row behind the document — used for its display name only. */
-  record: CatalogRecord;
-  /** The row's declared, site-root-relative PDF path (`record.pdf`, narrowed
-   *  by the caller so this component never has to wonder). */
-  pdf: string;
+  /** Shown in the toolbar and as the dialog's accessible name: the entry's
+   *  name for a document row, the link's own text for a document in an
+   *  article. */
+  title: string;
+  /** The fully-resolved URL of the file. */
+  src: string;
+  /** Suggested download filename; the viewer falls back to the basename. */
+  download?: string;
+  /**
+   * Stacking level. 40 is the codex's own layer, where a document *entry*
+   * opens in place of a codex. A PDF opened from inside an open codex passes
+   * 60 and stacks over it, exactly as the image and tablature viewers do —
+   * see the layer list in App.
+   */
+  z?: number;
   onClose: () => void;
 }
 
@@ -37,7 +51,7 @@ interface Props {
  *  `.page-turn-close` in index.css. See CodexShell for the reasoning. */
 const CLOSE_MS = 320;
 
-export function PdfModal({ record, pdf, onClose }: Props) {
+export function PdfModal({ title, src, download, z = 40, onClose }: Props) {
   const reduced = useReducedMotion();
   const closeMs = reduced ? 0 : CLOSE_MS;
   const [closing, setClosing] = useState(false);
@@ -61,29 +75,43 @@ export function PdfModal({ record, pdf, onClose }: Props) {
   // Escape closes, as everywhere else in the codex. The viewer's own shortcuts
   // are bound in capture phase and stop what they consume, so the two never
   // fight over a key.
+  //
+  // This one is captured and stopped too, and that is not decoration: a `.pdf`
+  // met inside an article opens this dialog **over** an open codex, whose own
+  // Escape listener is bound on `window` in the bubble phase. Without the stop
+  // both fired on one keypress and shutting the document also shut the entry
+  // that linked to it. Capture at the window runs before bubble at the window,
+  // so the innermost overlay closes and nothing behind it hears the key — the
+  // same convention LanguageMenu, ImageViewer and StatsModal already keep.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") handleClose();
+      if (e.key !== "Escape") return;
+      e.preventDefault();
+      e.stopPropagation();
+      handleClose();
     };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    window.addEventListener("keydown", onKey, { capture: true });
+    return () => window.removeEventListener("keydown", onKey, { capture: true });
   }, [handleClose]);
-
-  const href = resolveSitePath(pdf);
 
   return (
     <m.div
       // Same frame gap and same safe-area handling as CodexShell: one token for
       // how far a book is held off the screen, and `env()` so a notched phone
       // in landscape does not put the toolbar under the cutout.
-      className="codex-overlay fixed inset-0 z-40 flex items-center justify-center"
+      //
+      // The layer is a style rather than a `z-*` utility on purpose: two
+      // Tailwind z-index classes on one element are decided by their order in
+      // the generated sheet, not by the order they are written in.
+      style={{ zIndex: z }}
+      className="codex-overlay fixed inset-0 flex items-center justify-center"
       initial={{ opacity: 0 }}
       animate={{ opacity: closing ? 0 : 1 }}
       exit={{ opacity: 0, transition: { duration: 0 } }}
       transition={{ duration: closing ? closeMs / 1000 : 0.25 }}
       role="dialog"
       aria-modal="true"
-      aria-label={record.display}
+      aria-label={title}
     >
       <div className="absolute inset-0 bg-ink-950/55 backdrop-blur-sm" onClick={handleClose} />
 
@@ -115,9 +143,9 @@ export function PdfModal({ record, pdf, onClose }: Props) {
               tracks sit inside the frame rather than across it. */}
           <PdfViewer
             className="flex-1"
-            src={href}
-            title={record.display}
-            download={pdf.split("/").pop()}
+            src={src}
+            title={title}
+            download={download}
             onClose={handleClose}
           />
         </div>

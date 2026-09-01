@@ -52,6 +52,12 @@ export interface Preferences {
   readonly ambient: boolean;
   /** Decorative effects, or null to follow `prefers-reduced-motion`. */
   readonly effects: boolean | null;
+  /** How much larger (or smaller) than its default the codex sets its type —
+   *  the reader's own answer to "this is too small on a phone". A ratio, not a
+   *  size: the article's own fluid scale still decides what 1 means at this
+   *  width. Bounds and steps belong to the control that offers it
+   *  (components/codex/CodexShell). */
+  readonly textScale: number;
   /** The search filter as last left, or null when never refined — which is
    *  what lets a first visit seed a filter from the reader's language. */
   readonly search: StoredSearch | null;
@@ -72,6 +78,7 @@ const DEFAULTS: Preferences = {
   sound: true,
   ambient: false,
   effects: null,
+  textScale: 1,
   search: null,
   counter: null,
 };
@@ -173,6 +180,7 @@ function load(): Preferences {
     sound: pickBoolean(row.v === VERSION ? row.sound : undefined) ?? DEFAULTS.sound,
     ambient: pickBoolean(row.v === VERSION ? row.ambient : undefined) ?? DEFAULTS.ambient,
     effects: pickBoolean(row.v === VERSION ? row.effects : undefined) ?? legacyEffects(),
+    textScale: pickNumber(row.v === VERSION ? row.textScale : undefined) ?? DEFAULTS.textScale,
     search: row.v === VERSION && row.search && typeof row.search === "object"
       ? (row.search as StoredSearch)
       : null,

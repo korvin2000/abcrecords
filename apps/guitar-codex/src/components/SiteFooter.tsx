@@ -1,35 +1,51 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { m, useReducedMotion, type Variants } from "framer-motion";
 import type { MsgKey } from "@/lib/messages";
+import { SITE } from "@/config";
 import { audio } from "@/lib/audio";
+import { useDismissOnOutside } from "@/lib/dismiss";
 import { useI18n } from "@/lib/i18n";
 import { Glyph } from "@/components/Glyph";
 import { SIGN } from "@/lib/signs";
 import { GUESTBOOK_SLUG, preloadGuestbookOverlay } from "@/components/guestbook";
+import { ShareMenu } from "./ShareMenu";
 import { CornerOrnament, Divider } from "./OrnateFrame";
 
-/** `slug` names what a section opens once it exists; items without one — or
- *  whose entry is not in the index yet — stay placeholders.
+/** What each of the nine sections does, in the order they are numbered.
  *
- *  Almost every slug here is a catalogue entry, resolved against the index by
- *  `canOpen`. `VI` is the exception: `guestbook` is a **reserved route**, not
- *  an entry, and it opens the guestbook feature package
- *  (components/guestbook/route.ts). `preload` warms that chunk on intent, the
- *  same bargain `CharacterCard` strikes with the codex. */
+ *  Most name a `slug`: a catalogue entry, resolved against the index by
+ *  `canOpen`, and a placeholder until that entry exists. Three do something
+ *  else, and each says so in its own field rather than by being special-cased
+ *  in the markup:
+ *
+ *  - `VI` — `guestbook` is a **reserved route**, not an entry, and opens the
+ *    guestbook feature package (components/guestbook/route.ts). `preload`
+ *    warms that chunk on intent, the same bargain `CharacterCard` strikes
+ *    with the codex.
+ *  - `VII` — `panel: "share"` opens the share flyout below the grid. It was
+ *    "Search" until the catalogue grew a live search bar of its own, at which
+ *    point a second one at the bottom of the page could only ever be a worse
+ *    version of the one already on screen.
+ *  - `VIII` — `href` is followed as written. `mailto:` is the whole reason the
+ *    field exists: the address is a fact about the project (config.ts), not a
+ *    route, and the browser's mail client is the only thing that can act on
+ *    it. */
 const FOOTER_ITEMS = [
   { key: "footer.about", numeral: "I", slug: "about" },
-  { key: "footer.sources", numeral: "II", slug: "sources" },
-  { key: "footer.literature", numeral: "III" },
+  { key: "footer.sources", numeral: "II", slug: "source" },
+  { key: "footer.literature", numeral: "III", slug: "biblio" },
   { key: "footer.links", numeral: "IV", slug: "links" },
   { key: "footer.news", numeral: "V", slug: "news" },
   { key: "footer.guestbook", numeral: "VI", slug: GUESTBOOK_SLUG, preload: preloadGuestbookOverlay },
-  { key: "footer.search", numeral: "VII" },
-  { key: "footer.email", numeral: "VIII" },
-  { key: "footer.audioMap", numeral: "IX" },
+  { key: "footer.share", numeral: "VII", panel: "share" },
+  { key: "footer.email", numeral: "VIII", href: `mailto:${SITE.email}` },
+  { key: "footer.audioMap", numeral: "IX", slug: "karta" },
 ] as const satisfies readonly {
   key: MsgKey;
   numeral: string;
   slug?: string;
+  href?: string;
+  panel?: "share";
   preload?: () => void;
 }[];
 
@@ -64,6 +80,20 @@ export function SiteFooter({ canOpen, onOpenEntry }: Props) {
   const { t } = useI18n();
   const reduced = useReducedMotion();
   const [announcement, setAnnouncement] = useState<string | null>(null);
+  const [shareOpen, setShareOpen] = useState(false);
+
+  // Light-dismiss, on the wrapper that holds *both* the tile and the panel —
+  // anchoring it to the panel alone would make a click on "VII" read as
+  // "outside" and close what it had just opened. Escape is handled in the
+  // capture phase by the hook, so it closes this and nothing behind it.
+  const closeShare = useCallback(() => setShareOpen(false), []);
+  const shareRef = useDismissOnOutside<HTMLDivElement>(shareOpen, closeShare);
+
+  const toggleShare = () => {
+    audio.unlock();
+    audio.click();
+    setShareOpen((was) => !was);
+  };
 
   const activatePlaceholder = (label: string) => {
     audio.unlock();
@@ -116,72 +146,108 @@ export function SiteFooter({ canOpen, onOpenEntry }: Props) {
 
           <Divider className="mx-auto my-2.5 max-w-xl sm:my-4" />
 
-          <nav aria-label={t("footer.navLabel")}>
-            <m.ul
-              // Nine sections. Two columns meant five rows of tiles — the
-              // single largest block of furniture on a phone. Three fits the
-              // longest label ("LITERATURE") at 360 px and costs three rows.
-              className="m-0 grid list-none grid-cols-3 gap-1 p-0 sm:grid-cols-5 sm:gap-2.5 lg:grid-cols-9"
-              variants={listVariants}
-              initial={reduced ? undefined : "hidden"}
-              whileInView="show"
-              viewport={{ once: true, amount: 0.18 }}
-            >
-              {FOOTER_ITEMS.map((item) => {
-                const label = t(item.key);
-                const slug = "slug" in item && canOpen(item.slug) ? item.slug : null;
-                const preload = "preload" in item ? item.preload : undefined;
-                const shared = {
-                  className: "footer-menu-item group",
-                  onMouseEnter: () => {
-                    audio.hover();
-                    // Only the guestbook has one: its panel is a chunk, and the
-                    // hover is long enough to have it in memory by the click.
-                    if (slug) preload?.();
-                  },
-                  whileHover: reduced ? undefined : { y: -3, scale: 1.015 },
-                  whileTap: { scale: 0.97 },
-                } as const;
-                const face = (
-                  <>
-                    <span className="footer-menu-numeral" aria-hidden>
-                      {item.numeral}
-                    </span>
-                    <span className="relative z-10 leading-tight">{label}</span>
-                    <span className="footer-menu-flourish" aria-hidden>
-                      ❦
-                    </span>
-                  </>
-                );
+          <div ref={shareRef}>
+            <nav aria-label={t("footer.navLabel")}>
+              <m.ul
+                // Nine sections. Two columns meant five rows of tiles — the
+                // single largest block of furniture on a phone. Three fits the
+                // longest label ("LITERATURE") at 360 px and costs three rows.
+                className="m-0 grid list-none grid-cols-3 gap-1 p-0 sm:grid-cols-5 sm:gap-2.5 lg:grid-cols-9"
+                variants={listVariants}
+                initial={reduced ? undefined : "hidden"}
+                whileInView="show"
+                viewport={{ once: true, amount: 0.18 }}
+              >
+                {FOOTER_ITEMS.map((item) => {
+                  const label = t(item.key);
+                  const slug = "slug" in item && canOpen(item.slug) ? item.slug : null;
+                  const preload = "preload" in item ? item.preload : undefined;
+                  const href = "href" in item ? item.href : undefined;
+                  const panel = "panel" in item ? item.panel : undefined;
+                  const shared = {
+                    className: "footer-menu-item group",
+                    onMouseEnter: () => {
+                      audio.hover();
+                      // Only the guestbook has one: its panel is a chunk, and the
+                      // hover is long enough to have it in memory by the click.
+                      if (slug) preload?.();
+                    },
+                    whileHover: reduced ? undefined : { y: -3, scale: 1.015 },
+                    whileTap: { scale: 0.97 },
+                  } as const;
+                  const face = (
+                    <>
+                      <span className="footer-menu-numeral" aria-hidden>
+                        {item.numeral}
+                      </span>
+                      <span className="relative z-10 leading-tight">{label}</span>
+                      <span className="footer-menu-flourish" aria-hidden>
+                        ❦
+                      </span>
+                    </>
+                  );
 
-                return (
-                  <m.li key={item.key} variants={itemVariants} className="min-w-0">
-                    {slug ? (
-                      <m.a
-                        {...shared}
-                        href={`#/${slug}`}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          open(slug);
-                        }}
-                      >
-                        {face}
-                      </m.a>
-                    ) : (
-                      <m.button
-                        {...shared}
-                        type="button"
-                        onClick={() => activatePlaceholder(label)}
-                        title={t("footer.placeholderTitle")}
-                      >
-                        {face}
-                      </m.button>
-                    )}
-                  </m.li>
-                );
-              })}
-            </m.ul>
-          </nav>
+                  return (
+                    <m.li key={item.key} variants={itemVariants} className="min-w-0">
+                      {slug ? (
+                        <m.a
+                          {...shared}
+                          href={`#/${slug}`}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            open(slug);
+                          }}
+                        >
+                          {face}
+                        </m.a>
+                      ) : href ? (
+                        // Left to the browser on purpose: `mailto:` is the
+                        // platform's business, and intercepting it is how a link
+                        // that works everywhere becomes one that works wherever
+                        // the interception was tested.
+                        <m.a {...shared} href={href} onClick={() => audio.click()}>
+                          {face}
+                        </m.a>
+                      ) : panel === "share" ? (
+                        <m.button
+                          {...shared}
+                          type="button"
+                          onClick={toggleShare}
+                          aria-expanded={shareOpen}
+                          aria-controls="footer-share"
+                        >
+                          {face}
+                        </m.button>
+                      ) : (
+                        <m.button
+                          {...shared}
+                          type="button"
+                          onClick={() => activatePlaceholder(label)}
+                          title={t("footer.placeholderTitle")}
+                        >
+                          {face}
+                        </m.button>
+                      )}
+                    </m.li>
+                  );
+                })}
+              </m.ul>
+            </nav>
+
+            {/* The flyout unfolds here — under the whole grid, in the footer's
+                own width — rather than out of the tile. See ShareMenu.
+
+                Mounted and unmounted outright, with the unfolding done by a
+                CSS keyframe on the panel itself (`.share-flyout`, footer.css)
+                — the same way `.leaf-in` and `.page-turn-open` are done. An
+                `AnimatePresence` around it would buy an animated *close* as
+                well, at the cost of a `height: auto → 0` exit and framer's
+                presence bookkeeping for eight links and a live region. The
+                cheaper trade is worth it here: opening unfolds, shutting is
+                immediate, and a closed menu is gone from the document rather
+                than collapsed inside it. */}
+            <div id="footer-share">{shareOpen && <ShareMenu />}</div>
+          </div>
 
           <div
             className="mt-2 min-h-4 text-center font-body text-[0.7rem] italic text-sepia-600"

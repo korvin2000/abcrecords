@@ -22,6 +22,7 @@ import { audioKind, isUnplayableAudioUrl } from "../playback";
 import { isImageUrl, useImageViewer } from "../imageViewer";
 import { isAsciiTabUrl } from "../asciiTab";
 import { useAsciiTabViewer } from "../asciiTabViewer";
+import { isViewablePdf, usePdfViewer } from "../pdfViewer";
 import { useI18n } from "../i18n";
 import { InlineAudioDownload, InlineAudioPlayer } from "@/components/AudioPlayer";
 import { CurlFrame } from "@/components/CurlFrame";
@@ -72,6 +73,7 @@ function Md({
   const { t } = useI18n();
   const openImage = useImageViewer();
   const openTab = useAsciiTabViewer();
+  const openPdf = usePdfViewer();
 
   const anchor = ({ href, children }: { href?: string; children?: ReactNode }) => {
     const url = href ?? "";
@@ -127,6 +129,22 @@ function Md({
           <a
             href={src}
             onClick={open(() => openImage({ src, alt: label, caption: label, download: filename(url) }))}
+          >
+            {children}
+          </a>
+        );
+      }
+      // A scan of an article or a score, met in the middle of a sentence: the
+      // archive's own reading desk rather than the platform's PDF plugin —
+      // which on a phone is often a download and a lost place in the text.
+      // The `href` is real, so a middle-click still opens the file directly.
+      if (isViewablePdf(url)) {
+        return (
+          <a
+            href={src}
+            onClick={open(() =>
+              openPdf({ src, title: linkText(children) || filename(url), download: filename(url) }),
+            )}
           >
             {children}
           </a>
@@ -492,6 +510,7 @@ function DocumentCard({ node }: { node: DocumentNode }) {
   const { t } = useI18n();
   const openImage = useImageViewer();
   const openTab = useAsciiTabViewer();
+  const openPdf = usePdfViewer();
   const { src, title } = node;
   const href = resolveResourcePath(src);
   const label = title ?? src.split("/").pop() ?? src;
@@ -509,13 +528,15 @@ function DocumentCard({ node }: { node: DocumentNode }) {
     </>
   );
 
-  // An in-app viewer already exists for images and tablature: open it in place
-  // of a download, whatever `mode` says.
+  // An in-app viewer already exists for images, tablature and documents: open
+  // it in place of a download, whatever `mode` says.
   const viewer = isImageUrl(src)
     ? () => openImage({ src: href, alt: label, caption: label })
     : isAsciiTabUrl(src)
       ? () => openTab({ src: href, label, download: filename(src) })
-      : null;
+      : isViewablePdf(src)
+        ? () => openPdf({ src: href, title: label, download: filename(src) })
+        : null;
 
   const card = viewer ? (
     <button type="button" className={cardClass} onClick={viewer}>

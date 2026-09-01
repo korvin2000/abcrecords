@@ -39,6 +39,28 @@ export const FEATURES: Features = {
   demoscene: true,
 };
 
+interface SiteConfig {
+  /**
+   * The project's public home, absolute and canonical — what the footer's
+   * share menu hands to VK, X, Facebook and the rest.
+   *
+   * Absolute and hard-coded rather than read from `location`: the same build is
+   * opened from a staging host, from a local `npm run dev` and from a file on
+   * somebody's laptop, and none of those are an address worth posting to a
+   * social network. What is shared is the project, not the copy of it the
+   * reader happens to have open.
+   */
+  url: string;
+  /** Where "VIII · E-mail" writes to. */
+  email: string;
+}
+
+/** Who this site *is*, as the outside world addresses it. */
+export const SITE: SiteConfig = {
+  url: "https://www.abc-guitars.com",
+  email: "xyz@mail.ru",
+};
+
 interface GuestbookConfig {
   /**
    * Where the guestbook's PHP REST API lives, as the browser sees it. Passed

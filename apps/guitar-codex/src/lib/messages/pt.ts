@@ -23,9 +23,23 @@ export const pt: Record<MsgKey, Message> = {
   "footer.links": "Ligações",
   "footer.news": "Notícias",
   "footer.guestbook": "Livro de visitas",
-  "footer.search": "Pesquisa",
+  "footer.share": "Partilhar",
   "footer.email": "E-mail",
   "footer.audioMap": "Mapa de áudio",
+
+  // The share flyout behind "VII". Service labels are UI text and never
+  // pre-encoded URL values — the builders encode once, at the very end
+  // (docs/social-share-i18n.md §3, §9).
+  "share.menu": "Partilhar esta página",
+  "share.native": "Partilhar…",
+  "share.copy": "Copiar ligação",
+  "share.copied": "Ligação copiada",
+  "share.vk": "Partilhar no VK",
+  "share.telegram": "Enviar pelo Telegram",
+  "share.whatsapp": "Enviar pelo WhatsApp",
+  "share.x": "Partilhar no X",
+  "share.facebook": "Partilhar no Facebook",
+  "share.ok": "Partilhar no Odnoklassniki",
   "footer.placeholderTitle": "Secção em preparação",
   "footer.placeholder": "A secção «{section}» será acrescentada mais tarde.",
   "footer.usageNotice":
@@ -97,6 +111,8 @@ export const pt: Record<MsgKey, Message> = {
   "codex.prev": "Entrada anterior",
   "codex.next": "Entrada seguinte",
   "codex.notFound": "A página desta entrada ainda não foi lavrada no códice.",
+  "codex.textSmaller": "Texto menor",
+  "codex.textLarger": "Texto maior",
 
   "tabs.biography": "Crónica",
   "tabs.gallery": "Multimédia",
@@ -159,8 +175,9 @@ export const pt: Record<MsgKey, Message> = {
   "docs.external": "fonte externa",
   "docs.archive": "referência de arquivo",
   "docs.embedded": "incorporado no códice",
-  "docs.empty": "Nenhum pergaminho está anexado a esta entrada.",
   "docs.open": "Abrir",
+  "docs.contactAuthors": "Contactar os autores",
+  "docs.original": "Página original do site antigo",
 
   "lore.title": "Dossiê",
   "lore.identity": "Identidade",
@@ -194,8 +211,9 @@ export const pt: Record<MsgKey, Message> = {
   "bio.archiveLink": "Ligação de arquivo da antiga crónica",
   "bio.attachedDocument": "Pergaminho anexado",
 
-  "sound.on": "Sons: ligados",
-  "sound.off": "Sons: desligados",
+  "sound.mode.sfx": "Sons: ligados · Música: desligada",
+  "sound.mode.music": "Sons: ligados · Música: ligada",
+  "sound.mode.off": "Sons: desligados · Música: desligada",
   "ambient.on": "Ambiente: ligado",
   "ambient.off": "Ambiente: desligado",
   "fx.on": "Efeitos: ligados",

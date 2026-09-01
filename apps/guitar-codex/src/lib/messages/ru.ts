@@ -24,9 +24,23 @@ export const ru = {
   "footer.links": "Ссылки",
   "footer.news": "Новости",
   "footer.guestbook": "Гостевая книга",
-  "footer.search": "Поиск",
+  "footer.share": "Поделиться",
   "footer.email": "E-mail",
   "footer.audioMap": "Аудио-карта",
+
+  // The share flyout behind "VII". Service labels are UI text and never
+  // pre-encoded URL values — the builders encode once, at the very end
+  // (docs/social-share-i18n.md §3, §9).
+  "share.menu": "Поделиться страницей",
+  "share.native": "Поделиться…",
+  "share.copy": "Скопировать ссылку",
+  "share.copied": "Ссылка скопирована",
+  "share.vk": "Поделиться во ВКонтакте",
+  "share.telegram": "Отправить в Telegram",
+  "share.whatsapp": "Отправить в WhatsApp",
+  "share.x": "Поделиться в X",
+  "share.facebook": "Поделиться в Facebook",
+  "share.ok": "Поделиться в Одноклассниках",
   "footer.placeholderTitle": "Раздел готовится",
   "footer.placeholder": "Раздел «{section}» будет добавлен позднее.",
   "footer.usageNotice":
@@ -113,6 +127,8 @@ export const ru = {
   "codex.prev": "Предыдущая запись",
   "codex.next": "Следующая запись",
   "codex.notFound": "Страница этой записи ещё не вписана в кодекс.",
+  "codex.textSmaller": "Мельче шрифт",
+  "codex.textLarger": "Крупнее шрифт",
 
   "tabs.biography": "Летопись",
   "tabs.gallery": "Медиа",
@@ -175,8 +191,9 @@ export const ru = {
   "docs.external": "внешний источник",
   "docs.archive": "архивная ссылка",
   "docs.embedded": "вложено в кодекс",
-  "docs.empty": "К этой записи не приложено ни одного свитка.",
   "docs.open": "Открыть",
+  "docs.contactAuthors": "Связаться с авторами",
+  "docs.original": "Оригинальная страница старого сайта",
 
   "lore.title": "Досье",
   "lore.identity": "Личность",
@@ -210,8 +227,9 @@ export const ru = {
   "bio.archiveLink": "Архивная ссылка из старой летописи",
   "bio.attachedDocument": "Приложенный свиток",
 
-  "sound.on": "Звуки: вкл",
-  "sound.off": "Звуки: выкл",
+  "sound.mode.sfx": "Звуки: вкл · Музыка: выкл",
+  "sound.mode.music": "Звуки: вкл · Музыка: вкл",
+  "sound.mode.off": "Звуки: выкл · Музыка: выкл",
   "ambient.on": "Атмосфера: вкл",
   "ambient.off": "Атмосфера: выкл",
   "fx.on": "Эффекты: вкл",

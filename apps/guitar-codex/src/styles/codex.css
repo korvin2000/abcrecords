@@ -265,12 +265,80 @@
   line-height: 1;
 }
 
-/* The right-hand group: edition menu, back, forward. Its own gap is a token so
-   the WCAG spacing sum (target size + gap) is stated in one place. */
+/* The right-hand group: edition menu, the two reading-size steps, back,
+   forward. Its own gap is a token so the WCAG spacing sum (target size + gap)
+   is stated in one place. */
 .codex-ctrl-group {
   display: flex;
   align-items: flex-start;
   gap: var(--codex-ctrl-gap);
+}
+
+/*
+ * `-` and `+`, the reading-size steps.
+ *
+ * `.codex-ctrl`'s own type size is set for a *word* ("Close codex"), and at
+ * 0.6–0.72 rem a lone hyphen in a 30 px button reads as a speck. These two are
+ * lettering rather than labels, so they are sized as a fraction of the button
+ * instead — one number, so the pair cannot drift apart, and it follows the
+ * control size at every width including the short-viewport band below.
+ */
+.codex-ctrl-sign {
+  font-size: calc(var(--codex-ctrl-size) * 0.62);
+  font-weight: 700;
+  letter-spacing: 0;
+  /* The glyphs sit on their own baseline inside a grid cell that is centred on
+     the *line box*; a hyphen's line box is far taller than its ink, so without
+     this the `-` rides high and the `+` low. `1` puts both boxes on the ink. */
+  line-height: 1;
+}
+.codex-ctrl-sign:disabled {
+  opacity: 0.4;
+  box-shadow: none;
+  cursor: default;
+}
+.codex-ctrl-sign:disabled:hover {
+  color: #f4ecd6;
+  border-color: rgba(184, 144, 42, 0.7);
+  background: linear-gradient(180deg, #4a3423 0%, #2a1810 100%);
+  box-shadow: none;
+}
+
+/*
+ * The reading pane's contents at the size the reader asked for.
+ *
+ * `zoom`, not a font-size cascade: the page is prose *and* figures, tables,
+ * a photo grid and a dossier of chips, and only a few of those are sized in
+ * `em`. Zoom scales the lot with one declaration and — unlike `transform:
+ * scale()` — it is a layout operation, so a block inside still fills its
+ * parent instead of overflowing it and the scrollbar keeps telling the truth
+ * about how long the page is. Set from `CodexShell`; 1 is the article's own
+ * fluid default, so with no stored choice this rule does nothing at all.
+ */
+.codex-read {
+  zoom: var(--codex-text-scale, 1);
+}
+
+/*
+ * The edition menu is the one control the row may drop.
+ *
+ * Six of them fit a 320 px panel with about two pixels to spare, which is not
+ * a margin — it is luck, and it runs out on the first phone whose scrollbar is
+ * drawn a little wider. This is the widest control (flag + code + chevron) and
+ * the one least often wanted mid-read: below 25 rem the row keeps close on the
+ * left and `-` `+` `◀` `▶` on the right, and the entry's other editions stay
+ * reachable from the header's own language menu.
+ *
+ * A viewport query and not a container one, deliberately: the panel is the
+ * viewport minus twice `--codex-frame-pad` (at most 48 px), so the two answer
+ * the same question, and the alternative would mean making the panel a query
+ * container — which would give the codex a second one nested inside the
+ * article's own `bio` container for no gain.
+ */
+@media (max-width: 25rem) {
+  .codex-ctrl-lang {
+    display: none;
+  }
 }
 
 /* The same short-viewport band. The reading pane is ~300 px tall there, so the

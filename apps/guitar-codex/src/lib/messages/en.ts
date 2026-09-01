@@ -23,9 +23,23 @@ export const en: Record<MsgKey, Message> = {
   "footer.links": "Links",
   "footer.news": "News",
   "footer.guestbook": "Guestbook",
-  "footer.search": "Search",
+  "footer.share": "Share page",
   "footer.email": "E-mail",
   "footer.audioMap": "Audio map",
+
+  // The share flyout behind "VII". Service labels are UI text and never
+  // pre-encoded URL values — the builders encode once, at the very end
+  // (docs/social-share-i18n.md §3, §9).
+  "share.menu": "Share this page",
+  "share.native": "Share…",
+  "share.copy": "Copy link",
+  "share.copied": "Link copied",
+  "share.vk": "Share on VK",
+  "share.telegram": "Share on Telegram",
+  "share.whatsapp": "Share on WhatsApp",
+  "share.x": "Share on X",
+  "share.facebook": "Share on Facebook",
+  "share.ok": "Share on Odnoklassniki",
   "footer.placeholderTitle": "Section in preparation",
   "footer.placeholder": "The “{section}” section will be added later.",
   "footer.usageNotice":
@@ -97,6 +111,8 @@ export const en: Record<MsgKey, Message> = {
   "codex.prev": "Previous entry",
   "codex.next": "Next entry",
   "codex.notFound": "This entry's page has not yet been inked into the codex.",
+  "codex.textSmaller": "Smaller text",
+  "codex.textLarger": "Larger text",
 
   "tabs.biography": "Biography",
   "tabs.gallery": "Media",
@@ -159,8 +175,9 @@ export const en: Record<MsgKey, Message> = {
   "docs.external": "external source",
   "docs.archive": "archival reference",
   "docs.embedded": "embedded in the codex",
-  "docs.empty": "No scrolls are attached to this entry.",
   "docs.open": "Open",
+  "docs.contactAuthors": "Contact the authors",
+  "docs.original": "Original page on the old site",
 
   "lore.title": "Dossier",
   "lore.identity": "Identity",
@@ -194,8 +211,9 @@ export const en: Record<MsgKey, Message> = {
   "bio.archiveLink": "Archival link from the legacy chronicle",
   "bio.attachedDocument": "Attached scroll",
 
-  "sound.on": "Sound: on",
-  "sound.off": "Sound: off",
+  "sound.mode.sfx": "Sounds: on · Music: off",
+  "sound.mode.music": "Sounds: on · Music: on",
+  "sound.mode.off": "Sounds: off · Music: off",
   "ambient.on": "Ambience: on",
   "ambient.off": "Ambience: off",
   "fx.on": "Effects: on",

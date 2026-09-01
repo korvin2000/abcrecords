@@ -23,9 +23,23 @@ export const fr: Record<MsgKey, Message> = {
   "footer.links": "Liens",
   "footer.news": "Actualités",
   "footer.guestbook": "Livre d'or",
-  "footer.search": "Recherche",
+  "footer.share": "Partager",
   "footer.email": "E-mail",
   "footer.audioMap": "Carte audio",
+
+  // The share flyout behind "VII". Service labels are UI text and never
+  // pre-encoded URL values — the builders encode once, at the very end
+  // (docs/social-share-i18n.md §3, §9).
+  "share.menu": "Partager cette page",
+  "share.native": "Partager…",
+  "share.copy": "Copier le lien",
+  "share.copied": "Lien copié",
+  "share.vk": "Partager sur VK",
+  "share.telegram": "Envoyer sur Telegram",
+  "share.whatsapp": "Envoyer sur WhatsApp",
+  "share.x": "Partager sur X",
+  "share.facebook": "Partager sur Facebook",
+  "share.ok": "Partager sur Odnoklassniki",
   "footer.placeholderTitle": "Section en préparation",
   "footer.placeholder": "La section « {section} » sera ajoutée ultérieurement.",
   "footer.usageNotice":
@@ -97,6 +111,8 @@ export const fr: Record<MsgKey, Message> = {
   "codex.prev": "Entrée précédente",
   "codex.next": "Entrée suivante",
   "codex.notFound": "La page de cette entrée n'a pas encore été couchée dans le codex.",
+  "codex.textSmaller": "Texte plus petit",
+  "codex.textLarger": "Texte plus grand",
 
   "tabs.biography": "Chronique",
   "tabs.gallery": "Médias",
@@ -159,8 +175,9 @@ export const fr: Record<MsgKey, Message> = {
   "docs.external": "source externe",
   "docs.archive": "référence d'archive",
   "docs.embedded": "incorporé au codex",
-  "docs.empty": "Aucun parchemin n'est joint à cette entrée.",
   "docs.open": "Ouvrir",
+  "docs.contactAuthors": "Contacter les auteurs",
+  "docs.original": "Page d’origine de l’ancien site",
 
   "lore.title": "Dossier",
   "lore.identity": "Identité",
@@ -194,8 +211,9 @@ export const fr: Record<MsgKey, Message> = {
   "bio.archiveLink": "Lien d'archive de l'ancienne chronique",
   "bio.attachedDocument": "Parchemin joint",
 
-  "sound.on": "Sons : activés",
-  "sound.off": "Sons : coupés",
+  "sound.mode.sfx": "Sons : activés · Musique : coupée",
+  "sound.mode.music": "Sons : activés · Musique : activée",
+  "sound.mode.off": "Sons : coupés · Musique : coupée",
   "ambient.on": "Ambiance : activée",
   "ambient.off": "Ambiance : coupée",
   "fx.on": "Effets : activés",

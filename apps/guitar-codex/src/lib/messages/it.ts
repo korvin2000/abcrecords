@@ -23,9 +23,23 @@ export const it: Record<MsgKey, Message> = {
   "footer.links": "Collegamenti",
   "footer.news": "Notizie",
   "footer.guestbook": "Libro degli ospiti",
-  "footer.search": "Ricerca",
+  "footer.share": "Condividi",
   "footer.email": "E-mail",
   "footer.audioMap": "Mappa audio",
+
+  // The share flyout behind "VII". Service labels are UI text and never
+  // pre-encoded URL values — the builders encode once, at the very end
+  // (docs/social-share-i18n.md §3, §9).
+  "share.menu": "Condividi questa pagina",
+  "share.native": "Condividi…",
+  "share.copy": "Copia il link",
+  "share.copied": "Link copiato",
+  "share.vk": "Condividi su VK",
+  "share.telegram": "Invia su Telegram",
+  "share.whatsapp": "Invia su WhatsApp",
+  "share.x": "Condividi su X",
+  "share.facebook": "Condividi su Facebook",
+  "share.ok": "Condividi su Odnoklassniki",
   "footer.placeholderTitle": "Sezione in preparazione",
   "footer.placeholder": "La sezione «{section}» sarà aggiunta in seguito.",
   "footer.usageNotice":
@@ -97,6 +111,8 @@ export const it: Record<MsgKey, Message> = {
   "codex.prev": "Voce precedente",
   "codex.next": "Voce successiva",
   "codex.notFound": "La pagina di questa voce non è ancora stata vergata nel codice.",
+  "codex.textSmaller": "Testo più piccolo",
+  "codex.textLarger": "Testo più grande",
 
   "tabs.biography": "Cronaca",
   "tabs.gallery": "Media",
@@ -159,8 +175,9 @@ export const it: Record<MsgKey, Message> = {
   "docs.external": "fonte esterna",
   "docs.archive": "riferimento d'archivio",
   "docs.embedded": "incorporato nel codice",
-  "docs.empty": "Nessuna pergamena è allegata a questa voce.",
   "docs.open": "Apri",
+  "docs.contactAuthors": "Contattare gli autori",
+  "docs.original": "Pagina originale del vecchio sito",
 
   "lore.title": "Dossier",
   "lore.identity": "Identità",
@@ -194,8 +211,9 @@ export const it: Record<MsgKey, Message> = {
   "bio.archiveLink": "Collegamento d'archivio dalla vecchia cronaca",
   "bio.attachedDocument": "Pergamena allegata",
 
-  "sound.on": "Suoni: attivi",
-  "sound.off": "Suoni: spenti",
+  "sound.mode.sfx": "Suoni: attivi · Musica: spenta",
+  "sound.mode.music": "Suoni: attivi · Musica: attiva",
+  "sound.mode.off": "Suoni: spenti · Musica: spenta",
   "ambient.on": "Atmosfera: attiva",
   "ambient.off": "Atmosfera: spenta",
   "fx.on": "Effetti: attivi",

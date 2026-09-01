@@ -5,6 +5,7 @@ import "./index.css";
 import { I18nProvider } from "./lib/i18n";
 import { ImageViewerProvider } from "./lib/imageViewer";
 import { AsciiTabViewerProvider } from "./lib/asciiTabViewer";
+import { PdfViewerProvider } from "./lib/pdfViewer";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { publishScrollbarWidth } from "./lib/scrollbar";
 import App from "./App";
@@ -12,9 +13,9 @@ import App from "./App";
 // LazyMotion + `m` components keep the motion runtime slim (low-end friendly).
 //
 // The boundary sits under I18nProvider (its fallback speaks the reader's
-// language) but *over* the two viewer providers: they mount their overlays as
+// language) but *over* the three viewer providers: they mount their overlays as
 // siblings of `children`, so a boundary around <App /> alone would not catch a
-// throw from the image or ascii-tab viewer.
+// throw from the image, ascii-tab or document viewer.
 // The codex's control row needs the platform's scrollbar width (see the module).
 publishScrollbarWidth();
 
@@ -25,7 +26,9 @@ createRoot(document.getElementById("root")!).render(
         <ErrorBoundary label="root">
           <ImageViewerProvider>
             <AsciiTabViewerProvider>
-              <App />
+              <PdfViewerProvider>
+                <App />
+              </PdfViewerProvider>
             </AsciiTabViewerProvider>
           </ImageViewerProvider>
         </ErrorBoundary>

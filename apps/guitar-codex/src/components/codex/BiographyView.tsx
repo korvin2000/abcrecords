@@ -103,7 +103,7 @@ function TabBody({
     case "gallery":
       return <GalleryTab record={record} bundle={bundle} />;
     case "documents":
-      return <DocumentsTab bundle={bundle} />;
+      return <DocumentsTab record={record} bundle={bundle} />;
     case "lore":
       return <LoreTab entry={record.entry} bundle={bundle} />;
     default:

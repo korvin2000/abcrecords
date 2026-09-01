@@ -22,9 +22,23 @@ export const ko: Record<MsgKey, Message> = {
   "footer.links": "링크",
   "footer.news": "소식",
   "footer.guestbook": "방명록",
-  "footer.search": "검색",
+  "footer.share": "공유",
   "footer.email": "이메일",
   "footer.audioMap": "오디오 지도",
+
+  // The share flyout behind "VII". Service labels are UI text and never
+  // pre-encoded URL values — the builders encode once, at the very end
+  // (docs/social-share-i18n.md §3, §9).
+  "share.menu": "이 페이지 공유",
+  "share.native": "공유…",
+  "share.copy": "링크 복사",
+  "share.copied": "링크가 복사되었습니다",
+  "share.vk": "VK에 공유",
+  "share.telegram": "Telegram으로 보내기",
+  "share.whatsapp": "WhatsApp으로 보내기",
+  "share.x": "X에 공유",
+  "share.facebook": "Facebook에 공유",
+  "share.ok": "Odnoklassniki에 공유",
   "footer.placeholderTitle": "준비 중인 장",
   "footer.placeholder": "「{section}」 장은 나중에 추가됩니다.",
   "footer.usageNotice": "자료를 사용할 때는 「기타리스트와 작곡가」 프로젝트 링크 표기가 필수입니다",
@@ -95,6 +109,8 @@ export const ko: Record<MsgKey, Message> = {
   "codex.prev": "이전 기록",
   "codex.next": "다음 기록",
   "codex.notFound": "이 기록의 페이지는 아직 코덱스에 쓰이지 않았습니다.",
+  "codex.textSmaller": "글자 작게",
+  "codex.textLarger": "글자 크게",
 
   "tabs.biography": "연대기",
   "tabs.gallery": "미디어",
@@ -157,8 +173,9 @@ export const ko: Record<MsgKey, Message> = {
   "docs.external": "외부 출처",
   "docs.archive": "서고 참조",
   "docs.embedded": "코덱스에 수록됨",
-  "docs.empty": "이 기록에는 두루마리가 첨부되어 있지 않습니다.",
   "docs.open": "열기",
+  "docs.contactAuthors": "저자에게 연락하기",
+  "docs.original": "이전 사이트의 원본 페이지",
 
   "lore.title": "신상록",
   "lore.identity": "인물",
@@ -192,8 +209,9 @@ export const ko: Record<MsgKey, Message> = {
   "bio.archiveLink": "옛 연대기의 서고 링크",
   "bio.attachedDocument": "첨부된 두루마리",
 
-  "sound.on": "효과음: 켬",
-  "sound.off": "효과음: 끔",
+  "sound.mode.sfx": "효과음: 켬 · 음악: 끔",
+  "sound.mode.music": "효과음: 켬 · 음악: 켬",
+  "sound.mode.off": "효과음: 끔 · 음악: 끔",
   "ambient.on": "분위기: 켬",
   "ambient.off": "분위기: 끔",
   "fx.on": "효과: 켬",

@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { m, useReducedMotion } from "framer-motion";
 import clsx from "clsx";
 import type { Lang } from "@/lib/languages";
 import { audio } from "@/lib/audio";
 import { useI18n } from "@/lib/i18n";
+import { usePreference } from "@/lib/settings";
 import { Glyph } from "../Glyph";
 import { LanguageMenu } from "../LanguageMenu";
 import { CornerOrnament } from "../OrnateFrame";
@@ -26,19 +27,21 @@ interface Props {
 
 /**
  * The book itself — everything around the content: backdrop, 3D page-turn
- * panel, filigree corners, close/prev/next, the per-entry language menu, the
- * scrolling reading pane and the closing line. It knows nothing about
+ * panel, filigree corners, close/prev/next, the reading-size steps, the
+ * per-entry language menu, the scrolling reading pane and the closing line. It knows nothing about
  * biographies, dossiers or tabs.
  *
  * Layout invariants worth keeping:
  * - The reading pane is inset from the frame (not h-full) so its whole
  *   scrollbar track — top to bottom — stays inside the double border.
- * - The four controls share one flex row, held one corner gutter outside that
+ * - The controls share one flex row, held one corner gutter outside that
  *   pane and pushed `--codex-scrollbar-guard` clear of it on the trailing
  *   side, so no amount of narrowing can make two of them overlap or put one
  *   under the scrollbar — overlay scrollbars included, which is what the
  *   *guard* in that name is about. Every number is derived from
- *   `--codex-pane-inset`; see the chain in tokens.css.
+ *   `--codex-pane-inset`; see the chain in tokens.css. The row's margins are
+ *   its own padding, never a child's: the edition menu drops out on a narrow
+ *   panel and the two corners must not notice.
  * - The body scroll-lock belongs to App (single owner); do not add one here.
  *
  * **One shell, many entries.** App deliberately does *not* key this component
@@ -61,6 +64,32 @@ interface Props {
  *  in index.css. Zero under reduced motion — with the animations clamped to
  *  nothing there is no movement to wait for, only a delay. */
 const CLOSE_MS = 320;
+
+/**
+ * The reading-size ladder behind the row's `-` / `+`.
+ *
+ * A *ratio*, deliberately, and not a font size: the article already sizes
+ * itself from the width of its own column (see `.bio-article` in article.css),
+ * so what the reader is adjusting is that whole fluid scale at once — which is
+ * why one pair of buttons can serve a phone, a tablet and a desk without any
+ * of them needing their own numbers. It is spent as `zoom` on the reading
+ * pane's contents (`.codex-read`), so figures, tables and the dossier grid
+ * follow the prose instead of being left behind by it.
+ *
+ * The bounds are what the layout survives rather than taste: below 0.8 the
+ * captions stop being legible, and above 1.6 a two-column record grid in a
+ * 320 px pane has nowhere left to go. The step is coarse enough that three
+ * taps make a visible difference on a phone.
+ */
+const TEXT_SCALE = { min: 0.8, max: 1.6, step: 0.1 } as const;
+
+/** Rounded to one decimal: 0.1 steps accumulate float dust otherwise, and the
+ *  value is persisted, so the dust would be stored too. */
+function stepScale(from: number, dir: -1 | 1): number {
+  const next = Math.round((from + dir * TEXT_SCALE.step) * 10) / 10;
+  return Math.min(TEXT_SCALE.max, Math.max(TEXT_SCALE.min, next));
+}
+
 export function CodexShell({
   slug,
   ariaLabel,
@@ -75,12 +104,21 @@ export function CodexShell({
   const reduced = useReducedMotion();
   const closeMs = reduced ? 0 : CLOSE_MS;
   const [closing, setClosing] = useState(false);
+  // Remembered, not per-open: a reader who needs larger type needs it on every
+  // entry, and being asked again at each one is the whole complaint.
+  const [textScale, setTextScale] = usePreference("textScale");
+  const scale = Math.min(TEXT_SCALE.max, Math.max(TEXT_SCALE.min, textScale));
   const scrollRef = useRef<HTMLDivElement>(null);
   const closeTimer = useRef(0);
 
   const scrollToTop = useCallback(() => {
     scrollRef.current?.scrollTo({ top: 0 });
   }, []);
+
+  const resize = (dir: -1 | 1) => {
+    audio.click();
+    setTextScale(stepScale(scale, dir));
+  };
 
   // A different entry or a different edition starts at the top of the page.
   useEffect(scrollToTop, [scrollToTop, slug, contentLang]);
@@ -170,7 +208,8 @@ export function CodexShell({
               not surface half-hidden behind the buttons. */}
           <div className="codex-topfade" aria-hidden />
 
-          {/* One row for all four controls.
+          {/* One row for every control: close, the edition menu, the two
+              reading-size steps and the two page turns.
               They used to be three independent absolutely-positioned boxes —
               close at `left-9`, the language menu centred on `left-1/2`, the
               page turns at `right-9` — which is a layout that works until the
@@ -190,17 +229,55 @@ export function CodexShell({
 
             <div className="codex-ctrl-group">
               {/* Language of this entry — only when the chronicle exists in
-                  several tongues; switches the open page on the fly. */}
+                  several tongues; switches the open page on the fly.
+
+                  It is also the one control here that may be *dropped*: five
+                  of them on a 320 px panel leaves ~2 px of slack, and this is
+                  the widest (a flag, a code and a chevron) and the least often
+                  wanted mid-read. `.codex-ctrl-lang` hides it below 25 rem —
+                  the reader's tongue is still the header's menu, one Escape
+                  away. Close stays in the leading corner and the turns in the
+                  trailing one either way: the row's own padding is what holds
+                  those margins, so removing a child cannot move them. */}
               {langs.length > 1 && (
-                <LanguageMenu
-                  variant="codex"
-                  value={contentLang}
-                  options={langs}
-                  onSelect={onContentLang}
-                  title={t("lang.entry")}
-                  heading={t("lang.entry")}
-                />
+                <div className="codex-ctrl-lang">
+                  <LanguageMenu
+                    variant="codex"
+                    value={contentLang}
+                    options={langs}
+                    onSelect={onContentLang}
+                    title={t("lang.entry")}
+                    heading={t("lang.entry")}
+                  />
+                </div>
               )}
+
+              {/* Reading size. Plain ASCII `-` and `+`, and that is the point:
+                  every face in the text stack draws both, so unlike the signs
+                  in lib/signs.ts there is no substitution to measure around
+                  (see the <Glyph> note in CLAUDE.md). No indicator beside them
+                  — the page itself is the indicator, and a percentage in this
+                  row would be a fifth control on a phone that has room for
+                  four. The bounds show as a disabled button instead. */}
+              <button
+                onClick={() => resize(-1)}
+                disabled={scale <= TEXT_SCALE.min}
+                className="btn-rpg codex-ctrl codex-ctrl-sign"
+                aria-label={t("codex.textSmaller")}
+                title={t("codex.textSmaller")}
+              >
+                <span aria-hidden>-</span>
+              </button>
+              <button
+                onClick={() => resize(1)}
+                disabled={scale >= TEXT_SCALE.max}
+                className="btn-rpg codex-ctrl codex-ctrl-sign"
+                aria-label={t("codex.textLarger")}
+                title={t("codex.textLarger")}
+              >
+                <span aria-hidden>+</span>
+              </button>
+
               {/* Solid triangles, not arrows. `←`/`→` are drawn as a hairline
                   stroke at this size — at 10 px of ink they read as a dash with
                   a smudge on one end, and thinner still on a face that renders
@@ -227,7 +304,16 @@ export function CodexShell({
               than guessed alongside it; `.codex-scroll` beside it is only the
               gold scrollbar, which the document viewer shares. */}
           <div ref={scrollRef} className="codex-scroll codex-pane">
-            <div className="mx-auto max-w-5xl">
+            {/* `.codex-read` spends the reader's size ratio as `zoom`, so the
+                whole page grows together — prose, plates, figures, the dossier
+                grid — and the column keeps its own width instead of overflowing
+                it. A block laid out inside a zoomed box still fills its parent,
+                so nothing here can start scrolling sideways; what changes is
+                how much text fits on a line, which is what was being asked for.
+                Container queries inside the article read the zoomed column, so
+                a figure steps down to one track exactly when the type it sits
+                beside stops fitting. */}
+            <div className="codex-read mx-auto max-w-5xl" style={{ "--codex-text-scale": scale } as CSSProperties}>
               <CodexScrollProvider value={scrollToTop}>{children}</CodexScrollProvider>
 
               <footer className="mt-10 text-center font-body text-xs italic text-sepia-600/70">{t("codex.end")}</footer>

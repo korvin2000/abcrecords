@@ -22,9 +22,23 @@ export const ja: Record<MsgKey, Message> = {
   "footer.links": "リンク",
   "footer.news": "新着",
   "footer.guestbook": "芳名帳",
-  "footer.search": "検索",
+  "footer.share": "共有",
   "footer.email": "メール",
   "footer.audioMap": "音の地図",
+
+  // The share flyout behind "VII". Service labels are UI text and never
+  // pre-encoded URL values — the builders encode once, at the very end
+  // (docs/social-share-i18n.md §3, §9).
+  "share.menu": "このページを共有",
+  "share.native": "共有…",
+  "share.copy": "リンクをコピー",
+  "share.copied": "リンクをコピーしました",
+  "share.vk": "VKで共有",
+  "share.telegram": "Telegramで送る",
+  "share.whatsapp": "WhatsAppで送る",
+  "share.x": "Xで共有",
+  "share.facebook": "Facebookで共有",
+  "share.ok": "Odnoklassnikiで共有",
   "footer.placeholderTitle": "準備中の章",
   "footer.placeholder": "「{section}」の章は後日追加されます。",
   "footer.usageNotice": "資料を利用する際は、プロジェクト「ギタリストと作曲家」へのリンクが必須です",
@@ -95,6 +109,8 @@ export const ja: Record<MsgKey, Message> = {
   "codex.prev": "前の記録",
   "codex.next": "次の記録",
   "codex.notFound": "この記録の頁は、まだ写本に記されていません。",
+  "codex.textSmaller": "文字を小さく",
+  "codex.textLarger": "文字を大きく",
 
   "tabs.biography": "年代記",
   "tabs.gallery": "メディア",
@@ -157,8 +173,9 @@ export const ja: Record<MsgKey, Message> = {
   "docs.external": "外部資料",
   "docs.archive": "書庫の参照",
   "docs.embedded": "写本に収録",
-  "docs.empty": "この記録に巻物は添えられていません。",
   "docs.open": "開く",
+  "docs.contactAuthors": "著者に連絡する",
+  "docs.original": "旧サイトの元のページ",
 
   "lore.title": "身上書",
   "lore.identity": "人物",
@@ -192,8 +209,9 @@ export const ja: Record<MsgKey, Message> = {
   "bio.archiveLink": "旧年代記からの書庫リンク",
   "bio.attachedDocument": "添付の巻物",
 
-  "sound.on": "効果音:オン",
-  "sound.off": "効果音:オフ",
+  "sound.mode.sfx": "効果音:オン · 音楽:オフ",
+  "sound.mode.music": "効果音:オン · 音楽:オン",
+  "sound.mode.off": "効果音:オフ · 音楽:オフ",
   "ambient.on": "環境音:オン",
   "ambient.off": "環境音:オフ",
   "fx.on": "演出:オン",

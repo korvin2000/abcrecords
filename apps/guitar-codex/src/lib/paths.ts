@@ -36,6 +36,26 @@ export function isExternalUrl(p: string): boolean {
   return /^(https?:)?\/\//i.test(p);
 }
 
+/**
+ * Would fetching this URL leave the page's origin?
+ *
+ * Not the same question as `isExternalUrl`: legacy content spells plenty of
+ * its own links out in full ("https://www.abc-guitars.com/pages/x.pdf"), and
+ * on the deployed site those are the same origin as the app. The distinction
+ * matters wherever the app wants to *read* a file rather than hand it to the
+ * browser — the document viewer fetches its PDF with `XMLHttpRequest`, which a
+ * cross-origin server has to opt into, so a document that is genuinely
+ * somebody else's is opened in a tab instead (lib/pdfViewer.ts).
+ */
+export function isCrossOrigin(url: string): boolean {
+  if (!isExternalUrl(url)) return false;
+  try {
+    return new URL(url, window.location.href).origin !== window.location.origin;
+  } catch {
+    return true;
+  }
+}
+
 export function resolveContentPath(p: string): string {
   if (!p || isExternalUrl(p)) return p;
   return `${APP_BASE}/${p.replace(/^\/+/, "")}`;

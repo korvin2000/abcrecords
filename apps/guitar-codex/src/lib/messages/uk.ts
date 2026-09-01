@@ -24,9 +24,23 @@ export const uk: Record<MsgKey, Message> = {
   "footer.links": "Посилання",
   "footer.news": "Новини",
   "footer.guestbook": "Книга відгуків",
-  "footer.search": "Пошук",
+  "footer.share": "Поділитися",
   "footer.email": "E-mail",
   "footer.audioMap": "Аудіо-карта",
+
+  // The share flyout behind "VII". Service labels are UI text and never
+  // pre-encoded URL values — the builders encode once, at the very end
+  // (docs/social-share-i18n.md §3, §9).
+  "share.menu": "Поділитися сторінкою",
+  "share.native": "Поділитися…",
+  "share.copy": "Скопіювати посилання",
+  "share.copied": "Посилання скопійовано",
+  "share.vk": "Поділитися у ВКонтакті",
+  "share.telegram": "Надіслати в Telegram",
+  "share.whatsapp": "Надіслати у WhatsApp",
+  "share.x": "Поділитися в X",
+  "share.facebook": "Поділитися у Facebook",
+  "share.ok": "Поділитися в Однокласниках",
   "footer.placeholderTitle": "Розділ готується",
   "footer.placeholder": "Розділ «{section}» буде додано пізніше.",
   "footer.usageNotice":
@@ -108,6 +122,8 @@ export const uk: Record<MsgKey, Message> = {
   "codex.prev": "Попередній запис",
   "codex.next": "Наступний запис",
   "codex.notFound": "Сторінку цього запису ще не вписано в кодекс.",
+  "codex.textSmaller": "Дрібніший шрифт",
+  "codex.textLarger": "Більший шрифт",
 
   "tabs.biography": "Літопис",
   "tabs.gallery": "Медіа",
@@ -170,8 +186,9 @@ export const uk: Record<MsgKey, Message> = {
   "docs.external": "зовнішнє джерело",
   "docs.archive": "архівне посилання",
   "docs.embedded": "вкладено в кодекс",
-  "docs.empty": "До цього запису не додано жодного сувою.",
   "docs.open": "Відкрити",
+  "docs.contactAuthors": "Зв’язатися з авторами",
+  "docs.original": "Оригінальна сторінка старого сайту",
 
   "lore.title": "Досьє",
   "lore.identity": "Особистість",
@@ -205,8 +222,9 @@ export const uk: Record<MsgKey, Message> = {
   "bio.archiveLink": "Архівне посилання зі старого літопису",
   "bio.attachedDocument": "Доданий сувій",
 
-  "sound.on": "Звуки: увімк",
-  "sound.off": "Звуки: вимк",
+  "sound.mode.sfx": "Звуки: увімк · Музика: вимк",
+  "sound.mode.music": "Звуки: увімк · Музика: увімк",
+  "sound.mode.off": "Звуки: вимк · Музика: вимк",
   "ambient.on": "Атмосфера: увімк",
   "ambient.off": "Атмосфера: вимк",
   "fx.on": "Ефекти: увімк",

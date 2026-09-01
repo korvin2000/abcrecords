@@ -23,9 +23,23 @@ export const es: Record<MsgKey, Message> = {
   "footer.links": "Enlaces",
   "footer.news": "Noticias",
   "footer.guestbook": "Libro de visitas",
-  "footer.search": "Búsqueda",
+  "footer.share": "Compartir",
   "footer.email": "Correo",
   "footer.audioMap": "Mapa de audio",
+
+  // The share flyout behind "VII". Service labels are UI text and never
+  // pre-encoded URL values — the builders encode once, at the very end
+  // (docs/social-share-i18n.md §3, §9).
+  "share.menu": "Comparte esta página",
+  "share.native": "Compartir…",
+  "share.copy": "Copiar enlace",
+  "share.copied": "Enlace copiado",
+  "share.vk": "Compartir en VK",
+  "share.telegram": "Compartir en Telegram",
+  "share.whatsapp": "Compartir en WhatsApp",
+  "share.x": "Compartir en X",
+  "share.facebook": "Compartir en Facebook",
+  "share.ok": "Compartir en Odnoklassniki",
   "footer.placeholderTitle": "Sección en preparación",
   "footer.placeholder": "La sección «{section}» se añadirá más adelante.",
   "footer.usageNotice":
@@ -97,6 +111,8 @@ export const es: Record<MsgKey, Message> = {
   "codex.prev": "Entrada anterior",
   "codex.next": "Entrada siguiente",
   "codex.notFound": "La página de esta entrada aún no ha sido escrita en el códice.",
+  "codex.textSmaller": "Texto más pequeño",
+  "codex.textLarger": "Texto más grande",
 
   "tabs.biography": "Crónica",
   "tabs.gallery": "Multimedia",
@@ -159,8 +175,9 @@ export const es: Record<MsgKey, Message> = {
   "docs.external": "fuente externa",
   "docs.archive": "referencia de archivo",
   "docs.embedded": "incorporado al códice",
-  "docs.empty": "Esta entrada no tiene pergaminos adjuntos.",
   "docs.open": "Abrir",
+  "docs.contactAuthors": "Contactar con los autores",
+  "docs.original": "Página original del sitio antiguo",
 
   "lore.title": "Expediente",
   "lore.identity": "Identidad",
@@ -194,8 +211,9 @@ export const es: Record<MsgKey, Message> = {
   "bio.archiveLink": "Enlace de archivo de la antigua crónica",
   "bio.attachedDocument": "Pergamino adjunto",
 
-  "sound.on": "Sonido: activado",
-  "sound.off": "Sonido: desactivado",
+  "sound.mode.sfx": "Sonidos: activados · Música: desactivada",
+  "sound.mode.music": "Sonidos: activados · Música: activada",
+  "sound.mode.off": "Sonidos: desactivados · Música: desactivada",
   "ambient.on": "Ambiente: activado",
   "ambient.off": "Ambiente: desactivado",
   "fx.on": "Efectos: activados",

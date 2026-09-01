@@ -22,9 +22,23 @@ export const zh: Record<MsgKey, Message> = {
   "footer.links": "链接",
   "footer.news": "新闻",
   "footer.guestbook": "留言簿",
-  "footer.search": "搜索",
+  "footer.share": "分享",
   "footer.email": "电子邮件",
   "footer.audioMap": "音频地图",
+
+  // The share flyout behind "VII". Service labels are UI text and never
+  // pre-encoded URL values — the builders encode once, at the very end
+  // (docs/social-share-i18n.md §3, §9).
+  "share.menu": "分享此页面",
+  "share.native": "分享…",
+  "share.copy": "复制链接",
+  "share.copied": "链接已复制",
+  "share.vk": "分享到 VK",
+  "share.telegram": "通过 Telegram 分享",
+  "share.whatsapp": "通过 WhatsApp 分享",
+  "share.x": "分享到 X",
+  "share.facebook": "分享到 Facebook",
+  "share.ok": "分享到 Odnoklassniki",
   "footer.placeholderTitle": "栏目筹备中",
   "footer.placeholder": "栏目「{section}」将稍后添加。",
   "footer.usageNotice": "使用本站资料时,必须注明指向《吉他手与作曲家》项目的链接",
@@ -95,6 +109,8 @@ export const zh: Record<MsgKey, Message> = {
   "codex.prev": "上一条目",
   "codex.next": "下一条目",
   "codex.notFound": "此条目的书页尚未写入法典。",
+  "codex.textSmaller": "缩小文字",
+  "codex.textLarger": "放大文字",
 
   "tabs.biography": "编年史",
   "tabs.gallery": "媒体",
@@ -157,8 +173,9 @@ export const zh: Record<MsgKey, Message> = {
   "docs.external": "外部来源",
   "docs.archive": "档案引据",
   "docs.embedded": "嵌于法典之中",
-  "docs.empty": "此条目未附任何卷轴。",
   "docs.open": "打开",
+  "docs.contactAuthors": "联系作者",
+  "docs.original": "旧站的原始页面",
 
   "lore.title": "档案",
   "lore.identity": "身份",
@@ -192,8 +209,9 @@ export const zh: Record<MsgKey, Message> = {
   "bio.archiveLink": "旧编年史的档案链接",
   "bio.attachedDocument": "随附卷轴",
 
-  "sound.on": "音效:开",
-  "sound.off": "音效:关",
+  "sound.mode.sfx": "音效:开 · 音乐:关",
+  "sound.mode.music": "音效:开 · 音乐:开",
+  "sound.mode.off": "音效:关 · 音乐:关",
   "ambient.on": "氛围:开",
   "ambient.off": "氛围:关",
   "fx.on": "特效:开",
