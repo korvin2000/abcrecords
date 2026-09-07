@@ -266,7 +266,7 @@ export function CodexShell({
                 aria-label={t("codex.textSmaller")}
                 title={t("codex.textSmaller")}
               >
-                <span aria-hidden>-</span>
+                <span aria-hidden>&#8722;</span>
               </button>
               <button
                 onClick={() => resize(1)}
@@ -275,7 +275,7 @@ export function CodexShell({
                 aria-label={t("codex.textLarger")}
                 title={t("codex.textLarger")}
               >
-                <span aria-hidden>+</span>
+                <span aria-hidden>&#43;</span>
               </button>
 
               {/* Solid triangles, not arrows. `←`/`→` are drawn as a hairline

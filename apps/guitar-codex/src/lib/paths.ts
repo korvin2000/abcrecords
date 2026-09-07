@@ -86,7 +86,7 @@ export function resolveResourcePath(p: string): string {
   const relative = (anchored ? target.slice(1) : target).replace(/^\/+/, "").split("/");
 
   const segments = collapse([...basePrefix(relative, anchored), ...relative]);
-  return `${RESOURCE_ORIGIN}/${segments.join("/")}${suffix}`;
+  return `${RESOURCE_ORIGIN}/${segments.join("/")}${suffix}?legacy=1`;
 }
 
 /**
