@@ -6,8 +6,8 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { AnimatePresence } from "framer-motion";
 import { LazyAsciiTabViewer, preloadAsciiTabViewer } from "@/components/LazyAsciiTabViewer";
+import { useLinger, useReducedMotion } from "./motion";
 
 export interface ViewerTab {
   readonly src: string;
@@ -30,14 +30,16 @@ export function AsciiTabViewerProvider({ children }: { children: ReactNode }) {
     setTab(next);
   }, []);
   const close = useCallback(() => setTab(null), []);
+  // Held on screen for the length of the viewer's CSS fade-out.
+  const shown = useLinger(tab, useReducedMotion() ? 0 : 200);
 
   return (
     <AsciiTabViewerContext.Provider value={open}>
       {children}
       <Suspense fallback={null}>
-        <AnimatePresence>
-          {tab && <LazyAsciiTabViewer key={tab.src} tab={tab} onClose={close} />}
-        </AnimatePresence>
+        {shown.value && (
+          <LazyAsciiTabViewer key={shown.value.src} tab={shown.value} leaving={shown.leaving} onClose={close} />
+        )}
       </Suspense>
     </AsciiTabViewerContext.Provider>
   );

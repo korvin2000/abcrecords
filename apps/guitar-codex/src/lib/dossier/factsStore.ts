@@ -1,5 +1,8 @@
 import { loadEntryData, type CatalogRecord } from "../catalog";
 import { pickContentLang, type Lang } from "../languages";
+import { resolveSitePath } from "../paths";
+import { perfTier } from "../fx";
+import type { EntryData } from "../types";
 import { DOSSIER } from "@/config";
 import { factsFrom, type EntryFacts, type FactsBySlug } from "./facts";
 
@@ -23,6 +26,16 @@ import { factsFrom, type EntryFacts, type FactsBySlug } from "./facts";
  * file too many: `pages/` is the source, this index is the only cache, and the
  * cache lives exactly as long as the tab. Do not reintroduce a generated
  * artefact here without solving invalidation first.
+ *
+ * **One request instead of seven hundred, when the server can.** Reading every
+ * dossier from the browser is 736 requests on a first visit — a trickle on a
+ * desk and a real cost on a phone. `server/facts.php` answers the same
+ * question in one response, and it is not the artefact the paragraph above
+ * warns against: it re-derives its validator from the dossiers' own
+ * modification times on *every request*, so an edited birth year is in the
+ * very next answer. It is asked first (`DOSSIER.endpoint`); anything short of
+ * a well-formed reply — no PHP on the dev server, a static mirror, a timeout —
+ * and the crawl below runs exactly as it always has.
  *
  * How the crawl stays cheap on weak hardware:
  *   • it never starts unless something asks for it (`start()` is idempotent);
@@ -67,6 +80,9 @@ export class FactsIndex {
   private readonly listeners = new Set<() => void>();
   private snapshot: FactsSnapshot;
   private started = false;
+  /** Latched by the first `start("demand")`, even one that arrives while an
+   *  idle read is already under way — that read then must not decline. */
+  private demanded = false;
   private disposed = false;
   private lastNotify = 0;
   private pendingNotify: ReturnType<typeof setTimeout> | null = null;
@@ -88,11 +104,19 @@ export class FactsIndex {
 
   /* ----------------------------------------------------------- write side */
 
-  /** Begin (or keep) reading dossiers. Safe to call on every render. */
-  start(): void {
+  /**
+   * Begin (or keep) reading dossiers. Safe to call on every render.
+   *
+   * `"demand"` — a criterion needs the facts: read them, whatever it takes.
+   * `"idle"` — nothing is waiting, the herald would merely like to know who
+   * was born today: ask the server's aggregate, and fall back to the crawl
+   * only where seven hundred requests are affordable (see `crawlIsCheap`).
+   */
+  start(mode: "idle" | "demand" = "demand"): void {
+    if (mode === "demand") this.demanded = true;
     if (this.started || this.disposed || !this.records.length) return;
     this.started = true;
-    void this.crawl();
+    void this.read();
   }
 
   /** Stop a superseded index; in-flight requests still resolve into the
@@ -104,9 +128,68 @@ export class FactsIndex {
     this.listeners.clear();
   }
 
+  private async read(): Promise<void> {
+    if (DOSSIER.endpoint && (await this.readAggregate())) {
+      if (!this.disposed) this.commit(true);
+      return;
+    }
+    if (this.disposed) return;
+    // Asked *after* the await, from the latch rather than from an argument: a
+    // criterion may have started needing the facts while the aggregate was
+    // being fetched, and its `start("demand")` found the index already busy.
+    if (!this.demanded && !crawlIsCheap()) {
+      // Not now. Leave the index unstarted, so the moment a criterion does
+      // need the facts, `start("demand")` reads them.
+      this.started = false;
+      return;
+    }
+    await this.crawl();
+  }
+
+  /**
+   * The whole index from `server/facts.php`, or false if it could not be had.
+   *
+   * An entry is read in the edition the codex would open (`pickContentLang`),
+   * so the reader's language is one request and each fallback language one
+   * more — today that is at most one entry per language. False means *nothing
+   * was claimed*: the map is left empty for the crawl to fill.
+   */
+  private async readAggregate(): Promise<boolean> {
+    const main = await fetchAggregate(this.lang);
+    if (!main || this.disposed) return false;
+
+    const others = new Map<Lang, CatalogRecord[]>();
+    for (const record of this.records) {
+      const lang = pickContentLang(record.langs, this.lang);
+      if (!record.entry.json || lang === this.lang) {
+        this.facts.set(record.slug, factsFrom(record, dossierFrom(main, record)));
+      } else {
+        const group = others.get(lang);
+        if (group) group.push(record);
+        else others.set(lang, [record]);
+      }
+    }
+
+    for (const [lang, group] of others) {
+      const entries = await fetchAggregate(lang);
+      if (this.disposed) return true;
+      for (const record of group) {
+        // A fallback language whose aggregate did not answer is a handful of
+        // entries: read those the ordinary way rather than give the index up.
+        const data = entries ? dossierFrom(entries, record) : await loadEntryData(record.entry, lang);
+        if (this.disposed) return true;
+        this.facts.set(record.slug, factsFrom(record, data));
+      }
+    }
+    return true;
+  }
+
   private async crawl(): Promise<void> {
     const cursor = { next: 0 };
-    const workers = Math.min(DOSSIER.concurrency, this.records.length);
+    // Six sockets are the most HTTP/1.1 will run and no strain on a desk; a
+    // machine graded below `high` is the one whose first seconds they hurt.
+    const limit = perfTier() === "high" ? DOSSIER.concurrency : DOSSIER.lowConcurrency;
+    const workers = Math.min(limit, this.records.length);
     await Promise.all(Array.from({ length: workers }, () => this.work(cursor)));
     if (!this.disposed) this.commit(true);
   }
@@ -175,6 +258,72 @@ export function factsIndexFor(records: readonly CatalogRecord[], lang: Lang): Fa
   const created = new FactsIndex(records, lang);
   indexes.set(lang, created);
   return created;
+}
+
+/* ------------------------------------------------------ server aggregate */
+
+/** `basename → [forename, surname, born, died]`, as `server/facts.php` sends it. */
+type Aggregate = Readonly<Record<string, unknown>>;
+
+/** One language's aggregate, or null — never a throw, never a partial. */
+async function fetchAggregate(lang: Lang): Promise<Aggregate | null> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), DOSSIER.endpointTimeoutMs);
+  try {
+    const res = await fetch(`${resolveSitePath(DOSSIER.endpoint)}?lang=${lang}`, {
+      signal: controller.signal,
+      credentials: "omit",
+    });
+    if (!res.ok) return null;
+    const doc: unknown = await res.json();
+    if (!doc || typeof doc !== "object") return null;
+    const { v, entries } = doc as { v?: unknown; entries?: unknown };
+    return v === 1 && entries && typeof entries === "object" && !Array.isArray(entries)
+      ? (entries as Aggregate)
+      : null;
+  } catch {
+    return null; // no such script, not JSON, too slow — the crawl will do
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/**
+ * The slice of a dossier the aggregate carries, in the shape `factsFrom`
+ * already reads — so folding names and parsing dates stay in one place, and
+ * the two sources cannot come to disagree about either. Null (a page, or a
+ * dossier the server could not read) is "nothing can be asserted", exactly as
+ * a failed fetch is.
+ */
+function dossierFrom(entries: Aggregate, record: CatalogRecord): EntryData | null {
+  const path = record.entry.json;
+  if (!path) return null;
+  const key = path.slice(path.lastIndexOf("/") + 1).replace(/\.bio\.json$/i, "");
+  const row = entries[key];
+  if (!Array.isArray(row)) return null;
+  const at = (i: number): string | undefined => {
+    const value: unknown = row[i];
+    return typeof value === "string" && value ? value : undefined;
+  };
+  return { metadata: { forename: at(0), surname: at(1), dates: { born: at(2), died: at(3) } } };
+}
+
+interface ConnectionHints {
+  connection?: { saveData?: boolean; effectiveType?: string };
+}
+
+/**
+ * Whether the fallback crawl may start with nobody waiting for it. Not on a
+ * machine graded `low`, not when the reader asked the browser to save data,
+ * and not over a connection the browser itself calls 2g or 3g. There the
+ * herald keeps to its sayings, and the facts are read the moment a search by
+ * name or year asks for them.
+ */
+function crawlIsCheap(): boolean {
+  const { connection } = navigator as unknown as ConnectionHints;
+  if (connection?.saveData) return false;
+  if (connection?.effectiveType && /(^|-)2g$|^3g$/.test(connection.effectiveType)) return false;
+  return perfTier() !== "low";
 }
 
 /* ---------------------------------------------------------------- idling */

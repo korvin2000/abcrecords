@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { m } from "framer-motion";
+import { memo, useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { GRID } from "@/config";
 import type { CatalogRecord } from "@/lib/catalog";
 import { audio } from "@/lib/audio";
+import { useFx } from "@/lib/fx";
 import { useI18n } from "@/lib/i18n";
 import { CharacterCard } from "./CharacterCard";
 import { Divider } from "./OrnateFrame";
@@ -38,7 +38,14 @@ interface Props {
  * The layout animations are gone with it. A cell still *arrives* (a short
  * fade-and-rise on mount), because that is cheap and only happens once per
  * card; what is gone is `layout` and the exit choreography, which cost their
- * price on every cell every time the result list changed.
+ * price on every cell every time the result list changed. The arrival is a
+ * CSS animation (`.grid-cell` in `home.css`), so a cell is a plain `div` and
+ * this file no longer pulls in framer-motion at all.
+ *
+ * On a machine graded `low` a page is `GRID.lowPageSize` cards instead — the
+ * first paint is the one that matters most there. The grade may change once,
+ * shortly after load, when the capability probe reports; that changes the size
+ * of the *next* page, never what the reader has already been shown.
  *
  * ## What happens off-screen
  *
@@ -57,10 +64,20 @@ interface Props {
  * two declarations give two columns on a phone and ten on a 4K panel — see
  * `index.css`. A column count written here would be re-deciding, worse, what
  * the grid already knows.
+ *
+ * `memo`d: App re-renders on every keystroke and every crawl tick, and hands
+ * this the same `records` array until the results actually change.
  */
-export function CharacterGrid({ records, nativeCount, onSelect }: Props) {
+export const CharacterGrid = memo(function CharacterGrid({ records, nativeCount, onSelect }: Props) {
   const { t } = useI18n();
-  const [shown, setShown] = useState(GRID.pageSize);
+  const { tier } = useFx();
+  const pageSize = tier === "low" ? GRID.lowPageSize : GRID.pageSize;
+  const pageStep = tier === "low" ? GRID.lowPageSize : GRID.pageStep;
+  const [shown, setShown] = useState(pageSize);
+  /** Index of the first card of the page revealed last — where its stagger
+   *  starts. A modulus of the step would do while every page is one step long,
+   *  and stops doing so the moment the grade (and with it the step) changes. */
+  const [pageStart, setPageStart] = useState(0);
   const [autoReveals, setAutoReveals] = useState(0);
 
   // A new result list starts a new first page. Adjusting state during render
@@ -69,7 +86,8 @@ export function CharacterGrid({ records, nativeCount, onSelect }: Props) {
   const [seen, setSeen] = useState(records);
   if (seen !== records) {
     setSeen(records);
-    setShown(GRID.pageSize);
+    setShown(pageSize);
+    setPageStart(0);
     setAutoReveals(0);
   }
 
@@ -78,8 +96,9 @@ export function CharacterGrid({ records, nativeCount, onSelect }: Props) {
   const hasMore = visible < total;
 
   const revealMore = useCallback(() => {
-    setShown((n) => n + GRID.pageStep);
-  }, []);
+    setPageStart(shown);
+    setShown(shown + pageStep);
+  }, [shown, pageStep]);
 
   const sentinel = useRef<HTMLDivElement | null>(null);
   const canAutoReveal = hasMore && autoReveals < GRID.autoPages;
@@ -104,13 +123,13 @@ export function CharacterGrid({ records, nativeCount, onSelect }: Props) {
 
   if (total === 0) {
     return (
-      <m.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mx-auto mt-16 max-w-md px-6 text-center">
+      <div className="grid-empty mx-auto mt-16 max-w-md px-6 text-center">
         <div className="mb-4 text-5xl opacity-70" aria-hidden>
           🏺
         </div>
         <p className="font-display text-2xl text-burgundy-600">{t("search.empty.title")}</p>
         <p className="mt-2 font-body italic text-sepia-600">{t("search.empty.hint")}</p>
-      </m.div>
+      </div>
     );
   }
 
@@ -121,7 +140,7 @@ export function CharacterGrid({ records, nativeCount, onSelect }: Props) {
   const hasDivider = nativeCount > 0 && nativeShown === nativeCount && foreignShown > 0;
 
   const card = (record: CatalogRecord, i: number, foreign: boolean) => (
-    <Cell key={record.slug} index={i}>
+    <Cell key={record.slug} delay={Math.min(Math.max(0, i - pageStart), STAGGER_LIMIT) * CELL_STAGGER_MS}>
       <CharacterCard record={record} foreign={foreign} eager={i < 4} onSelect={onSelect} />
     </Cell>
   );
@@ -176,27 +195,20 @@ export function CharacterGrid({ records, nativeCount, onSelect }: Props) {
       )}
     </>
   );
-}
+});
 
 /** Stagger only the first row or so: past that the delay is longer than the
  *  reader's patience, and the animation is what makes a page reveal cost
  *  anything at all. */
 const STAGGER_LIMIT = 8;
-const CELL_EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
+const CELL_STAGGER_MS = 40;
 
-function Cell({ index, children }: { index: number; children: React.ReactNode }) {
+/** The arrival itself (0.45 s fade-and-rise) is `.grid-cell` in `home.css`;
+ *  only the delay is per cell. */
+function Cell({ delay, children }: { delay: number; children: ReactNode }) {
   return (
-    <m.div
-      className="grid-cell"
-      initial={{ opacity: 0, y: 24 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{
-        duration: 0.45,
-        ease: CELL_EASE,
-        delay: Math.min(index % GRID.pageSize, STAGGER_LIMIT) * 0.04,
-      }}
-    >
+    <div className="grid-cell" style={{ "--cell-delay": `${delay}ms` } as CSSProperties}>
       {children}
-    </m.div>
+    </div>
   );
 }

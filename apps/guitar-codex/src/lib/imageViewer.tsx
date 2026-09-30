@@ -6,8 +6,8 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { AnimatePresence } from "framer-motion";
 import { LazyImageViewer, preloadImageViewer } from "@/components/LazyImageViewer";
+import { useLinger, useReducedMotion } from "./motion";
 
 /**
  * App-wide image viewer. A single overlay is held here and opened from anywhere
@@ -45,14 +45,16 @@ export function ImageViewerProvider({ children }: { children: ReactNode }) {
     setImage(img);
   }, []);
   const close = useCallback(() => setImage(null), []);
+  // Held on screen for the length of the viewer's CSS fade-out.
+  const shown = useLinger(image, useReducedMotion() ? 0 : 200);
 
   return (
     <ImageViewerContext.Provider value={open}>
       {children}
       <Suspense fallback={null}>
-        <AnimatePresence>
-          {image && <LazyImageViewer key={image.src} image={image} onClose={close} />}
-        </AnimatePresence>
+        {shown.value && (
+          <LazyImageViewer key={shown.value.src} image={shown.value} leaving={shown.leaving} onClose={close} />
+        )}
       </Suspense>
     </ImageViewerContext.Provider>
   );

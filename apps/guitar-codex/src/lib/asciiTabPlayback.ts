@@ -40,7 +40,12 @@ interface Runtime {
 const STANDARD_OPEN_MIDI = [64, 59, 55, 50, 45, 40] as const;
 const DROP_D_OPEN_MIDI = [64, 59, 55, 50, 45, 38] as const;
 const SECONDS_PER_COLUMN = 0.085;
-const LOOK_AHEAD = 0.16;
+// A 100 ms tick with a 300 ms horizon: the audio clock places each note
+// exactly, so the timer only has to stay ahead of itself plus jitter. Stop and
+// pause cancel the queued oscillators directly, so the longer queue does not
+// delay them.
+const TICK_MS = 100;
+const LOOK_AHEAD = 0.3;
 
 let sharedContext: AudioContext | null = null;
 
@@ -148,13 +153,15 @@ export function useAsciiTabPlayback(tab: TabDocument | null): TabPlayback {
         const shown = Math.min(sequence.duration, Math.max(0, playhead));
         positionRef.current = shown;
         setCurrentTime(shown);
-        const visible = sequence.events[Math.max(0, runtime.cursor - 1)];
+        // The cursor runs LOOK_AHEAD in front of what is heard; highlight the
+        // system of the last note actually sounding instead.
+        const visible = sequence.events[Math.max(0, firstEventAt(sequence.events, playhead + 1e-6) - 1)];
         setActiveSystem(visible?.system ?? null);
       }
       if (runtime.cursor >= sequence.events.length && playhead >= sequence.duration) finish();
     };
     schedule();
-    runtime.timer = setInterval(schedule, 40);
+    runtime.timer = setInterval(schedule, TICK_MS);
   }, [finish, sequence, setStatus, stop]);
 
   const toggle = useCallback(() => {

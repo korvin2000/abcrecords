@@ -20,8 +20,18 @@ body {
   color: var(--color-ink-900);
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
   overflow-x: hidden;
+}
+
+/* Kerning and ligature shaping where it shows — display lettering — and not
+   on body copy: `optimizeLegibility` on `body` made every line of a long
+   article pay for it, which Android's text stack does slowly. */
+h1,
+h2,
+h3,
+.font-display,
+.font-heading {
+  text-rendering: optimizeLegibility;
 }
 
 ::selection {

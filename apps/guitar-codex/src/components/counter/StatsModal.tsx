@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { m, useReducedMotion } from "framer-motion";
 import {
   adoptPulse,
   fillMissingDays,
@@ -52,7 +51,6 @@ interface Props {
  */
 export function StatsModal({ onClose, resolveTitle, onOpenEntry }: Props) {
   const { t, lang, locale } = useI18n();
-  const reduced = useReducedMotion();
   // Opened again within the store's window: render the document it kept and
   // ask for nothing. `hadDocument` is captured at mount, so the effect below
   // has one dependency — the retry — instead of depending on state it sets.
@@ -114,7 +112,7 @@ export function StatsModal({ onClose, resolveTitle, onOpenEntry }: Props) {
 
   return (
     <div
-      className="stats-overlay fixed inset-0 z-50 flex items-center justify-center bg-ink-950/55 backdrop-blur-sm"
+      className="stats-overlay fixed inset-0 z-50 flex items-center justify-center bg-ink-950/70"
       // A press on the scrim closes; a press inside the plate does not. Both
       // are pointer events, so a drag that starts inside and ends outside — a
       // text selection — cannot close the panel either.
@@ -122,16 +120,15 @@ export function StatsModal({ onClose, resolveTitle, onOpenEntry }: Props) {
         if (event.target === event.currentTarget) close();
       }}
     >
-      <m.div
+      {/* `mo-pop` settles the plate in (styles/motion.css); reduced motion
+          clamps it to nothing there. */}
+      <div
         ref={panelRef}
         tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-label={t("stats.title")}
-        initial={reduced ? undefined : { opacity: 0, scale: 0.97, y: 10 }}
-        animate={reduced ? undefined : { opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
-        className="stats-panel parchment ornate-border"
+        className="stats-panel parchment ornate-border mo-pop"
       >
         {CORNERS.map((corner) => (
           <CornerOrnament
@@ -191,7 +188,7 @@ export function StatsModal({ onClose, resolveTitle, onOpenEntry }: Props) {
         </div>
 
         <footer className="stats-footer">{t("stats.privacy")}</footer>
-      </m.div>
+      </div>
     </div>
   );
 }

@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from "react";
-import { AnimatePresence, m } from "framer-motion";
 import { FEATURES } from "@/config";
 import { audio } from "@/lib/audio";
 import { useDismissOnOutside } from "@/lib/dismiss";
+import { useLinger, useReducedMotion } from "@/lib/motion";
 import { typeLabel, useI18n } from "@/lib/i18n";
 import { refinementCount, toggleValue, type SearchCriteria } from "@/lib/search";
 import { ChipGroup } from "@/components/form";
@@ -55,6 +55,12 @@ export function SearchBar({
   const close = useCallback(() => setAdvancedOpen(false), []);
   const shellRef = useDismissOnOutside<HTMLDivElement>(advancedOpen, close);
 
+  // The panel is kept mounted for the length of its exit (`.search-panel`,
+  // search.css). Only the mounting lingers: `advancedOpen` — what the toggle's
+  // `aria-expanded` and the light-dismiss read — turns false at once.
+  const reduced = useReducedMotion();
+  const panel = useLinger(advancedOpen ? true : null, reduced ? 0 : 160);
+
   // The panel hangs out of the search bar on `position: absolute`, so on a
   // phone its foot lands below the fold — measured 964 px in an 844 px
   // viewport. There is no CSS for "how far is it to the bottom of the screen",
@@ -68,19 +74,14 @@ export function SearchBar({
   const refinements = refinementCount(criteria);
 
   return (
-    <m.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 1.15, duration: 0.6 }}
-      className="mx-auto mt-[calc(var(--spacing-stack)*1.3)] w-full max-w-2xl px-2"
-    >
+    <div className="search-bar-rise mx-auto mt-[calc(var(--spacing-stack)*1.3)] w-full max-w-2xl px-2">
       {/* the box and its panel share one shell, so a click on the handle is
           never read as a click outside the panel */}
       <div ref={shellRef} className="relative">
         <div className="group relative">
           {/* gold glow ring on focus */}
           <div className="pointer-events-none absolute -inset-px rounded-2xl bg-gradient-to-r from-gold-500/0 via-gold-500/45 to-burgundy-500/20 opacity-0 blur transition-opacity duration-500 group-focus-within:opacity-100" />
-          <div className="relative flex items-center gap-3 rounded-2xl border border-gold-600/50 bg-paper-50/85 px-4 py-3 shadow-[0_2px_12px_rgba(84,56,30,0.15)] backdrop-blur-sm transition-colors focus-within:border-gold-600">
+          <div className="relative flex items-center gap-3 rounded-2xl search-box border border-gold-600/50 px-4 py-3 shadow-[0_2px_12px_rgba(84,56,30,0.15)] transition-colors focus-within:border-gold-600">
             <ClefSpinner />
             <input
               value={criteria.query}
@@ -117,23 +118,20 @@ export function SearchBar({
           </div>
         </div>
 
-        {FEATURES.advancedSearch && (
-          <AnimatePresence>
-            {advancedOpen && (
-              <div ref={panelRef} className="absolute inset-x-0 top-full z-40 pt-2">
-                <AdvancedSearchPanel
-                  id={panelId}
-                  criteria={criteria}
-                  onPatch={onPatch}
-                  onReset={onReset}
-                  onClose={close}
-                  types={types}
-                  countries={countries}
-                  dossier={dossier}
-                />
-              </div>
-            )}
-          </AnimatePresence>
+        {FEATURES.advancedSearch && panel.value && (
+          <div ref={panelRef} className="absolute inset-x-0 top-full z-40 pt-2">
+            <AdvancedSearchPanel
+              id={panelId}
+              leaving={panel.leaving}
+              criteria={criteria}
+              onPatch={onPatch}
+              onReset={onReset}
+              onClose={close}
+              types={types}
+              countries={countries}
+              dossier={dossier}
+            />
+          </div>
         )}
       </div>
 
@@ -165,7 +163,7 @@ export function SearchBar({
             : t("search.countFiltered", { n: resultCount, total: totalCount }),
         )}
       </p>
-    </m.div>
+    </div>
   );
 }
 

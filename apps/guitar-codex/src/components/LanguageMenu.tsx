@@ -1,9 +1,9 @@
 import { useCallback, useState } from "react";
-import { AnimatePresence, m } from "framer-motion";
 import clsx from "clsx";
 import { LANGUAGES, type Lang } from "@/lib/languages";
 import { audio } from "@/lib/audio";
 import { useDismissOnOutside } from "@/lib/dismiss";
+import { useLinger, useReducedMotion } from "@/lib/motion";
 import { Flag } from "./Flag";
 
 interface Props {
@@ -41,6 +41,12 @@ export function LanguageMenu({ value, options, onSelect, variant, title, heading
   const close = useCallback(() => setOpen(false), []);
   const rootRef = useDismissOnOutside<HTMLDivElement>(open, close);
 
+  // The panel stays mounted for the length of its exit (`.lang-menu`,
+  // chrome.css); `open` itself — and so `aria-expanded` and the light-dismiss
+  // above — turns false the moment the reader closes it.
+  const reduced = useReducedMotion();
+  const panel = useLinger(open ? true : null, reduced ? 0 : 140);
+
   const toggle = () => {
     audio.click();
     setOpen((o) => !o);
@@ -48,10 +54,12 @@ export function LanguageMenu({ value, options, onSelect, variant, title, heading
 
   const choose = (code: Lang) => {
     setOpen(false);
-    if (code !== value) {
-      audio.pageTurn();
-      onSelect(code);
-    }
+    if (code !== value) audio.pageTurn();
+    // Reported even when it is the language already shown: a dictionary may
+    // still be on its way for an earlier choice (lib/i18n loads before it
+    // switches), and choosing the current one again is how a reader takes
+    // that back.
+    onSelect(code);
   };
 
   return (
@@ -104,70 +112,65 @@ export function LanguageMenu({ value, options, onSelect, variant, title, heading
         </svg>
       </button>
 
-      <AnimatePresence>
-        {open && (
+      {panel.value && (
+        <div
+          className={clsx(
+            // Both variants drop from the right edge of their trigger: the
+            // codex menu now sits in the top row's right-hand group, and a
+            // centred panel there would hang off the side of the book.
+            "lang-menu-drop absolute right-0 top-full z-50 pt-2",
+          )}
+          data-leaving={panel.leaving || undefined}
+        >
           <div
             className={clsx(
-              // Both variants drop from the right edge of their trigger: the
-              // codex menu now sits in the top row's right-hand group, and a
-              // centred panel there would hang off the side of the book.
-              "absolute right-0 top-full z-50 pt-2",
+              "lang-menu overflow-hidden rounded-md border border-gold-600/60 bg-paper-50/[0.97]",
+              "shadow-[0_10px_34px_rgba(51,34,15,0.32),inset_0_0_24px_rgba(138,106,31,0.08)]",
+              "origin-top-right",
+              variant === "codex" ? "w-44" : "w-52",
             )}
+            role="listbox"
+            aria-label={heading}
           >
-            <m.div
-              initial={{ opacity: 0, y: -7, scale: 0.97 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -5, scale: 0.97, transition: { duration: 0.14 } }}
-              transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-              className={clsx(
-                "overflow-hidden rounded-md border border-gold-600/60 bg-paper-50/95 backdrop-blur-sm",
-                "shadow-[0_10px_34px_rgba(51,34,15,0.32),inset_0_0_24px_rgba(138,106,31,0.08)]",
-                "origin-top-right",
-                variant === "codex" ? "w-44" : "w-52",
-              )}
-              role="listbox"
-              aria-label={heading}
-            >
-              <div className="border-b border-gold-600/35 bg-paper-100/85 px-3 py-1.5 text-center font-heading text-[0.58rem] font-bold uppercase tracking-[0.28em] text-sepia-600">
-                <span className="mr-1.5 text-gold-600" aria-hidden>✦</span>
-                {heading}
-                <span className="ml-1.5 text-gold-600" aria-hidden>✦</span>
-              </div>
-              <ul className="max-h-[min(60dvh,26rem)] overflow-y-auto py-1">
-                {items.map((l) => {
-                  const selected = l.code === value;
-                  return (
-                    <li key={l.code}>
-                      <button
-                        role="option"
-                        aria-selected={selected}
-                        onClick={() => choose(l.code)}
-                        onMouseEnter={() => audio.hover()}
-                        className={clsx(
-                          "flex w-full items-center gap-2.5 px-3 py-[0.4rem] text-left transition-colors duration-150",
-                          selected
-                            ? "bg-gold-500/25 text-burgundy-700"
-                            : "text-ink-800 hover:bg-gold-500/12 hover:text-burgundy-600",
-                        )}
-                      >
-                        <Flag code={l.code} className="h-[0.95rem] w-6 shrink-0 drop-shadow-sm" />
-                        <span className="font-heading text-[0.92rem] font-semibold leading-tight tracking-wide">
-                          {l.native}
+            <div className="border-b border-gold-600/35 bg-paper-100/85 px-3 py-1.5 text-center font-heading text-[0.58rem] font-bold uppercase tracking-[0.28em] text-sepia-600">
+              <span className="mr-1.5 text-gold-600" aria-hidden>✦</span>
+              {heading}
+              <span className="ml-1.5 text-gold-600" aria-hidden>✦</span>
+            </div>
+            <ul className="max-h-[min(60dvh,26rem)] overflow-y-auto py-1">
+              {items.map((l) => {
+                const selected = l.code === value;
+                return (
+                  <li key={l.code}>
+                    <button
+                      role="option"
+                      aria-selected={selected}
+                      onClick={() => choose(l.code)}
+                      onMouseEnter={() => audio.hover()}
+                      className={clsx(
+                        "flex w-full items-center gap-2.5 px-3 py-[0.4rem] text-left transition-colors duration-150",
+                        selected
+                          ? "bg-gold-500/25 text-burgundy-700"
+                          : "text-ink-800 hover:bg-gold-500/12 hover:text-burgundy-600",
+                      )}
+                    >
+                      <Flag code={l.code} className="h-[0.95rem] w-6 shrink-0 drop-shadow-sm" />
+                      <span className="font-heading text-[0.92rem] font-semibold leading-tight tracking-wide">
+                        {l.native}
+                      </span>
+                      {selected && (
+                        <span className="ml-auto text-[0.7rem] text-gold-700" aria-hidden>
+                          ✦
                         </span>
-                        {selected && (
-                          <span className="ml-auto text-[0.7rem] text-gold-700" aria-hidden>
-                            ✦
-                          </span>
-                        )}
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            </m.div>
+                      )}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
           </div>
-        )}
-      </AnimatePresence>
+        </div>
+      )}
     </div>
   );
 }

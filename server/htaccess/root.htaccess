@@ -1,0 +1,45 @@
+# ---------------------------------------------------------------------------
+# КОДЕКС ГИТАРИСТОВ — directives for the SITE ROOT's .htaccess.
+#
+# This is a snippet to MERGE, not a file to upload. The site root belongs to
+# the legacy site and already has its own .htaccess (rewrite rules, redirects,
+# access rules). Never overwrite that file with this one: paste the block
+# below into it — at the end is fine — and keep everything that is there.
+#
+# Every directive is wrapped in <IfModule>, so a host without mod_deflate or
+# mod_headers ignores it instead of answering 500.
+#
+# What it does:
+#   1. Compresses JSON, Markdown, plain text and SVG. Apache already
+#      compresses JS/CSS/WASM; the catalogue index and the articles went out
+#      raw (index.json: ~223 KB -> ~25 KB).
+#   2. Makes the browser revalidate JSON, Markdown and index.html on every use
+#      (no-cache = "ask first", answered by a cheap 304), so an edited entry
+#      is visible on the next reload.
+#   3. Lets the browser keep photos and PDFs for 30 days without asking.
+#
+# Verify after merging (both must show the header):
+#   curl -sI -H "Accept-Encoding: gzip" https://www.abc-guitars.com/index.json
+#     -> Content-Encoding: gzip, Cache-Control: no-cache
+# ---------------------------------------------------------------------------
+
+# Two guards, nested: in Apache 2.4 `AddOutputFilterByType` is provided by
+# mod_filter, not by mod_deflate. With only the outer one, a server that has
+# mod_deflate but not mod_filter would reject the line and answer 500.
+<IfModule mod_deflate.c>
+  <IfModule mod_filter.c>
+    AddOutputFilterByType DEFLATE application/json text/markdown text/plain image/svg+xml
+  </IfModule>
+</IfModule>
+
+<IfModule mod_headers.c>
+  # index.html names the current build's hashed files. Left to the browser's
+  # own guess it can be reused for days, asking for chunks a newer deploy has
+  # since replaced.
+  <FilesMatch "\.(json|md|html)$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+  <FilesMatch "\.(pdf|jpe?g|png|gif|webp)$">
+    Header set Cache-Control "public, max-age=2592000"
+  </FilesMatch>
+</IfModule>

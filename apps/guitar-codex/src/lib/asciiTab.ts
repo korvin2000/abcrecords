@@ -167,6 +167,39 @@ const MAX_BYTES = 1024 * 1024;
 const MAX_LINES = 10_000;
 const MAX_LINE_WIDTH = 2_048;
 
+/**
+ * Parsed documents kept for the session, keyed by source URL, so reopening a
+ * tablature skips the fetch, the decode and the parse.
+ *
+ * Bounded: a parsed document holds its raw text *and* every system, row and
+ * event object built from it — hundreds of KB for a long archive — and an
+ * unbounded map keeps every tab the reader ever opened. A Map preserves
+ * insertion order, so evicting `keys().next()` is a plain LRU once a read moves
+ * the key to the back (the same pattern as lib/catalog.ts).
+ */
+const DOCUMENT_CACHE_LIMIT = 12;
+const documentCache = new Map<string, TabDocument>();
+
+/** The parsed document for `src`, if one is cached; marks it recently used. */
+export function cachedTabDocument(src: string): TabDocument | undefined {
+  const document = documentCache.get(src);
+  if (document === undefined) return undefined;
+  documentCache.delete(src);
+  documentCache.set(src, document);
+  return document;
+}
+
+/** Remember a parsed document, dropping the least recently used past the cap. */
+export function cacheTabDocument(src: string, document: TabDocument): void {
+  documentCache.delete(src);
+  documentCache.set(src, document);
+  while (documentCache.size > DOCUMENT_CACHE_LIMIT) {
+    const oldest = documentCache.keys().next();
+    if (oldest.done) return;
+    documentCache.delete(oldest.value);
+  }
+}
+
 /** True for a tab text resource; URL query/hash fragments are ignored. */
 export function isAsciiTabUrl(url: string): boolean {
   return TAB_URL.test(url.split(/[?#]/, 1)[0]);

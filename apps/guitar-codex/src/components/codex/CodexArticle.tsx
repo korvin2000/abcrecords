@@ -1,7 +1,10 @@
+import { useDeferredValue } from "react";
 import type { BioDoc } from "@/lib/biomd/parse";
 import type { MsgKey } from "@/lib/messages";
 import { BioArticle } from "@/lib/biomd/BioArticle";
 import { useI18n } from "@/lib/i18n";
+import { perfTier } from "@/lib/fx";
+import { CodexSkeleton } from "./CodexSkeleton";
 
 /**
  * The entry's article in the edition being read — the body of the Biography
@@ -26,8 +29,28 @@ export function CodexArticle({
 }) {
   const { t } = useI18n();
 
+  // Rendering an article is the heaviest synchronous work the codex does — a
+  // Markdown pipeline per prose block — and it used to run in the very commit
+  // that starts the opening animation. On a machine that is not fast, the
+  // article is handed to React as a *deferred* value instead: the book opens
+  // on a skeleton, and the article renders behind it in slices that yield to
+  // the frame. A fast machine keeps the one-commit path, which is what makes a
+  // ← → turn between visited entries paint in a single frame.
+  const deferred = useDeferredValue(doc, null);
+  const shown = perfTier() === "high" ? doc : deferred;
+
   if (!doc) {
     return <p className="text-center font-body italic text-sepia-600">{t(missing)}</p>;
+  }
+
+  // Not the previous entry's article under the new entry's name: until the
+  // deferred render lands, the page is honestly empty.
+  if (shown !== doc) {
+    return (
+      <div className="bio-measure" aria-busy="true">
+        <CodexSkeleton />
+      </div>
+    );
   }
 
   // `.bio-measure` is both the reading measure and the query container every

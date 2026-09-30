@@ -358,22 +358,25 @@
 
 /* ============================================================
    Page-turn 3D animations (from Copendum, tuned)
+
+   Transform and opacity only. The turn used to carry a `filter: blur(6px)`
+   as well — on a panel the size of the screen that is an off-screen raster
+   of the whole book per frame, for a softness that is edge-on and invisible
+   at -90° and gone by the time the page faces the reader. Machines graded
+   below `high` do not get the 3D turn at all: see styles/perf.css.
    ============================================================ */
 @keyframes page-turn-open {
   0% {
     transform: rotateY(-90deg) scale(0.92);
     opacity: 0;
-    filter: blur(6px);
   }
   60% {
     transform: rotateY(-8deg) scale(1.015);
     opacity: 1;
-    filter: blur(0);
   }
   100% {
     transform: rotateY(0deg) scale(1);
     opacity: 1;
-    filter: blur(0);
   }
 }
 .page-turn-open {
@@ -405,12 +408,10 @@
   0% {
     transform: perspective(1400px) rotateY(-14deg) translateX(24px);
     opacity: 0;
-    filter: blur(3px);
   }
   100% {
     transform: perspective(1400px) rotateY(0) translateX(0);
     opacity: 1;
-    filter: blur(0);
   }
 }
 .leaf-in {

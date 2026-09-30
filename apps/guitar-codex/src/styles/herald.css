@@ -152,16 +152,51 @@
   box-shadow:
     inset 0 0 34px rgba(212, 175, 55, 0.2),
     0 4px 20px rgba(138, 106, 31, 0.18);
-  animation: herald-halo 7s ease-in-out infinite;
 }
 .herald--birth::before,
 .herald--birth::after {
   background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.8), transparent);
 }
 
+/*
+ * The halo breathes between the resting shadow above and a brighter one every
+ * 7 s. It used to animate `box-shadow` itself, which the compositor cannot do:
+ * a 34–44 px blur was repainted every frame for as long as a birthday showed.
+ *
+ * Now the resting shadow stays put and a layer (`.herald-halo`, a span in
+ * HeraldFrame — `::before`/`::after` are the inner rules) carries the *extra*
+ * light, fading in and out on `opacity` alone: painted once, then only
+ * composited. Its shadow is not the old peak but the difference to it — the
+ * two stack, so at full opacity 0.2 under 0.15 makes the old 0.32 inset
+ * (1 − 0.8 × 0.85) and 0.18 under 0.1 about the old 0.26 drop, at the peak's
+ * wider blurs.
+ *
+ * The layer covers the border box (`inset: -1px`) so both of its shadows start
+ * where the frame's own do. Every other tone keeps it undisplayed.
+ */
+.herald-halo {
+  display: none;
+}
+.herald--birth > .herald-halo {
+  display: block;
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow:
+    inset 0 0 44px rgba(212, 175, 55, 0.15),
+    0 4px 26px rgba(138, 106, 31, 0.1);
+  opacity: 0;
+  animation: herald-halo 7s ease-in-out infinite;
+}
 @keyframes herald-halo {
-  0%, 100% { box-shadow: inset 0 0 34px rgba(212, 175, 55, 0.2), 0 4px 20px rgba(138, 106, 31, 0.18); }
-  50% { box-shadow: inset 0 0 44px rgba(212, 175, 55, 0.32), 0 4px 26px rgba(138, 106, 31, 0.26); }
+  0%, 100% { opacity: 0; }
+  50% { opacity: 1; }
+}
+/* Lite: the resting shadow only. */
+html[data-perf="low"] .herald--birth > .herald-halo,
+html[data-fx="off"] .herald--birth > .herald-halo {
+  display: none;
 }
 
 /* A death: cooler, greyer paper inside a burgundy mourning band. */
@@ -202,4 +237,67 @@
    inner rules above are fluid and no longer have anything to override. */
 @media (max-width: 480px) {
   .herald-corner { width: 1.05rem; height: 1.05rem; }
+}
+
+/* ============================================================
+   Motion (components/herald/HeraldBanner)
+   This used to be framer-motion; the numbers are the ones it ran with.
+   Entrances fill `backwards` (nothing stays applied at rest — no transform,
+   no stacking context); the exit fills `forwards`, so the old line does not
+   flash back in the frame before it is swapped out.
+   ============================================================ */
+
+/* The block's arrival, after the title's. framer was given only the delay, so
+   it ran its defaults: opacity on its 0.3 s tween, the 8 px rise on its spring
+   (stiffness 500, damping 25) — modelled as `.hero-kicker` in home.css is, by
+   a quick curve with a hair of overshoot. */
+.herald-rise {
+  animation:
+    herald-fade-in 0.3s cubic-bezier(0.25, 0.1, 0.35, 1) 1.05s backwards,
+    herald-rise 0.4s cubic-bezier(0.33, 1.25, 0.6, 1) 1.05s backwards;
+}
+@keyframes herald-fade-in {
+  from { opacity: 0; }
+}
+@keyframes herald-rise {
+  from { transform: translateY(8px); }
+}
+
+/* The rotation. One message is mounted at a time: the one on display leaves
+   upward (`data-leaving`, 250 ms — framer's `easeOut`, 0, 0, 0.58, 1, as it
+   had a duration but no curve), *then* the next is mounted and rises into its
+   place. The very first message carries no `--enter` and simply shows. */
+.herald-message {
+  --herald-shift: 8px;
+}
+.herald-message--enter {
+  animation: herald-message-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+.herald-message[data-leaving] {
+  animation: herald-message-out 0.25s cubic-bezier(0, 0, 0.58, 1) forwards;
+}
+@keyframes herald-message-in {
+  from {
+    opacity: 0;
+    transform: translateY(var(--herald-shift));
+  }
+}
+@keyframes herald-message-out {
+  to {
+    opacity: 0;
+    transform: translateY(calc(-1 * var(--herald-shift)));
+  }
+}
+
+/* Reduced motion: effects.css clamps every animation to an instant but keeps
+   its delay — the block would still sit invisible for a second. The rotation
+   loses its travel (the component also swaps at once instead of after 250 ms),
+   so what the clamp leaves is a plain change of line. */
+@media (prefers-reduced-motion: reduce) {
+  .herald-rise {
+    animation-delay: 0s;
+  }
+  .herald-message {
+    --herald-shift: 0px;
+  }
 }

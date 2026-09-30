@@ -1,11 +1,4 @@
-import { memo, useState, type ReactNode } from "react";
-import {
-  m,
-  useMotionTemplate,
-  useMotionValue,
-  useSpring,
-  useTransform,
-} from "framer-motion";
+import { memo, useEffect, useRef, useState, type ReactNode } from "react";
 import { loadEntry, type CatalogRecord } from "@/lib/catalog";
 import { langInfo, pickContentLang } from "@/lib/languages";
 import { initialsFrom, portraitPath } from "@/lib/entry";
@@ -13,6 +6,7 @@ import { resolveContentPath } from "@/lib/paths";
 import { accentFor, countryName } from "@/lib/metadata";
 import { placeholderPortrait } from "@/lib/placeholder";
 import { audio } from "@/lib/audio";
+import { attachTilt } from "@/lib/tilt";
 import { typeLabel, useI18n } from "@/lib/i18n";
 import { preloadCodexModal } from "./codex/LazyCodexModal";
 import clsx from "clsx";
@@ -49,60 +43,41 @@ const FINE_POINTER =
 
 /**
  * The pointer-tilt shell: a 3D tilt towards the cursor, a warm glare that
- * follows it, and a lift on hover. Five motion values, two springs and a
- * motion template — worth it for a mouse, wasted on a finger.
+ * follows it, and a lift on hover — worth it for a mouse, wasted on a finger.
+ *
+ * All of it lives in lib/tilt.ts, attached to the button once: the component
+ * itself holds no animation state and does nothing per frame, and the tilt
+ * runs a frame loop only while a spring is actually moving.
  */
 function TiltShell({ onActivate, label, children }: ShellProps) {
-  const px = useMotionValue(0);
-  const py = useMotionValue(0);
-  const spring = { stiffness: 95, damping: 18, mass: 0.7 };
-  const rotateX = useSpring(useTransform(py, [-0.5, 0.5], [12, -12]), spring);
-  const rotateY = useSpring(useTransform(px, [-0.5, 0.5], [-12, 12]), spring);
+  const ref = useRef<HTMLButtonElement>(null);
 
-  // cursor glare (warm paper light, not white neon)
-  const glareX = useTransform(px, [-0.5, 0.5], ["0%", "100%"]);
-  const glareY = useTransform(py, [-0.5, 0.5], ["0%", "100%"]);
-  const glare = useMotionTemplate`radial-gradient(circle at ${glareX} ${glareY}, rgba(251,243,210,0.5), transparent 46%)`;
-
-  function onMove(e: React.MouseEvent<HTMLButtonElement>) {
-    const r = e.currentTarget.getBoundingClientRect();
-    px.set((e.clientX - r.left) / r.width - 0.5);
-    py.set((e.clientY - r.top) / r.height - 0.5);
-  }
+  useEffect(() => (ref.current ? attachTilt(ref.current) : undefined), []);
 
   return (
-    <m.button
+    // The glare travels as a custom property (set by the tilt) so the card
+    // body can place it over the portrait — where it belongs — without this
+    // shell knowing where the portrait is. Touch cards never set it, and the
+    // body's `var(--card-glare, transparent)` fallback is what makes that fine.
+    <button
+      ref={ref}
       type="button"
-      onMouseMove={onMove}
-      onMouseLeave={() => {
-        px.set(0);
-        py.set(0);
-      }}
       onPointerEnter={preloadCodexModal}
       onFocus={preloadCodexModal}
       onMouseEnter={() => audio.hover()}
       onClick={onActivate}
-      // The glare travels as a custom property so the card body can place it
-      // over the portrait — where it belongs — without this shell knowing
-      // where the portrait is, and without a second component to thread a
-      // motion value through. Touch cards never set it, and the body's
-      // `var(--card-glare, transparent)` fallback is what makes that fine.
-      style={{ rotateX, rotateY, transformPerspective: 720, ["--card-glare" as string]: glare }}
-      whileHover={{ y: -8, scale: 1.045 }}
-      transition={{ type: "spring", stiffness: 90, damping: 18, mass: 0.7 }}
-      whileTap={{ scale: 0.97 }}
       className="group preserve-3d relative block w-full cursor-pointer text-left"
       aria-label={label}
     >
       {children}
-    </m.button>
+    </button>
   );
 }
 
 /**
- * The touch shell: a plain button with a press response. No motion values, no
- * springs, no per-frame subscriptions — on a phone with forty cards on screen
- * that is two hundred spring animations that would never have been seen.
+ * The touch shell: a plain button with a press response. No springs and no
+ * listeners — on a phone with forty cards on screen the tilt would be forty
+ * sets of mouse handlers for a pointer that does not exist.
  */
 function PlainShell({ onActivate, label, children }: ShellProps) {
   return (
@@ -171,7 +146,7 @@ export const CharacterCard = memo(function CharacterCard({
       >
         <div
           className={clsx(
-            "relative overflow-hidden rounded-lg border bg-paper-100",
+            "card-frame relative overflow-hidden rounded-lg border bg-paper-100",
             foreign
               ? "border-burgundy-500/40 opacity-90 shadow-[0_4px_18px_rgba(94,18,32,0.2)] saturate-[0.82] transition-opacity duration-300 group-hover:opacity-100"
               : "border-gold-600/40 shadow-[0_4px_18px_rgba(84,56,30,0.22)]",
@@ -186,16 +161,16 @@ export const CharacterCard = memo(function CharacterCard({
               fetchPriority={eager ? "high" : undefined}
               decoding="async"
               className={clsx(
-                "absolute inset-0 h-full w-full object-cover object-top transition-[transform,filter] duration-[1200ms] [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] group-hover:scale-110",
+                "card-portrait absolute inset-0 h-full w-full object-cover object-top transition-[transform,filter] duration-[1200ms] [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] group-hover:scale-110",
                 foreign
-                  ? "[filter:sepia(0.42)_grayscale(0.38)_brightness(0.96)_blur(0.5px)] group-hover:[filter:sepia(0.2)_grayscale(0.12)_blur(0)]"
+                  ? "card-portrait--foreign [filter:sepia(0.42)_grayscale(0.38)_brightness(0.96)_blur(0.5px)] group-hover:[filter:sepia(0.2)_grayscale(0.12)_blur(0)]"
                   : "[filter:sepia(0.28)_blur(0.5px)] group-hover:[filter:sepia(0.05)_blur(0)]",
               )}
               onError={() => setImgFailed(true)}
             />
             {/* archival colour grade — foreign pages take a burgundy cast */}
             <div
-              className={clsx("absolute inset-0 mix-blend-soft-light", foreign ? "opacity-60" : "opacity-45")}
+              className={clsx("card-grade absolute inset-0 mix-blend-soft-light", foreign ? "opacity-60" : "opacity-45")}
               style={{ background: `radial-gradient(120% 80% at 50% 0%, ${accent}${foreign ? "66" : "44"}, transparent 62%)` }}
             />
             {/* aged fade towards the name plate */}

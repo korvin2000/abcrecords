@@ -75,11 +75,29 @@ export function prefersReducedMotion(): boolean {
  * exists before the first paint and the probe only ever adjusts it.
  */
 export function staticTier(): PerfTier {
-  const { hardwareConcurrency: cores = 4, deviceMemory: memory = 4, connection } = hints();
+  const { hardwareConcurrency: cores = 4, deviceMemory, connection } = hints();
+  const memory = deviceMemory ?? 4;
   if (connection?.saveData) return "low";
   if (cores <= 2 || memory <= 2) return "low";
+  // A touch-only device that *reports* 4 GB or less is a phone or a budget
+  // tablet: eight slow cores would otherwise grade it `mid` before anything
+  // has been measured. Only a reported figure counts — Safari and Firefox do
+  // not expose one, and guessing 4 GB for every iPad would be wrong. The probe
+  // below still corrects this upwards on a device that turns out to be quick.
+  if (deviceMemory !== undefined && deviceMemory <= 4 && touchOnly()) return "low";
   if (cores >= 8 && memory >= 8) return "high";
   return "mid";
+}
+
+/** No pointer that can hover — a phone or a tablet without a mouse. */
+export function touchOnly(): boolean {
+  return window.matchMedia?.("(hover: none)").matches ?? false;
+}
+
+/** The grade measured earlier in this tab session, if any — so a reload starts
+ *  on the measured answer instead of on the static guess. */
+export function cachedTier(): PerfTier | null {
+  return readCache();
 }
 
 /** Hash rounds per millisecond, at a fixed cost to the caller. */

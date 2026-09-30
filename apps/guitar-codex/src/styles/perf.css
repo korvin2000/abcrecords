@@ -1,0 +1,172 @@
+/* ============================================================
+   The paint profile — how expensively the page is drawn
+
+   `<html>` carries two answers, written by lib/fx/store.ts before the first
+   paint:
+
+     data-perf="low | mid | high"   what the machine can afford (measured)
+     data-fx="on | off"             the reader's ✨ switch — what moves
+     data-lite="on | off"           a weak machine, or a deliberate ✨ off —
+                                    what is painted
+
+   Everything this app draws that costs a weak GPU real time — backdrop
+   blurs, per-card filters, blend layers, the blur inside the page turn — is
+   reduced *here*, in one file, instead of in the fifteen files that introduce
+   them. The sheet is unlayered and this file is imported last (index.css), so
+   a rule below wins by position against both the component styles and
+   Tailwind's utilities; nothing needs `!important`.
+
+   Two selector families do all the work:
+
+     "lite"   html[data-lite="on"] …
+              A weak machine, or a reader who switched the ornaments off
+              themselves. The switch is the page's lite mode: it used to stop
+              two ornaments and leave every blur running. A switch that is off
+              only because the system asks for reduced motion is *not* lite —
+              that hint is about movement, and the static finish stays.
+
+     "not high"   html:not([data-perf="high"]) …
+              `mid` as well: the single most expensive things (blur on a
+              full-screen layer) are worth giving up on anything short of a
+              fast machine.
+
+   See docs/performance-analysis.md §4.
+   ============================================================ */
+
+/* ---- The bar and the search box ------------------------------------------
+   Translucent, blurred glass is kept where it is free — a fast machine with
+   the ornaments on — and is solid paper everywhere else. A `backdrop-filter`
+   on a fixed bar is re-blurred on every scroll frame, and on every frame at
+   all while anything moves beneath it. The background lives here rather than
+   in a Tailwind utility because the two halves (how see-through, whether
+   blurred) have to change together. */
+.topbar {
+  background-color: color-mix(in srgb, var(--color-paper-100) 96%, transparent);
+}
+.search-box {
+  background-color: color-mix(in srgb, var(--color-paper-50) 96%, transparent);
+}
+html[data-perf="high"][data-lite="off"] .topbar {
+  background-color: color-mix(in srgb, var(--color-paper-100) 70%, transparent);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+html[data-perf="high"][data-lite="off"] .search-box {
+  background-color: color-mix(in srgb, var(--color-paper-50) 85%, transparent);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+/* ---- Catalogue cards ------------------------------------------------------
+   A portrait carries `sepia() blur(0.5px)` — an off-screen raster pass per
+   image — under a `mix-blend-mode` layer that forces an isolated group, forty
+   to eighty times over. `mid` keeps the archival grade and drops the blur;
+   lite drops the filter and paints the grade as a plain translucent wash. */
+html[data-perf="mid"] .card-portrait {
+  filter: sepia(0.28);
+}
+html[data-perf="mid"] .card-portrait--foreign {
+  filter: sepia(0.42) grayscale(0.38) brightness(0.96);
+}
+html[data-perf="mid"] .group:hover .card-portrait {
+  filter: sepia(0.05);
+}
+html[data-perf="mid"] .group:hover .card-portrait--foreign {
+  filter: sepia(0.2) grayscale(0.12);
+}
+
+html[data-lite="on"] .card-portrait,
+html[data-lite="on"] .group:hover .card-portrait {
+  filter: none;
+}
+html[data-lite="on"] .card-frame {
+  filter: none;
+}
+html[data-lite="on"] .card-grade {
+  mix-blend-mode: normal;
+  opacity: 0.16;
+}
+
+/* ---- The codex opening, and a tab turning ---------------------------------
+   The 3D turn belongs to a fast machine. Everywhere else the book simply
+   arrives: opacity and a short rise, on a layer the compositor can move
+   without repainting a near-full-screen panel. The durations stay inside
+   CLOSE_MS (CodexShell, PdfModal) — the closing clock is JavaScript's. */
+@keyframes page-in-lite {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes page-out-lite {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+@keyframes leaf-in-lite {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+html:not([data-perf="high"]) .page-turn-open,
+html[data-fx="off"] .page-turn-open {
+  transform-origin: center;
+  animation: page-in-lite 0.28s ease-out both;
+}
+html:not([data-perf="high"]) .page-turn-close,
+html[data-fx="off"] .page-turn-close {
+  transform-origin: center;
+  animation: page-out-lite 0.2s ease-in both;
+}
+html:not([data-perf="high"]) .leaf-in,
+html[data-fx="off"] .leaf-in {
+  animation: leaf-in-lite 0.22s ease-out both;
+}
+
+/* ---- Surfaces -------------------------------------------------------------
+   The parchment panel is four stacked gradients — one of them a 4 px
+   repeating diagonal — under a 70 px inset shadow, on a panel the size of the
+   screen. Lite keeps the colour and the frame and lets the texture go. */
+html[data-lite="on"] .parchment {
+  background: linear-gradient(135deg, #f6efdb 0%, #efe3c4 50%, #e6d6b0 100%);
+  box-shadow:
+    inset 0 0 3px rgba(84, 56, 30, 0.25),
+    0 8px 24px rgba(51, 34, 15, 0.3);
+}
+
+/* The grain: an SVG turbulence tile multiplied over the whole viewport. */
+html[data-lite="on"] .bg-grain {
+  display: none;
+}
+
+/* Article and gallery prints: the sepia on every picture. */
+html[data-lite="on"] .fx-curl .inner img {
+  filter: none;
+}
+
+/* A document's pages: forty to a hundred boxes, each with an 18 px shadow. */
+html[data-lite="on"] .pdf-page {
+  /* The variable, not `box-shadow`: the page's gold ring is composed into the
+     same property by Tailwind, and replacing the whole value erased it. */
+  --tw-shadow: 0 1px 4px rgba(51, 34, 15, 0.3);
+}
+
+/* ---- Ornaments that never stop --------------------------------------------
+   The drifting glyphs and the turning clef answer to the switch through
+   lib/fx; these are the remaining loops that did not. With the ornaments off
+   an idle page is idle — no frame is produced until something changes. */
+html[data-fx="off"] .anim-floaty {
+  animation: none;
+}

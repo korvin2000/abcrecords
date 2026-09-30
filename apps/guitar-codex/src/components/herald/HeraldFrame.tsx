@@ -23,6 +23,10 @@ const CORNERS = [
 export function HeraldFrame({ tone, children }: { tone: ToneStyle; children: ReactNode }) {
   return (
     <div className={clsx("herald", tone.frame)}>
+      {/* The birth tone's breathing halo (herald.css): a layer whose opacity
+          is animated, because the shadow itself cannot be. Not displayed in
+          any other tone. */}
+      <span className="herald-halo" aria-hidden />
       {CORNERS.map((c) => (
         <CornerOrnament
           key={c.pos}

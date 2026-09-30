@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { m } from "framer-motion";
 import clsx from "clsx";
 import {
+  cacheTabDocument,
+  cachedTabDocument,
   decodeAsciiTab,
   parseAsciiTab,
   type TabAnnotation,
@@ -19,6 +20,8 @@ import { CornerOrnament } from "./OrnateFrame";
 interface Props {
   tab: ViewerTab;
   onClose: () => void;
+  /** Closed, and kept mounted only while it fades out (lib/asciiTabViewer). */
+  leaving?: boolean;
 }
 
 type LoadState =
@@ -26,7 +29,6 @@ type LoadState =
   | { readonly status: "ready"; readonly document: TabDocument }
   | { readonly status: "error"; readonly detail: string };
 
-const documentCache = new Map<string, TabDocument>();
 const COLUMN_WIDTH = 10;
 const STRING_GAP = 22;
 const LEFT = 50;
@@ -60,10 +62,10 @@ function widestSystemWidth(document: TabDocument): number {
   return widest;
 }
 
-export function AsciiTabViewer({ tab, onClose }: Props) {
+export function AsciiTabViewer({ tab, onClose, leaving = false }: Props) {
   const { t } = useI18n();
   const [load, setLoad] = useState<LoadState>(() => {
-    const cached = documentCache.get(tab.src);
+    const cached = cachedTabDocument(tab.src);
     return cached ? { status: "ready", document: cached } : { status: "loading" };
   });
   const [mode, setMode] = useState<"score" | "raw">("score");
@@ -94,7 +96,7 @@ export function AsciiTabViewer({ tab, onClose }: Props) {
   const heading = tab.label && tab.label !== name ? tab.label : tabDocument?.title ?? label;
 
   useEffect(() => {
-    const cached = documentCache.get(tab.src);
+    const cached = cachedTabDocument(tab.src);
     if (cached) {
       setLoad({ status: "ready", document: cached });
       return;
@@ -103,7 +105,7 @@ export function AsciiTabViewer({ tab, onClose }: Props) {
     setLoad({ status: "loading" });
     void fetchTab(tab.src, name, controller.signal)
       .then((next) => {
-        documentCache.set(tab.src, next);
+        cacheTabDocument(tab.src, next);
         setLoad({ status: "ready", document: next });
       })
       .catch((error: unknown) => {
@@ -122,7 +124,9 @@ export function AsciiTabViewer({ tab, onClose }: Props) {
     };
   }, []);
 
+  // A viewer that is fading out has let go of the keyboard already.
   useEffect(() => {
+    if (leaving) return;
     const onKey = (event: KeyboardEvent) => {
       if (event.altKey || event.ctrlKey || event.metaKey) return;
       if (event.key === "Escape") {
@@ -142,7 +146,7 @@ export function AsciiTabViewer({ tab, onClose }: Props) {
     };
     window.addEventListener("keydown", onKey, { capture: true });
     return () => window.removeEventListener("keydown", onKey, { capture: true });
-  }, [mode, nudgeZoom, onClose]);
+  }, [leaving, mode, nudgeZoom, onClose]);
 
   // What the score has to fit into. Observed rather than measured once: the
   // pane changes with an orientation flip and with the toolbar rewrapping.
@@ -157,17 +161,14 @@ export function AsciiTabViewer({ tab, onClose }: Props) {
   }, [load.status]);
 
   return (
-    <m.div
-      className="fixed inset-0 z-[70] flex items-center justify-center p-1.5 sm:p-5"
+    <div
+      className="mo-fade fixed inset-0 z-[70] flex items-center justify-center p-1.5 sm:p-5"
+      data-leaving={leaving || undefined}
       role="dialog"
       aria-modal="true"
       aria-label={`${t("tab.title")}: ${heading}`}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.2 }}
     >
-      <div className="absolute inset-0 bg-ink-950/70 backdrop-blur-sm" onClick={onClose} />
+      <div className="absolute inset-0 bg-ink-950/75" onClick={onClose} />
       <div className="parchment ornate-border relative z-10 flex h-full max-h-[96dvh] w-full max-w-7xl flex-col overflow-hidden rounded-sm shadow-[0_18px_70px_rgba(26,15,8,0.6)]">
         <CornerOrnament className="pointer-events-none absolute left-[5px] top-[5px] z-10 h-8 w-8 opacity-60" />
         <CornerOrnament flipX className="pointer-events-none absolute right-[5px] top-[5px] z-10 h-8 w-8 opacity-60" />
@@ -219,7 +220,7 @@ export function AsciiTabViewer({ tab, onClose }: Props) {
           </>
         )}
       </div>
-    </m.div>
+    </div>
   );
 }
 

@@ -117,7 +117,8 @@
     color 0.25s,
     border-color 0.25s,
     background 0.25s,
-    box-shadow 0.25s;
+    box-shadow 0.25s,
+    transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .footer-menu-item::before {
@@ -157,6 +158,23 @@
 .footer-menu-item:focus-visible {
   outline: 2px solid var(--color-burgundy-600);
   outline-offset: 3px;
+}
+
+/* The tile's lift under the pointer and give under a press — what framer's
+   `whileHover`/`whileTap` did. The lift is for a real hover only (a touch
+   screen would leave it stuck on the last tile tapped) and is dropped under
+   reduced motion; the press is not motion so much as feedback, and stays. A
+   press on a lifted tile keeps the lift, as framer layered the two. */
+.footer-menu-item:active {
+  transform: scale(0.97);
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .footer-menu-item:hover {
+    transform: translateY(-3px) scale(1.015);
+  }
+  .footer-menu-item:hover:active {
+    transform: translateY(-3px) scale(0.97);
+  }
 }
 
 .footer-menu-numeral {
@@ -305,6 +323,49 @@
   font-style: italic;
   text-align: center;
   overflow-wrap: anywhere;
+}
+
+/* ============================================================
+   The footer's entrance (components/SiteFooter)
+   ============================================================ */
+
+/*
+ * The colophon rises into view the first time a reader scrolls to it, and its
+ * nine tiles follow 45 ms apart — the numbers framer-motion's `whileInView`
+ * ran with. `data-inview` is written by the component (an
+ * IntersectionObserver, once: 12 % of the footer, 18 % of the list); `--i` is
+ * the tile's place in the list.
+ *
+ * Transitions, not keyframes: the hidden state is simply the element's style
+ * until `data-inview` turns true, and once it has the element is back at its
+ * natural style — no transform left behind, so no stacking context. The whole
+ * hidden state sits inside `no-preference`: under reduced motion, as where
+ * there is no IntersectionObserver (the component starts at `true`), the
+ * footer is just there.
+ *
+ * NB: `.site-footer` must not set `position` or `z-index` — the element
+ * carries Tailwind's `relative z-10`, which this unlayered sheet would beat.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .site-footer {
+    transition:
+      opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .site-footer[data-inview="false"] {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+
+  .footer-menu-cell {
+    transition:
+      opacity 0.45s cubic-bezier(0.22, 1, 0.36, 1) calc(var(--i, 0) * 45ms),
+      transform 0.45s cubic-bezier(0.22, 1, 0.36, 1) calc(var(--i, 0) * 45ms);
+  }
+  .footer-menu[data-inview="false"] > .footer-menu-cell {
+    opacity: 0;
+    transform: translateY(14px) scale(0.97);
+  }
 }
 
 .footer-colophon {

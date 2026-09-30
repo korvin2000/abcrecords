@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { m, useReducedMotion } from "framer-motion";
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import clsx from "clsx";
 import { audio } from "@/lib/audio";
+import { useReducedMotion } from "@/lib/motion";
 import { CornerOrnament } from "../OrnateFrame";
 import { PdfViewer } from "./PdfViewer";
 
@@ -85,6 +85,15 @@ export function PdfModal({ title, src, download, z = 40, onClose }: Props) {
   // same convention LanguageMenu, ImageViewer and StatsModal already keep.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      // ← → belong to the document while it is open. The readers bind them, but
+      // no reader is mounted while the viewer is still choosing one, loading
+      // its engine, or showing a failure — and the codex behind would then
+      // leaf to another entry. Stopped here, for every state; the readers'
+      // own listeners sit on the same target and still hear the key.
+      if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
+        e.stopPropagation();
+        return;
+      }
       if (e.key !== "Escape") return;
       e.preventDefault();
       e.stopPropagation();
@@ -95,7 +104,7 @@ export function PdfModal({ title, src, download, z = 40, onClose }: Props) {
   }, [handleClose]);
 
   return (
-    <m.div
+    <div
       // Same frame gap and same safe-area handling as CodexShell: one token for
       // how far a book is held off the screen, and `env()` so a notched phone
       // in landscape does not put the toolbar under the cutout.
@@ -103,17 +112,19 @@ export function PdfModal({ title, src, download, z = 40, onClose }: Props) {
       // The layer is a style rather than a `z-*` utility on purpose: two
       // Tailwind z-index classes on one element are decided by their order in
       // the generated sheet, not by the order they are written in.
-      style={{ zIndex: z }}
-      className="codex-overlay fixed inset-0 flex items-center justify-center"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: closing ? 0 : 1 }}
-      exit={{ opacity: 0, transition: { duration: 0 } }}
-      transition={{ duration: closing ? closeMs / 1000 : 0.25 }}
+      //
+      // The fade is CodexShell's: in over 0.25 s, out on the CLOSE_MS clock
+      // (`mo-book`, styles/motion.css).
+      style={{ zIndex: z, "--mo-close": `${closeMs}ms` } as CSSProperties}
+      className={clsx(
+        "codex-overlay mo-book fixed inset-0 flex items-center justify-center",
+        closing && "mo-book--closing",
+      )}
       role="dialog"
       aria-modal="true"
       aria-label={title}
     >
-      <div className="absolute inset-0 bg-ink-950/55 backdrop-blur-sm" onClick={handleClose} />
+      <div className="absolute inset-0 bg-ink-950/70" onClick={handleClose} />
 
       <div
         className={clsx(
@@ -150,6 +161,6 @@ export function PdfModal({ title, src, download, z = 40, onClose }: Props) {
           />
         </div>
       </div>
-    </m.div>
+    </div>
   );
 }

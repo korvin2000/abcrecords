@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { m } from "framer-motion";
 import clsx from "clsx";
 import { useI18n } from "@/lib/i18n";
 import { Glyph } from "@/components/Glyph";
@@ -16,6 +15,8 @@ import type { ViewerImage } from "@/lib/imageViewer";
 interface Props {
   image: ViewerImage;
   onClose: () => void;
+  /** Closed, and kept mounted only while it fades out (lib/imageViewer). */
+  leaving?: boolean;
 }
 
 interface Transform {
@@ -28,14 +29,19 @@ interface Transform {
 const FIT: Transform = { zoom: 1, rotation: 0, x: 0, y: 0 };
 const STEP = 1.4;
 
-export function ImageViewer({ image, onClose }: Props) {
+export function ImageViewer({ image, onClose, leaving = false }: Props) {
   const { t } = useI18n();
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [natural, setNatural] = useState<{ w: number; h: number } | null>(null);
   const [size, setSize] = useState({ w: 0, h: 0 });
   const [tf, setTf] = useState<Transform>(FIT);
   const areaRef = useRef<HTMLDivElement>(null);
-  const drag = useRef<{ px: number; py: number; ox: number; oy: number; moved: boolean } | null>(null);
+  // `x`/`y` are the latest pointer position; `panFrame` is the one pending
+  // animation frame that turns it into a transform (see onPointerMove).
+  const drag = useRef<{ px: number; py: number; ox: number; oy: number; x: number; y: number; moved: boolean } | null>(null);
+  const panFrame = useRef(0);
+
+  useEffect(() => () => cancelAnimationFrame(panFrame.current), []);
 
   // Track the image-area size for fit + pan bounds.
   useEffect(() => {
@@ -103,7 +109,9 @@ export function ImageViewer({ image, onClose }: Props) {
   }, [zoomAt]);
 
   // Keyboard controls — captured so they never reach the codex behind the viewer.
+  // A viewer that is fading out has let go of them already.
   useEffect(() => {
+    if (leaving) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.altKey || e.ctrlKey || e.metaKey) return;
       const stop = () => {
@@ -125,22 +133,39 @@ export function ImageViewer({ image, onClose }: Props) {
     };
     window.addEventListener("keydown", onKey, { capture: true });
     return () => window.removeEventListener("keydown", onKey, { capture: true });
-  }, [onClose, zoomAt, fit, rotate, canPan, fitScale, natural, size, maxZoom]);
+  }, [leaving, onClose, zoomAt, fit, rotate, canPan, fitScale, natural, size, maxZoom]);
 
   const onPointerDown = (e: React.PointerEvent) => {
-    drag.current = { px: e.clientX, py: e.clientY, ox: tf.x, oy: tf.y, moved: false };
+    drag.current = { px: e.clientX, py: e.clientY, ox: tf.x, oy: tf.y, x: e.clientX, y: e.clientY, moved: false };
     if (canPan) (e.currentTarget as Element).setPointerCapture(e.pointerId);
   };
+  const pan = (d: NonNullable<typeof drag.current>) =>
+    setTf((prev) => bound({ ...prev, x: d.ox + (d.x - d.px), y: d.oy + (d.y - d.py) }, fitScale, natural, size, maxZoom));
+  // Phones deliver 60–120 pointermoves a second; one render per frame is all
+  // the screen can show, so moves only record the position and a single
+  // pending frame applies the latest one.
   const onPointerMove = (e: React.PointerEvent) => {
     const d = drag.current;
     if (!d) return;
     if (Math.abs(e.clientX - d.px) + Math.abs(e.clientY - d.py) > 3) d.moved = true;
     if (!canPan) return;
-    setTf((prev) => bound({ ...prev, x: d.ox + (e.clientX - d.px), y: d.oy + (e.clientY - d.py) }, fitScale, natural, size, maxZoom));
+    d.x = e.clientX;
+    d.y = e.clientY;
+    if (panFrame.current) return;
+    panFrame.current = requestAnimationFrame(() => {
+      panFrame.current = 0;
+      if (drag.current) pan(drag.current);
+    });
   };
   const onPointerUp = (e: React.PointerEvent) => {
     const d = drag.current;
     drag.current = null;
+    // Land exactly where the pointer was released, not one frame short of it.
+    if (panFrame.current) {
+      cancelAnimationFrame(panFrame.current);
+      panFrame.current = 0;
+      if (d) pan(d);
+    }
     if (d && !d.moved && e.target === areaRef.current) onClose(); // click on the backdrop
   };
   const onDoubleClick = (e: React.MouseEvent) => {
@@ -150,15 +175,12 @@ export function ImageViewer({ image, onClose }: Props) {
   };
 
   return (
-    <m.div
-      className="fixed inset-0 z-[60] flex flex-col bg-ink-950/90 backdrop-blur-sm"
+    <div
+      className="mo-fade fixed inset-0 z-[60] flex flex-col bg-ink-950/90"
+      data-leaving={leaving || undefined}
       role="dialog"
       aria-modal="true"
       aria-label={image.alt || image.caption || "image"}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.2 }}
     >
       <button
         type="button"
@@ -220,7 +242,7 @@ export function ImageViewer({ image, onClose }: Props) {
 
       {status === "ready" && (
         <div className="pointer-events-none flex justify-center pb-4 pt-1">
-          <div className="pointer-events-auto flex items-center gap-1 rounded-full border border-gold-600/50 bg-paper-100/90 px-2 py-1.5 shadow-[0_6px_24px_rgba(0,0,0,0.5)] backdrop-blur">
+          <div className="pointer-events-auto flex items-center gap-1 rounded-full border border-gold-600/50 bg-paper-100/95 px-2 py-1.5 shadow-[0_6px_24px_rgba(0,0,0,0.5)]">
             <IconButton onClick={() => zoomAt(1 / STEP)} label={t("viewer.zoomOut")}>
               <Icon d="M5 12h14" />
             </IconButton>
@@ -251,7 +273,7 @@ export function ImageViewer({ image, onClose }: Props) {
           </div>
         </div>
       )}
-    </m.div>
+    </div>
   );
 }
 

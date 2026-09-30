@@ -23,7 +23,6 @@
   box-shadow:
     inset 0 0 30px rgba(138, 106, 31, 0.1),
     0 14px 40px rgba(51, 34, 15, 0.28);
-  backdrop-filter: blur(3px);
 }
 
 .search-panel-title {
@@ -46,6 +45,60 @@
 }
 
 /* The panel's padding is fluid above; nothing left to override. */
+
+/* ---- Motion: the bar and its panel (components/search/SearchBar) ----------
+   The numbers framer-motion ran them with. Where it was given a duration but
+   no curve, framer eased with its `easeOut` (0, 0, 0.58, 1), not the browser's
+   `ease-out`, so that curve is spelled out.
+
+   Entrances fill `backwards`: the `from` state holds through any delay and
+   nothing stays applied afterwards — a transform left on the bar would make it
+   a stacking context and change how the panel overlaps the grid below it.
+   The exit fills `forwards`, so the panel does not flash back in the frame
+   before it is unmounted. */
+
+/* The bar rises into place after the title and the herald. */
+.search-bar-rise {
+  animation: search-bar-rise 0.6s cubic-bezier(0, 0, 0.58, 1) 1.15s backwards;
+}
+@keyframes search-bar-rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+/* The panel unfolds from under the bar and folds back up, faster. SearchBar
+   keeps it mounted through the exit (`useLinger`, 160 ms) and it arrives here
+   as `data-leaving`; a leaving panel takes no pointer input. */
+.search-panel {
+  animation: search-panel-in 0.24s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+.search-panel[data-leaving] {
+  pointer-events: none;
+  animation: search-panel-out 0.16s cubic-bezier(0, 0, 0.58, 1) forwards;
+}
+@keyframes search-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.985);
+  }
+}
+@keyframes search-panel-out {
+  to {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.985);
+  }
+}
+
+/* Reduced motion: effects.css clamps the animation to an instant but keeps its
+   delay, which would hold the bar invisible for a second with nothing to show
+   for it. */
+@media (prefers-reduced-motion: reduce) {
+  .search-bar-rise {
+    animation-delay: 0s;
+  }
+}
 
 /* ============================================================
    Facet chips (components/form/Chip) — the quick facets under the search box

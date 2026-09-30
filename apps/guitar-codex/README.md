@@ -72,7 +72,7 @@ configuration and does not follow the app to `/fable/`.
 | i18n | `src/lib/i18n.tsx` | ru (primary) / en, `Intl.PluralRules`, persisted in localStorage. |
 | Sound | `src/lib/audio.ts` | Procedural WebAudio (no audio files): hover/click/page-turn SFX, ambient drone, and a deterministic per-entry theme from `f = f₀·2^(n/12)` seeded by the entry slug. |
 | Audio player | `src/lib/playback.ts` · `src/lib/midi.ts` · `src/components/AudioPlayer.tsx` | Built-in player for `media.music` and audio links in biographies. Native `<audio>` (mp3/wav/ogg/…) plus a MIDI synth (`.mid` parsed with the lazily-loaded `@tonejs/midi`, rendered through oscillators — no SoundFont). One source sounds at a time; every player also offers a download. |
-| PDF documents | `src/components/pdf/` · `src/lib/pdf/engine.ts` | An index row with `pdf` and no `md` **is** a document: it opens a codex-styled dialog holding a pdf.js reader instead of the article codex — paging, zoom, fit-to-width/page, rotate, download, selectable text. Continuous scroll where every page has a box but only pages near the viewport have pixels. The engine, its ~1 MB worker and its runtime data (cmaps/fonts/wasm, served at `<base>pdfjs/` by `vite/pdfjs-assets.ts`) are all lazy — a session that never opens a PDF downloads none of it. |
+| PDF documents | `src/components/pdf/` · `src/lib/pdf/` | An index row with `pdf` and no `md` **is** a document: it opens a codex-styled dialog holding one of two readers. The **pdf.js reader** — paging, zoom, fit-to-width/page, rotate, download, selectable text on the page being read; continuous scroll where every page has a box but only pages near the viewport have pixels, painted through a queue under per-grade budgets (`PDF` in `config.ts`). The **image reader** — the same issue as pre-rendered page JPEGs (`<file>.pages/`, made by `npm run prerender:pdf`), used on weak machines, for files over 20 MB and when pdf.js cannot open the file. pdf.js is the package's **legacy** build (older Android browsers cannot run the default one); the engine, its ~1.3 MB worker and its runtime data (cmaps/fonts/wasm, served at `<base>pdfjs/` by `vite/pdfjs-assets.ts`) are all lazy — a session that never opens a PDF, or reads one as images, downloads none of it. |
 | ASCII tablature | `src/lib/asciiTab.ts` · `src/components/AsciiTabViewer.tsx` | `.txt` links open in a lazy codex-styled viewer: lossless source parsing, six-string SVG systems, tuning/notation diagnostics, aligned raw fallback, zoom, download, and explicitly approximate WebAudio playback inferred from source columns. |
 | Browse UI | `src/components/` | CodexLegends card/search/grid (3D pointer tilt, cursor glare, shine sweep, ornate frames) re-themed light per `.claude-memory/10-ui-component-decision.md`. |
 | Codex modal | `src/components/codex/` | Copendum CharacterDetail base: parchment, double gold/brown border, 3D page-turn open/close, 4 tabs (Летопись · Галерея · Свитки · Атрибуты), `#/slug` deep links, ← → turns entries. `PdfModal` is its sibling for document rows — same room, a PDF instead of an article. |
@@ -80,15 +80,21 @@ configuration and does not follow the app to `/fable/`.
 ## Performance choices
 
 - No canvas/particle engines; static gradient + SVG-grain background.
-- `LazyMotion` plus an on-demand Codex/Markdown chunk; pointer/focus intent
-  starts loading it just before selection.
+- An on-demand Codex/Markdown chunk; pointer/focus intent starts loading it
+  just before selection.
 - Only the first four portraits are eager/high-priority; the rest use native
   lazy loading and procedural SVG fallbacks.
 - Fonts are self-hosted with `unicode-range`; Garamond uses one variable
   weight file per script instead of several static weights.
-- `/fable/` production build: ≈ 135 KB initial gzip JS + 15.6 KB CSS;
-  Codex/Markdown adds ≈ 59 KB gzip only when first opened, and pdf.js a
-  further ≈ 123 KB gzip (plus its worker) only when a PDF is.
+- Production build: ≈ 109 KB initial gzip JS (budget 115, enforced by
+  `npm run verify`) + 25 KB CSS; no animation library — motion is CSS plus
+  `src/lib/motion.ts`, and the card tilt is a small spring in `src/lib/tilt.ts`; nine of the eleven UI dictionaries are
+  separate ~4 KB chunks; Codex/Markdown adds ≈ 62 KB gzip only when first
+  opened, and pdf.js a further ≈ 144 KB gzip (plus its worker) only when a
+  PDF is read with it.
+- A capability grade (`low`/`mid`/`high`, `lib/fx`) and the reader's ✨ switch
+  decide how expensively the page is painted — see `styles/perf.css` and
+  `docs/performance-analysis.md`.
 - The PDF reader keeps a *box* for every page and *pixels* only for pages near
   the viewport, so a 106-page magazine costs a handful of canvases rather than
   a hundred; a re-render at a new zoom paints into a detached canvas and blits,

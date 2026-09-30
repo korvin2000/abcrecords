@@ -1,4 +1,3 @@
-import { m } from "framer-motion";
 import { audio } from "@/lib/audio";
 import { typeLabel, useI18n } from "@/lib/i18n";
 import { countryName } from "@/lib/metadata";
@@ -26,6 +25,7 @@ import { DossierProgress, type DossierStatus } from "./DossierProgress";
  */
 export function AdvancedSearchPanel({
   id,
+  leaving = false,
   criteria,
   onPatch,
   onReset,
@@ -35,6 +35,9 @@ export function AdvancedSearchPanel({
   dossier,
 }: {
   id: string;
+  /** The panel has been closed and is playing its exit; it is kept mounted
+   *  by the bar only for that long, and takes no pointer input meanwhile. */
+  leaving?: boolean;
   criteria: SearchCriteria;
   onPatch: (patch: Partial<SearchCriteria>) => void;
   onReset: () => void;
@@ -48,14 +51,11 @@ export function AdvancedSearchPanel({
   const labelId = (name: string) => `${id}-${name}`;
 
   return (
-    <m.div
+    <div
       id={id}
       role="group"
       aria-label={t("search.advanced.title")}
-      initial={{ opacity: 0, y: -10, scale: 0.985 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: -8, scale: 0.985, transition: { duration: 0.16 } }}
-      transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+      data-leaving={leaving || undefined}
       className="search-panel origin-top"
     >
       <p className="search-panel-title">
@@ -198,6 +198,6 @@ export function AdvancedSearchPanel({
           </button>
         </div>
       </div>
-    </m.div>
+    </div>
   );
 }

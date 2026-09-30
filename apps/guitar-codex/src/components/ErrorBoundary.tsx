@@ -1,5 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
 import { useI18n } from "@/lib/i18n";
+import { reportProblem } from "@/lib/diagnostics";
 
 /**
  * The one guard against a blank page. React unmounts the whole tree when a
@@ -40,11 +41,12 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo): void {
-    // DEV-only, like catalog.ts's warnDev. In production the fallback *is* the
-    // report — there is no error sink to send this to.
-    if (import.meta.env.DEV) {
-      console.error(`[${this.props.label ?? "boundary"}] ${error.message}`, error, info.componentStack);
-    }
+    // The fallback tells the reader; this tells us. A boundary that trips only
+    // on somebody else's phone used to leave no trace anywhere
+    // (lib/diagnostics — one console line, and a report where an endpoint is
+    // configured).
+    reportProblem(`boundary.${this.props.label ?? "app"}`, error);
+    if (import.meta.env.DEV) console.error(info.componentStack);
   }
 
   componentDidUpdate(prev: Props): void {

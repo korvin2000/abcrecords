@@ -1,5 +1,5 @@
 import { Suspense, useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
-import { AnimatePresence } from "framer-motion";
+import { useLinger, useReducedMotion } from "@/lib/motion";
 import clsx from "clsx";
 import { COUNTER, DOSSIER, EFFECTS, FEATURES, HERALD } from "@/config";
 import type { MsgKey } from "@/lib/messages";
@@ -7,7 +7,7 @@ import { LANG_CODES, pickContentLang } from "@/lib/languages";
 import { resolveSitePath } from "@/lib/paths";
 import { EMPTY_CATALOG, prefetchEntry } from "@/lib/catalog";
 import { countryName } from "@/lib/metadata";
-import { NO_FACTS, useFacts } from "@/lib/dossier";
+import { NO_FACTS, useFacts, useWarmUp } from "@/lib/dossier";
 import {
   buildSearchIndex,
   capture,
@@ -57,7 +57,7 @@ export default function App() {
   const [ambient, setAmbient] = usePreference("ambient");
   const fx = useFx();
   // The visitors' chronicle. It lives beside the codex rather than inside the
-  // header, because the header carries a `backdrop-filter` — which is a
+  // header, because the header can carry a `backdrop-filter` — which is a
   // containing block for anything `fixed` inside it, so a full-screen overlay
   // mounted there would be positioned against the bar, not the viewport.
   const [statsOpen, setStatsOpen] = useState(false);
@@ -81,8 +81,14 @@ export default function App() {
   // Dossier metadata is read in the background: always for the herald's "on
   // this day" lookup, and on demand the moment a criterion needs a name or a
   // year. Both readers share one crawl (see lib/dossier).
+  //
+  // The two are not equally urgent. A criterion is the reader waiting; the
+  // herald is a courtesy, so its read starts a few seconds after the first
+  // paint and, on a weak machine or a metered connection, only if the server
+  // can answer in one request (see `FactsIndex.start`).
   const heraldWantsFacts = FEATURES.herald && HERALD.anniversaries && DOSSIER.warmOnIdle;
-  const facts = useFacts(catalog.listed, lang, heraldWantsFacts || compiled.needsDossier);
+  const warm = useWarmUp(heraldWantsFacts && state.kind === "ready");
+  const facts = useFacts(catalog.listed, lang, compiled.needsDossier ? "demand" : warm ? "idle" : "off");
 
   // Handing the search a stable empty map unless it actually reads dossiers
   // keeps the streaming index from re-running the search on every batch.
@@ -137,6 +143,14 @@ export default function App() {
       countryCounts: countries as ReadonlyMap<string, number>,
     };
   }, [catalog, locale, t]);
+
+  // Stable, because the footer is memoized: `App` renders on every keystroke
+  // in the search box, and a fresh arrow here would re-render nine tiles and a
+  // share panel each time for nothing.
+  const canOpenSection = useCallback(
+    (slug: string) => (slug === GUESTBOOK_SLUG ? FEATURES.guestbook : catalog.bySlug.has(slug)),
+    [catalog],
+  );
 
   const patchCriteria = useCallback((patch: Partial<SearchCriteria>) => {
     setCriteria((prev) => ({ ...prev, ...patch }));
@@ -257,17 +271,14 @@ export default function App() {
   // rebuild it every render (docs/demoscene-integration.md §3.1).
   const closeAbout = useCallback(() => setAboutOpen(false), []);
 
-  // The reader's switch has to reach CSS as well as React: it is what lets the
-  // ornaments run on a machine that asks for reduced motion (index.css, foot).
-  useEffect(() => {
-    document.documentElement.dataset.fx = fx.on ? "on" : "off";
-  }, [fx.on]);
-
   // `#/guestbook` is the one address in the catalogue's space that is spoken
   // for: it opens the visitors' book instead of an entry. Resolved *before*
   // `catalog.bySlug`, so a stray index row named "guestbook" cannot quietly
   // take the route back (see components/guestbook/route.ts).
   const guestbookOpen = FEATURES.guestbook && selectedSlug === GUESTBOOK_SLUG;
+  // The panel outlives `guestbookOpen` by its 0.25 s fade-out. Only its
+  // mounting follows this; the scroll lock below stays on the real state.
+  const guestbookShown = useLinger(guestbookOpen ? true : null, useReducedMotion() ? 0 : 250);
   const selectedRecord =
     selectedSlug && !guestbookOpen ? (catalog.bySlug.get(selectedSlug) ?? null) : null;
 
@@ -327,7 +338,7 @@ export default function App() {
       {/* Every size in the bar is fluid — see the `--topbar-*` family and the
           `.topbar*` classes in index.css. `pt-topbar` on <main> below is derived
           from the same tokens, so the clearance follows the bar automatically. */}
-      <header className="topbar fixed inset-x-0 top-0 z-30 flex items-center justify-between border-b border-gold-600/25 bg-paper-100/70 backdrop-blur-sm">
+      <header className="topbar fixed inset-x-0 top-0 z-30 flex items-center justify-between border-b border-gold-600/25">
         <div className="topbar-group">
           {/* Where the wordmark used to stand. With the counter switched off in
               `config.ts` the bar keeps the plain mark and the name. */}
@@ -444,15 +455,12 @@ export default function App() {
       {/* "VI · Guestbook" is openable without being a catalogue entry — it is
           the reserved route. Every other section still has to exist in the
           index before the footer will link to it rather than announce it. */}
-      <SiteFooter
-        canOpen={(slug) => (slug === GUESTBOOK_SLUG ? FEATURES.guestbook : catalog.bySlug.has(slug))}
-        onOpenEntry={openEntry}
-      />
+      <SiteFooter canOpen={canOpenSection} onOpenEntry={openEntry} />
 
       {/* The codex gets a boundary of its own: a chunk that will not import, or
           an entry whose content will not render, then costs the reader that
           entry instead of the grid. `resetKey` re-arms it per entry — keying the
-          boundary itself would remount AnimatePresence and kill the ← → turn. */}
+          boundary itself would remount the shell and kill the ← → turn. */}
       <ErrorBoundary
         label="codex"
         resetKey={selectedSlug ?? ""}
@@ -466,43 +474,43 @@ export default function App() {
               persists and only its contents change; CodexModal keys the *view*
               so the reader still lands on the Biography tab of the new entry.
               See CodexShell's header comment. */}
-          <AnimatePresence>
-            {/* Which book opens is decided by the index row, before anything
-                is fetched: a row that *is* a PDF (docs/Catalog-Index.md §9)
-                opens the document viewer, everything else opens the codex.
-                Both are lazy, so only the one the reader asked for is
-                downloaded — and the pdf.js engine never reaches a session
-                that only reads biographies.
+          {/* Which book opens is decided by the index row, before anything
+              is fetched: a row that *is* a PDF (docs/Catalog-Index.md §9)
+              opens the document viewer, everything else opens the codex.
+              Both are lazy, so only the one the reader asked for is
+              downloaded — and the pdf.js engine never reaches a session
+              that only reads biographies.
 
-                The two keys are constants, one per *kind* of book, not per
-                entry: they let AnimatePresence tell a codex from a document
-                when ← → crosses between them, while leaving the "deliberately
-                unkeyed" property above intact within each kind. */}
-            {selectedRecord?.pdf ? (
-              <LazyPdfModal
-                key="pdf"
-                title={selectedRecord.display}
-                // `pdf` is site-root-relative — the document archive sits
-                // beside the app, not inside it (docs/Catalog-Index.md §9.1).
-                // Resolving it here rather than in the modal is what lets the
-                // same modal open a `.pdf` met inside an article, whose path
-                // belongs to the resource base instead (lib/pdfViewer).
-                src={resolveSitePath(selectedRecord.pdf)}
-                download={selectedRecord.pdf.split("/").pop()}
+              The two keys are constants, one per *kind* of book, not per
+              entry: a ← → that crosses between a codex and a document swaps
+              one book for the other, while leaving the "deliberately
+              unkeyed" property above intact within each kind. Neither needs
+              an exit here — both run their own closing fade and call
+              `onClose` only once it has finished. */}
+          {selectedRecord?.pdf ? (
+            <LazyPdfModal
+              key="pdf"
+              title={selectedRecord.display}
+              // `pdf` is site-root-relative — the document archive sits
+              // beside the app, not inside it (docs/Catalog-Index.md §9.1).
+              // Resolving it here rather than in the modal is what lets the
+              // same modal open a `.pdf` met inside an article, whose path
+              // belongs to the resource base instead (lib/pdfViewer).
+              src={resolveSitePath(selectedRecord.pdf)}
+              download={selectedRecord.pdf.split("/").pop()}
+              onClose={() => openEntry(null)}
+            />
+          ) : (
+            selectedRecord && (
+              <LazyCodexModal
+                key="codex"
+                record={selectedRecord}
                 onClose={() => openEntry(null)}
+                onTurn={turnPage}
+                onNavigateEntry={openLinkedEntry}
               />
-            ) : (
-              selectedRecord && (
-                <LazyCodexModal
-                  key="codex"
-                  record={selectedRecord}
-                  onClose={() => openEntry(null)}
-                  onTurn={turnPage}
-                  onNavigateEntry={openLinkedEntry}
-                />
-              )
-            )}
-          </AnimatePresence>
+            )
+          )}
         </Suspense>
       </ErrorBoundary>
 
@@ -511,13 +519,15 @@ export default function App() {
           and the parchment; the package knows nothing about either. Mounted
           conditionally, so the chunk is fetched on the first VI and the panel's
           state is gone when it closes. */}
-      <AnimatePresence>
-        {guestbookOpen && (
-          <Suspense fallback={null}>
-            <LazyGuestbookOverlay key="guestbook" onClose={() => openEntry(null)} />
-          </Suspense>
-        )}
-      </AnimatePresence>
+      {guestbookShown.value && (
+        <Suspense fallback={null}>
+          <LazyGuestbookOverlay
+            key="guestbook"
+            leaving={guestbookShown.leaving}
+            onClose={() => openEntry(null)}
+          />
+        </Suspense>
+      )}
 
       {/* The About demoscene. Mounted conditionally, never left mounted with
           `open={false}`: the chunk is fetched at first *render*, and it is the
@@ -656,7 +666,7 @@ function GridSkeleton() {
 
 function CodexFallback() {
   return (
-    <div className="fixed inset-0 z-40 grid place-items-center bg-ink-950/40 backdrop-blur-[2px]" aria-busy="true">
+    <div className="fixed inset-0 z-40 grid place-items-center bg-ink-950/55" aria-busy="true">
       <span className="h-12 w-12 animate-spin rounded-full border-2 border-gold-300/40 border-t-gold-500" />
     </div>
   );
@@ -669,7 +679,7 @@ function CodexError({ onClose }: { onClose: () => void }) {
   const { t } = useI18n();
   return (
     <div
-      className="fixed inset-0 z-40 grid place-items-center bg-ink-950/40 px-6 backdrop-blur-[2px]"
+      className="fixed inset-0 z-40 grid place-items-center bg-ink-950/55 px-6"
       role="alert"
     >
       <div className="parchment ornate-border max-w-md px-8 py-7 text-center">

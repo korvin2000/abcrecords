@@ -1,0 +1,90 @@
+/* ============================================================
+   Motion — the fades and the one pop-in the animation library used to draw
+
+   Every overlay in the app arrives and leaves the same few ways: a fade, a
+   fade with a short rise and a small scale. None of it needs JavaScript to
+   run; what JavaScript still decides is *when* — how long an element stays
+   mounted while it leaves (useLinger, lib/motion.ts) and when a book starts
+   closing (CLOSE_MS in CodexShell and PdfModal). See
+   docs/performance-analysis.md, N-7.
+
+   Three rules every animation below keeps:
+
+     · Only `opacity` and `transform` move, so the compositor does the work.
+     · An entrance's `to` state is the element's natural one and its fill is
+       `backwards`: once it has played, nothing of it is left on the element —
+       no stray transform to create a containing block, no opacity to break
+       the codex panel's `preserve-3d`.
+     · An exit fills `forwards`, so the element stays hidden until React
+       takes it away.
+
+   Reduced motion needs no branch here: the global rule at the end of
+   effects.css clamps every animation to one 0.001 ms iteration, and each
+   one ends in its resting state — shown for an entrance, gone for an exit.
+
+   The easing is the library's default tween (`easeInOut`, which is CSS's
+   `ease-in-out`) wherever the component did not name one, so nothing that
+   moved before moves differently now.
+   ============================================================ */
+
+@keyframes mo-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes mo-pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+  }
+}
+
+/* ---- Overlays that fade both ways -----------------------------------------
+   The image and tablature viewers (0.2 s) and the guestbook (0.25 s). The
+   owner keeps the element mounted through its exit and marks it
+   `data-leaving`; from then on it takes no pointer input — descendants
+   included, since a toolbar that opts back in with `pointer-events-auto`
+   would otherwise stay clickable on a viewer that is already going. */
+.mo-fade {
+  --mo-fade: 0.2s;
+  animation: mo-fade-in var(--mo-fade) ease-in-out backwards;
+}
+.mo-fade--250 {
+  --mo-fade: 0.25s;
+}
+/* The exit is a *transition*, not a second keyframe animation. Swapping
+   `animation-name` cancels the entrance and starts from the element's resting
+   opacity — 1 — so an overlay closed while still fading in jumped to full
+   before it faded. A transition starts from the value on screen. */
+.mo-fade[data-leaving] {
+  animation: none;
+  opacity: 0;
+  transition: opacity var(--mo-fade) ease-in-out;
+}
+/* Descendants only. The root stays hit-testable on purpose: a viewer closed by
+   a tap on its backdrop unmounts nothing for 200 ms, and the click the browser
+   synthesises after that tap must land on the dying overlay, not on the codex
+   underneath it. */
+.mo-fade[data-leaving] * {
+  pointer-events: none;
+}
+
+/* ---- Books that close themselves ------------------------------------------
+   CodexShell and PdfModal: the backdrop fades in over 0.25 s, and fades out on
+   the component's own closing clock, which it hands over as `--mo-close`
+   (CLOSE_MS, or 0 under reduced motion) so the panel's turn and the backdrop
+   finish together. */
+.mo-book {
+  animation: mo-fade-in 0.25s ease-in-out backwards;
+}
+.mo-book--closing {
+  animation: none;
+  opacity: 0;
+  transition: opacity var(--mo-close, 0.32s) ease-in-out;
+}
+
+/* ---- The visitors' chronicle ----------------------------------------------
+   The plate settles in: a short rise and a hair of scale, eased out. */
+.mo-pop {
+  animation: mo-pop-in 0.24s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}

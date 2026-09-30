@@ -347,6 +347,15 @@ corner filigree and page-turn as the codex — and a PDF where the article would
 be. It has no tabs, no header, no metadata and no ←/→ leafing between entries,
 because those arrow keys belong to the pages of the open document.
 
+A document may be accompanied by **page images**: a directory named after the
+file with `.pages` in place of `.pdf`, beside it —
+`magazine/2017/IGvL_2(21)_2017.pages/` holding `manifest.json` and
+`p-001.jpg …`. It is made offline with `npm run prerender:pdf -- <file.pdf>`
+and is never declared in `index.json`: the viewer looks for it by name. When it
+exists, the issue opens as images on a weak machine, when the file is larger
+than 20 MB, and whenever the PDF engine cannot open it, with the full viewer
+one press away. Re-run the script when the PDF is replaced.
+
 Consequences worth knowing before authoring one:
 
 - **`lang` still classifies it, but nothing is translated.** One file serves

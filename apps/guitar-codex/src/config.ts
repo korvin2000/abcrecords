@@ -96,6 +96,9 @@ interface GridConfig {
   autoPages: number;
   /** How far below the fold the next page starts loading. */
   revealMargin: string;
+  /** `pageSize` and `pageStep` on a machine graded `low` (lib/fx/tier.ts): a
+   *  smaller first page is a shorter first paint where that matters most. */
+  lowPageSize: number;
 }
 
 /**
@@ -112,6 +115,7 @@ export const GRID: GridConfig = {
   pageStep: 40,
   autoPages: 1,
   revealMargin: "800px",
+  lowPageSize: 24,
 };
 
 interface EffectsConfig {
@@ -182,6 +186,23 @@ interface DossierConfig {
   /** Floor between progress notifications, so streaming facts cannot turn into
    *  a re-render storm (completion always notifies immediately). */
   notifyThrottleMs: number;
+  /**
+   * The server-side aggregate (`server/facts.php`): every dossier's searchable
+   * fields for one language in a single response, instead of one request per
+   * entry. Resolved against the **site root**, like the counter. Empty string
+   * = always crawl. It is an accelerator, never a dependency: a missing or
+   * broken endpoint falls back to the crawl below, silently.
+   */
+  endpoint: string;
+  /** How long the endpoint may take before the crawl takes over (ms). */
+  endpointTimeoutMs: number;
+  /** How long after the catalogue is on screen the *idle* warm-up may begin
+   *  (ms). The herald's first message is not due before `HERALD.revealDelayMs`
+   *  anyway, and the first seconds belong to the first paint. A criterion that
+   *  needs the facts starts the read at once, regardless. */
+  warmDelayMs: number;
+  /** Parallel requests of the fallback crawl on a machine graded below `high`. */
+  lowConcurrency: number;
 }
 
 /**
@@ -207,6 +228,14 @@ export const DOSSIER: DossierConfig = {
      browser between entries (`whenIdle` in factsStore.ts). */
   concurrency: 6,
   notifyThrottleMs: 500,
+  /* Production only, for the reason the counter records in production only: in
+     development the legacy-archive plugin would proxy this path to the live
+     site, and the facts would then describe the deployed `pages/`, not the
+     working copy being edited. */
+  endpoint: import.meta.env.PROD ? "/api/facts.php" : "",
+  endpointTimeoutMs: 4000,
+  warmDelayMs: 3000,
+  lowConcurrency: 3,
 };
 
 interface HeraldConfig {
@@ -227,6 +256,85 @@ export const HERALD: HeraldConfig = {
   rotateMs: 30_000,
   anniversaries: true,
   quotes: true,
+};
+
+type PerTier<T> = Readonly<Record<PerfTier, T>>;
+
+interface PdfConfig {
+  /** Ceiling on one page canvas, in pixels. Device pixel ratio is given up
+   *  before it is crossed; 1 Mpx is 4 MB of bitmap. */
+  canvasPixels: PerTier<number>;
+  /** Device pixels per CSS pixel a page is painted at, at most. */
+  maxDpr: PerTier<number>;
+  /** How far outside the pane a page is still painted, as a fraction of the
+   *  pane's height on each side. */
+  renderMargin: PerTier<number>;
+  /** Pages painted at the same time. Every one decodes its own scans. */
+  concurrency: PerTier<number>;
+  /** Build the selectable text layer unasked. Where this is false — and on
+   *  every touch-only device — it is built when the reader long-presses the
+   *  page. Either way only the page being read ever has one. */
+  textLayer: PerTier<boolean>;
+  /** How long a page must stay inside the render window before it is painted
+   *  (ms) — a fling across forty pages then paints the one it stops on. */
+  dwellMs: number;
+  /** Largest zoom offered with a fine pointer, and on a touch-only device. */
+  maxScale: number;
+  maxScaleTouch: number;
+  /** Bytes per range request. pdf.js's own default is 65 536. */
+  rangeChunkSize: number;
+  /** No document and no progress for this long = the load has failed (ms). */
+  watchdogMs: number;
+  /**
+   * The image reader: pages pre-rendered to JPEG beside the PDF
+   * (`<file>.pages/manifest.json`, made by `scripts/prerender-pdf.mjs`).
+   * When a manifest exists, the reader opens on the images if the machine is
+   * graded `low`, if the file is larger than `liteOverBytes`, or if pdf.js
+   * could not open it — and the full viewer stays one press away.
+   */
+  lite: boolean;
+  liteOverBytes: number;
+}
+
+/**
+ * The document viewer (components/pdf). Budgets per capability grade — see
+ * docs/performance-analysis.md §3.3 for what each one bounds.
+ */
+export const PDF: PdfConfig = {
+  canvasPixels: { low: 3_000_000, mid: 5_000_000, high: 8_000_000 },
+  maxDpr: { low: 1.5, mid: 2, high: 2 },
+  renderMargin: { low: 0.5, mid: 1, high: 1.5 },
+  concurrency: { low: 1, mid: 1, high: 2 },
+  textLayer: { low: false, mid: true, high: true },
+  dwellMs: 120,
+  maxScale: 8,
+  maxScaleTouch: 4,
+  rangeChunkSize: 262_144,
+  watchdogMs: 25_000,
+  lite: true,
+  liteOverBytes: 20_000_000,
+};
+
+interface DiagnosticsConfig {
+  /**
+   * Where the app reports a failure it could not recover from
+   * (`server/log.php`) — the reason a document would not open, a chunk that
+   * would not load. Site-root-relative. Empty string = report nothing.
+   */
+  endpoint: string;
+  /** Reports per page load, at most. A loop must not become a flood. */
+  maxPerLoad: number;
+}
+
+/**
+ * Client error reports (lib/diagnostics). One small POST per failure, no
+ * cookies, nothing personal: what failed, the engine's own message and the
+ * browser's user-agent string — which is the whole point, because the failures
+ * worth hearing about happen on phones nobody on the project owns.
+ */
+export const DIAGNOSTICS: DiagnosticsConfig = {
+  endpoint: import.meta.env.PROD ? "/api/log.php" : "",
+  maxPerLoad: 5,
 };
 
 interface CounterConfig {

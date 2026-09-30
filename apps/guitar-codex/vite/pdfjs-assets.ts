@@ -1,4 +1,4 @@
-import { createReadStream } from "node:fs";
+import { createReadStream, readFileSync } from "node:fs";
 import { cp, stat } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { dirname, extname, join, resolve } from "node:path";
@@ -38,7 +38,7 @@ import type { Plugin } from "vite";
 /** Directory names under pdfjs-dist, served verbatim under the prefix below. */
 const ASSET_DIRS = ["cmaps", "standard_fonts", "iccs", "wasm"] as const;
 
-const URL_PREFIX = "pdfjs";
+const URL_ROOT = "pdfjs";
 
 /**
  * Content types pdf.js's loaders actually care about. `.wasm` is the one that
@@ -59,6 +59,13 @@ export function pdfjsAssets(): Plugin {
   // Resolved through Node rather than assumed to sit at ../node_modules: this
   // has to keep working under pnpm, Yarn PnP and a hoisted monorepo alike.
   const pdfjsRoot = dirname(require.resolve("pdfjs-dist/package.json"));
+  // The files live under the engine's own version — `pdfjs/5.7.284/wasm/…` —
+  // because `pdfjs/` is served with a one-year immutable cache header
+  // (vite/immutable-headers.ts). An unversioned path would keep an old
+  // decoder in a returning reader's cache beside a new engine. The reader of
+  // the same number is `version` in src/lib/pdf/engine.ts.
+  const { version } = JSON.parse(readFileSync(join(pdfjsRoot, "package.json"), "utf8")) as { version: string };
+  const URL_PREFIX = `${URL_ROOT}/${version}`;
 
   let base = "/";
   let outDir = "dist";

@@ -74,3 +74,40 @@
 .btn-rpg:active {
   transform: translateY(1px);
 }
+
+/* ---- The language menu's panel (components/LanguageMenu) -----------------
+   Shared by the top bar and the codex. It drops in on a quick settle and lifts
+   away faster; these are the numbers framer-motion ran it with (the exit had a
+   duration but no curve, and framer's default tween is its `easeOut`,
+   0, 0, 0.58, 1).
+
+   The component keeps the panel mounted for the length of the exit
+   (`useLinger`, 140 ms) and marks its wrapper `data-leaving`; a leaving menu
+   takes no pointer input, so a click cannot land on an option that is already
+   going. Entrance fill `backwards` — nothing stays applied at rest, no
+   transform, no stacking context; exit `forwards`, so it does not flash back
+   in the frame before it is unmounted.
+
+   NB: neither rule sets `position` or `z-index` — the wrapper carries
+   Tailwind's `absolute … z-50`, which this unlayered sheet would beat. */
+.lang-menu {
+  animation: lang-menu-in 0.2s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+.lang-menu-drop[data-leaving] {
+  pointer-events: none;
+}
+.lang-menu-drop[data-leaving] > .lang-menu {
+  animation: lang-menu-out 0.14s cubic-bezier(0, 0, 0.58, 1) forwards;
+}
+@keyframes lang-menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-7px) scale(0.97);
+  }
+}
+@keyframes lang-menu-out {
+  to {
+    opacity: 0;
+    transform: translateY(-5px) scale(0.97);
+  }
+}

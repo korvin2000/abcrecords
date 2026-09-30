@@ -8,6 +8,128 @@
   font-size: clamp(1.9rem, 1.15rem + 3.2vw, 4.25rem);
 }
 
+/* ---- The title's choreography (components/AnimatedTitle.tsx) -------------
+   This used to be framer-motion; the numbers are the ones it ran with. Where
+   it was given a duration but no curve, framer eased with its `easeOut`
+   (0, 0, 0.58, 1) — not the browser's `ease-out` — so that curve is spelled
+   out below.
+
+   Every entrance uses fill mode `backwards`: the `from` state holds through
+   the delay, and once the animation has run nothing stays applied. `forwards`
+   or `both` would keep a `transform` (a stacking context, a layer) or a
+   `filter` alive on every letter for the life of the page. The `to` state is
+   always the element's natural style, which is also where the reduced-motion
+   clamp in effects.css leaves it.
+
+   Lite (`data-perf="low"` or `data-fx="off"`) keeps the reveal but thins it:
+   no blur, no drop-shadow, no sweep, ornaments at rest. */
+
+@keyframes home-fade-in {
+  from { opacity: 0; }
+}
+
+/* The volume line: opacity on framer's default tween (0.3 s), the 10 px rise
+   on a quick curve with a hair of overshoot standing in for its default
+   spring (stiffness 500, damping 25 — about 1 px past the mark). */
+.hero-kicker {
+  animation:
+    home-fade-in 0.3s cubic-bezier(0.25, 0.1, 0.35, 1) 0.05s backwards,
+    hero-kicker-rise 0.4s cubic-bezier(0.33, 1.25, 0.6, 1) 0.05s backwards;
+}
+@keyframes hero-kicker-rise {
+  from { transform: translateY(10px); }
+}
+
+/* No shadow under the lettering, and that is what it always looked like: each
+   letter used to declare a `drop-shadow`, but the reveal's own animated
+   `filter` replaced it, so the title ended on `blur(0)` — twenty-odd filter
+   layers kept for ever, drawing nothing. They are gone rather than merged into
+   one: adding a shadow now would change the look in order to save its cost. */
+
+/* Letters condense out of ink-blur, 45 ms apart after a 150 ms pause. `--i`
+   is the letter's place in the whole title, written by the component; the
+   `key={lang}` there re-mounts the letters, which is what replays this. */
+.hero-letter {
+  --hero-ink: blur(10px);
+  animation: hero-letter-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) calc(150ms + var(--i, 0) * 45ms) backwards;
+}
+/* The blur is a variable rather than a second keyframe set: the grade can
+   change once, shortly after load, while the reveal is still running — and a
+   new `animation-name` would restart every letter, finished ones included. A
+   changed variable only changes what the running animation draws. */
+@keyframes hero-letter-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.7em);
+    filter: var(--hero-ink);
+  }
+}
+/* A blur per letter is the expensive part of the reveal; below `high` the
+   letters only fade and rise. */
+html[data-perf="mid"] .hero-letter,
+html[data-perf="low"] .hero-letter,
+html[data-fx="off"] .hero-letter {
+  --hero-ink: none;
+}
+
+/* The one light-sweep. Hidden at rest and visible only while it runs, so the
+   blurred bar is not painted — even at zero opacity — once it has passed. */
+.hero-sweep {
+  opacity: 0;
+  visibility: hidden;
+  animation: hero-sweep-glow 1.1s cubic-bezier(0, 0, 0.58, 1) 0.7s;
+}
+@keyframes hero-sweep-glow {
+  0% { opacity: 0; visibility: visible; }
+  20% { opacity: 1; visibility: visible; }
+  100% { opacity: 0; visibility: visible; }
+}
+.hero-sweep-bar {
+  background: linear-gradient(100deg, transparent, rgba(251, 243, 210, 0.85), transparent);
+  filter: blur(2px);
+  transform: translateX(420%);
+  animation: hero-sweep-pass 1.1s ease-in-out 0.7s backwards;
+}
+@keyframes hero-sweep-pass {
+  from { transform: translateX(-120%); }
+}
+html[data-perf="low"] .hero-sweep,
+html[data-fx="off"] .hero-sweep {
+  display: none;
+}
+
+/* The rule under the name draws itself out from the middle. */
+.hero-rule {
+  animation: hero-rule-in 0.8s cubic-bezier(0, 0, 0.58, 1) 0.9s backwards;
+}
+@keyframes hero-rule-in {
+  from { opacity: 0; transform: scaleX(0.4); }
+}
+
+/* The two ornaments beside the title breathe for ever — so only `transform`
+   and `opacity`, which the compositor runs without the main thread, and not at
+   all with the ornaments switched off. Their resting opacity is the first
+   keyframe, so stopping them leaves them exactly where each cycle starts. */
+.hero-orn--star {
+  opacity: 0.35;
+  animation: hero-orn-star 6s cubic-bezier(0, 0, 0.58, 1) infinite;
+}
+.hero-orn--leaf {
+  opacity: 0.3;
+  animation: hero-orn-leaf 7s cubic-bezier(0, 0, 0.58, 1) 1s infinite;
+}
+@keyframes hero-orn-star {
+  0%, 100% { transform: translateY(0); opacity: 0.35; }
+  50% { transform: translateY(-10px); opacity: 0.7; }
+}
+@keyframes hero-orn-leaf {
+  0%, 100% { transform: translateY(0); opacity: 0.3; }
+  50% { transform: translateY(12px); opacity: 0.6; }
+}
+html[data-fx="off"] .hero-orn {
+  animation: none;
+}
+
 /*
  * The short-viewport band: a landscape phone (390 CSS px of height), a small
  * old portrait phone (568), a half-height desktop window. There the
@@ -127,6 +249,24 @@
      `--card-min`, a card is 152 px on a phone and 250-odd on a wide monitor;
      the name plate below reads that off `cqi` instead of guessing from `sm:`. */
   container-type: inline-size;
+  /* A cell arrives once: a short fade-and-rise on mount, staggered over the
+     first row or so of each page (`--cell-delay`, written by CharacterGrid).
+     `backwards`, not `both`: the `to` state is the cell's natural style, so
+     once it has arrived no `transform` is left on it — a lingering one would
+     make every cell a stacking context and change how a hovered card's lift
+     and glow overlap its neighbours. Under `content-visibility: auto` (below)
+     only the cell's *contents* are skipped off screen; its own animation still
+     runs on the document timeline, so a cell revealed below the fold has long
+     finished — never stuck transparent — by the time it scrolls in. */
+  animation: grid-cell-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) var(--cell-delay, 0ms) backwards;
+}
+@keyframes grid-cell-in {
+  from { opacity: 0; transform: translateY(24px); }
+}
+
+/* "Nothing found" fades in (framer's default tween, 0.3 s). */
+.grid-empty {
+  animation: home-fade-in 0.3s cubic-bezier(0.25, 0.1, 0.35, 1) backwards;
 }
 
 /*
@@ -183,4 +323,21 @@
 }
 .card-badge {
   font-size: clamp(0.48rem, 0.4rem + 0.85cqi, 0.58rem);
+}
+
+/* Reduced motion: effects.css clamps every animation to an instant, but not
+   its delay — the title would still pop in letter by letter and the grid cell
+   by cell over a second. With no motion to pace, everything simply appears,
+   and the sweep (nothing but motion) is not drawn at all. Last in the file so
+   it beats the shorthands above at equal specificity. */
+@media (prefers-reduced-motion: reduce) {
+  .hero-kicker,
+  .hero-letter,
+  .hero-rule,
+  .grid-cell {
+    animation-delay: 0s;
+  }
+  .hero-sweep {
+    display: none;
+  }
 }

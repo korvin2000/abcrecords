@@ -7,6 +7,7 @@ import tailwindcss from "@tailwindcss/vite";
 import { legacyArchive } from "./vite/legacy-archive";
 import { contentWatch, ignoreContent } from "./vite/content-watch";
 import { pdfjsAssets } from "./vite/pdfjs-assets";
+import { immutableHeaders } from "./vite/immutable-headers";
 
 /**
  * The app is a pure renderer: all catalogue content (index.json, *.bio.json,
@@ -46,6 +47,16 @@ const contentLangDirs = readdirSync(contentDir, { withFileTypes: true })
   .filter((e) => e.isDirectory() && /^[a-z]{2}$/.test(e.name))
   .map((e) => join(contentDir, e.name));
 
+/**
+ * Packages that make up the Markdown renderer (see `manualChunks` below):
+ * react-markdown, the remark plugins, and the unified / mdast / hast /
+ * micromark / unist families they are built from, plus their small helpers.
+ * A helper missing from this list is not a bug — it simply rides in the codex
+ * chunk instead of the vendor one.
+ */
+const MARKDOWN_PACKAGES =
+  /^(react-markdown|remark-.+|unified|vfile(-message)?|bail|trough|devlop|is-plain-obj|extend|(mdast|hast|unist)-util-.+|micromark(-.+)?|decode-named-character-reference|character-(entities|reference-invalid).*|property-information|(space|comma)-separated-tokens|html-url-attributes|estree-util-is-identifier-name|style-to-(js|object)|inline-style-parser|ccount|escape-string-regexp|markdown-table|longest-streak|trim-lines|zwitch)$/;
+
 export default defineConfig({
   base,
   plugins: [
@@ -53,6 +64,7 @@ export default defineConfig({
     tailwindcss(),
     contentWatch(),
     pdfjsAssets(),
+    immutableHeaders(),
     legacyArchive("https://www.abc-guitars.com"),
   ],
   publicDir: contentDir,
@@ -100,18 +112,41 @@ export default defineConfig({
     target: "baseline-widely-available",
     rollupOptions: {
       output: {
-        // Stable framework chunks cache independently from application code.
-        manualChunks: {
-          react: ["react", "react-dom", "react-dom/client"],
-          motion: ["framer-motion"],
-          markdown: ["react-markdown", "remark-gfm", "unist-util-visit"],
+        /**
+         * Stable framework chunks cache independently from application code.
+         *
+         * Decided **per module, by the package it comes from** — not by the
+         * object form (`{ react: ["react", …] }`). That form also sweeps each
+         * listed package's *dependencies* into its chunk, and a dependency
+         * shared by two of them (React itself: the Markdown renderer depends
+         * on it too) lands in whichever Rollup reaches first. With the
+         * animation library gone that turned out to be the Markdown chunk —
+         * 47 KB gzipped that only an open codex needs, statically imported by
+         * the entry. `scripts/verify-pdf-build.mjs` holds the entry to a
+         * budget so that cannot happen silently again.
+         */
+        manualChunks(id) {
+          const at = id.lastIndexOf("node_modules/");
+          if (at === -1) return undefined;
+          const path = id.slice(at + "node_modules/".length);
+          const name = path.startsWith("@") ? path.split("/", 2).join("/") : path.split("/", 1)[0];
+
+          if (name === "react" || name === "react-dom" || name === "scheduler") return "react";
+
           // pdf.js is the largest dependency in the tree and the least often
-          // needed. Its only importer is the lazily-loaded document viewer, so
+          // needed. Its only importer is the lazily-loaded pdf.js reader, so
           // naming it here does not pull it forward — it gives the engine a
           // stable chunk of its own that survives every application deploy in
-          // the reader's cache. (The ~1 MB worker is a separate emitted asset;
-          // see src/lib/pdf/engine.ts.)
-          pdf: ["pdfjs-dist"],
+          // the reader's cache. (The ~1.3 MB worker is a separate emitted
+          // asset; see src/lib/pdf/engine.ts, which imports the package's
+          // `legacy/` build — the only one that may ever be in this chunk.)
+          if (name === "pdfjs-dist") return "pdf";
+
+          // The Markdown pipeline: react-markdown, remark and the unified
+          // family beneath them. Reached only through the lazy codex chunk.
+          if (MARKDOWN_PACKAGES.test(name)) return "markdown";
+
+          return undefined;
         },
       },
     },

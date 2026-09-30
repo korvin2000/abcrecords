@@ -54,8 +54,12 @@ async function parseMidi(url: string): Promise<MidiClip | null> {
   return { duration: midi.duration, notes };
 }
 
-const LOOKAHEAD = 0.15; // seconds of notes scheduled ahead of the clock
-const TICK_MS = 25;
+// A 100 ms tick with a 300 ms horizon: the audio clock keeps each note exact,
+// so the timer only has to stay ahead of itself plus jitter. Stop and seek
+// silence queued voices directly and reschedule at once, so the longer queue
+// does not make them lag.
+const LOOKAHEAD = 0.3; // seconds of notes scheduled ahead of the clock
+const TICK_MS = 100;
 
 let sharedCtx: AudioContext | null = null;
 function context(): AudioContext {

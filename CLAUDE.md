@@ -48,7 +48,7 @@ through a dynamic `import()`, so neither is in the initial bundle.
 | `apps/guitar-codex/`          | **The production catalogue app** (Vite + React + TS). Renders `pages/` content at runtime; see `apps/guitar-codex/README.md` and [`.claude-memory/12-app-architecture.md`](.claude-memory/12-app-architecture.md) (overview). For real work in `apps/guitar-codex/` read the deep-dive triad: [`13`](.claude-memory/13-app-code-map.md) code map · [`14`](.claude-memory/14-app-patterns-and-gotchas.md) patterns/gotchas/recipes · [`15`](.claude-memory/15-app-critique.md) critique/backlog. |
 | `docs/`         | Source specifications & guides (the source of truth — see below).   |
 | `pages/`        | Content pages / migrated entries. (PDFs are **not** here — the document archive, e.g. `magazine/<year>/*.pdf`, sits at the site root; see `pdf` in `docs/Catalog-Index.md` §9.1.) `index.json` + `index-<lang>.json` at the root are the catalogue index ([`docs/Catalog-Index.md`](docs/Catalog-Index.md)); each entry's article (+ dossier, if it has one) lives in `pages/<iso-lang>/` (`ru/`, `en/`, `de/`, …) per the `lang` field; `pages/photos/` and other media stay at the root and are never localized. `pages/quotes/quote-<lang>.json` holds the localized book of sayings shown in the herald block — one fully localized edition per UI language ([`pages/quotes/README.md`](pages/quotes/README.md); **the shipped texts are placeholder fixtures, not verified quotations**). |
-| `server/`       | **The one server-side script the project has**: `counter.php`, the visitor counter and statistics endpoint behind the header's odometer (no database — three flat files; see `server/README.md`). Uploaded to the site at `/counter/counter.php`; the app reads it site-root-relative, like `pdf`. |
+| `server/`       | **The project's whole server side: three small PHP scripts and two `.htaccess` snippets**, no database (see `server/README.md`; step-by-step install in [`docs/server-setup-guide.md`](docs/server-setup-guide.md)). `counter.php` → `/counter/counter.php`, the visitor counter behind the header's odometer. `facts.php` → `/api/facts.php`, every dossier's searchable fields for one language in a single response. `log.php` → `/api/log.php`, a sink for client error reports. The app reads all three site-root-relative, like `pdf`; **the last two are accelerators with a client-side fallback, never dependencies** — the app must keep working without them (dev server, static mirror). |
 | `packages/guestbook/` | **The visitors' book** — `@guitar-codex/guestbook`, a private, source-exported React feature package. Opened from the footer's "VI · Guestbook" at the reserved route `#/guestbook`; talks to the legacy PHP REST API under `/gbook/api`. Contract: [`docs/guestbook-integration.md`](docs/guestbook-integration.md). Also runs standalone (`npm run dev:guestbook`). |
 | `packages/demoscene/` | **The About/credits demoscene** — `@site/demoscene`, likewise private and source-exported. Opened from the `I` button in the top bar. Renders into its own **shadow root**, synthesises everything it draws and plays, and releases every side effect on unmount. Contract: [`docs/demoscene-integration.md`](docs/demoscene-integration.md). |
 | `apps/demoscene-dev-host/` | A throwaway React app standing in for the host so the demoscene can be run and reviewed alone (`npm run dev:demoscene`), plus the pencil-study plate viewers (`npm run plates`). **Never deployed**; it is the one sanctioned place that deep-imports demoscene internals. |
@@ -74,6 +74,11 @@ through a dynamic `import()`, so neither is in the initial bundle.
 - `Biography_card_Design.md` — visual/UX design of the codex modal and its tabs.
 - `HTML-to-BioMD-Lite-Conversion-Guide.md` — practical legacy-HTML → BioMD rules.
 - `search-list.json` — legacy search index (~1249 entries) from `guitar-times.ru`.
+- `performance-analysis.md` — the 2026-09-30 performance audit and what was
+  implemented from it (§1a): the capability tiers, the paint profile, the
+  document viewer's budgets, the PHP layer. Read it before touching any of those.
+- `server-setup-guide.md` — beginner's walkthrough for deploying `server/`:
+  where each file goes, permissions, how to verify.
 
 ## Example content (`pages/`)
 
@@ -164,11 +169,30 @@ through a dynamic `import()`, so neither is in the initial bundle.
   guess that will be wrong on Android and iOS — this has recurred three times.
   Full rationale and checklist:
   [`.claude-memory/16-cross-platform-glyphs.md`](.claude-memory/16-cross-platform-glyphs.md).
-- **Cross-entry metadata is read in the browser, never precomputed into a file.**
-  The dossier facts index (`apps/guitar-codex/src/lib/dossier/`) crawls `pages/<lang>/*.bio.json`
-  and caches in memory for the session. A generated `facts-<lang>.json` beside the
-  index froze the deployed answer at build time, so an edited birth year did not
-  reach the search until the next rebuild; `pages/` is the only home for a fact.
+- **Cross-entry metadata is never precomputed at build time.**
+  The dossier facts index (`apps/guitar-codex/src/lib/dossier/`) holds it in memory for the
+  session. A generated `facts-<lang>.json` beside the index froze the deployed answer at
+  build time, so an edited birth year did not reach the search until the next rebuild;
+  `pages/` is the only home for a fact. What *is* allowed is a **request-time** aggregate:
+  `server/facts.php` re-derives its validator from the dossiers' own mtimes on every
+  request, so it cannot go stale. The index asks it first and **falls back to crawling
+  `pages/<lang>/*.bio.json` from the browser** whenever it does not answer — keep that
+  fallback working.
+- **pdf.js is imported from `pdfjs-dist/legacy/…`, and only in `lib/pdf/engine.ts`.** The
+  package's default build calls built-ins a year-old browser does not have, un-polyfilled,
+  and the symptom — "the document could not be opened" on Android — never shows on the
+  machine that builds it. `npm run verify` fails if the modern build comes back
+  (`scripts/verify-pdf-build.mjs`). The version is pinned on purpose.
+- **No animation library.** Fades, rises and pops are CSS (`styles/motion.css`, or beside
+  the component's own styles); `lib/motion.ts` gives `useLinger` (keep an element mounted
+  through a CSS exit, via `data-leaving`) and `useReducedMotion`; the card's pointer tilt is
+  `lib/tilt.ts` + `lib/spring.ts`. Animate `transform`/`opacity` only; entrances use
+  `backwards` fill so no transform lingers. Do not add `framer-motion` back for one effect.
+- **Paint cost is tiered, in one place.** `<html>` carries `data-perf="low|mid|high"` (the
+  measured grade), `data-fx="on|off"` (the ✨ switch: what moves) and `data-lite="on|off"` (a
+  weak machine or a *deliberate* ✨ off: what is painted), all written by `lib/fx/store.ts`. Every reduction — backdrop blur, card filters, blend
+  layers, the 3D page turn — lives in `styles/perf.css`, imported last. A new expensive
+  effect needs its lite rule there; never a `backdrop-filter` on a full-screen scrim.
 
 ## Feature-package rules (the workspace boundary)
 

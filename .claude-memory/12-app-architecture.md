@@ -1,7 +1,7 @@
 # 12 · `apps/guitar-codex/` — The Production Catalogue App (2026-07-19)
 
 **Source:** [`apps/guitar-codex/`](../apps/guitar-codex/) — the real, working implementation of the
-catalogue (Vite + React 19 + TS + Tailwind 4 + framer-motion), built per the
+catalogue (Vite + React 19 + TS + Tailwind 4; no animation library — CSS + `lib/motion.ts`), built per the
 component decision in [`10-ui-component-decision.md`](10-ui-component-decision.md).
 See [`apps/guitar-codex/README.md`](../apps/guitar-codex/README.md) for the full layer table.
 

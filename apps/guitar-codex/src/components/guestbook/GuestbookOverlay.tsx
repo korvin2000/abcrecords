@@ -1,5 +1,4 @@
 import { useEffect, useRef } from "react";
-import { m } from "framer-motion";
 import Guestbook from "@guitar-codex/guestbook";
 import { GUESTBOOK } from "@/config";
 import { useI18n } from "@/lib/i18n";
@@ -25,6 +24,8 @@ import { CornerOrnament } from "@/components/OrnateFrame";
 
 interface Props {
   onClose: () => void;
+  /** Closed, and kept mounted only while it fades out (App). */
+  leaving?: boolean;
 }
 
 /**
@@ -53,21 +54,24 @@ interface Props {
  *                       into it would fight `useHashRoute` for the address.
  *   `className`         carries the `--gb-*` palette (styles/guestbook.css).
  */
-export function GuestbookOverlay({ onClose }: Props) {
+export function GuestbookOverlay({ onClose, leaving = false }: Props) {
   const { t, lang } = useI18n();
 
   // Esc closes, exactly as it does over a codex. The listener is on `window`
   // and keyed to a ref rather than to `onClose`, so re-binding it is not the
-  // cost of every parent render (the same reasoning as CodexShell's).
+  // cost of every parent render (the same reasoning as CodexShell's). While
+  // the panel fades out it is already closed, and whatever the reader went to
+  // next owns the key.
   const close = useRef(onClose);
   close.current = onClose;
   useEffect(() => {
+    if (leaving) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") close.current();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  }, [leaving]);
 
   const dismiss = () => {
     audio.close();
@@ -75,17 +79,14 @@ export function GuestbookOverlay({ onClose }: Props) {
   };
 
   return (
-    <m.div
-      className="codex-overlay fixed inset-0 z-40 flex items-center justify-center"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.25 }}
+    <div
+      className="codex-overlay mo-fade mo-fade--250 fixed inset-0 z-40 flex items-center justify-center"
+      data-leaving={leaving || undefined}
       role="dialog"
       aria-modal="true"
       aria-label={t("footer.guestbook")}
     >
-      <div className="absolute inset-0 bg-ink-950/55 backdrop-blur-sm" onClick={dismiss} />
+      <div className="absolute inset-0 bg-ink-950/70" onClick={dismiss} />
 
       <div className="relative z-10 flex h-full max-h-[94dvh] w-full max-w-[84rem] flex-col">
         <div className="parchment ornate-border relative flex-1 overflow-hidden rounded-sm">
@@ -139,7 +140,7 @@ export function GuestbookOverlay({ onClose }: Props) {
           </div>
         </div>
       </div>
-    </m.div>
+    </div>
   );
 }
 

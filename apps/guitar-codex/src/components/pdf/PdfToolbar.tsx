@@ -28,11 +28,18 @@ interface Props {
   onGoToPage: (page: number) => void;
   onZoom: (direction: -1 | 1) => void;
   onFit: (mode: Exclude<FitMode, null>) => void;
-  onRotate: () => void;
+  /** Absent in the image reader, which can neither fit a whole page nor turn
+   *  one — the controls are then not drawn rather than drawn disabled. */
+  fitPage?: boolean;
+  onRotate?: () => void;
   /** Resolved URL of the file, used by the download control. */
   href: string;
   download?: string;
   onClose?: () => void;
+  /** When the document also exists as page images: change readers. The label
+   *  names the reader this control switches *to*. */
+  onSwitch?: () => void;
+  switchLabel?: string;
 }
 
 export function PdfToolbar({
@@ -44,10 +51,13 @@ export function PdfToolbar({
   onGoToPage,
   onZoom,
   onFit,
+  fitPage = true,
   onRotate,
   href,
   download,
   onClose,
+  onSwitch,
+  switchLabel,
 }: Props) {
   const { t } = useI18n();
 
@@ -108,12 +118,21 @@ export function PdfToolbar({
         <IconButton onClick={() => onFit("width")} active={fit === "width"} label={t("pdf.fitWidth")}>
           <Icon d="M3 5v14M21 5v14M7 12h10m0 0-3-3m3 3-3 3M7 12l3-3m-3 3 3 3" />
         </IconButton>
-        <IconButton onClick={() => onFit("page")} active={fit === "page"} label={t("pdf.fitPage")}>
-          <Icon d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />
-        </IconButton>
-        <IconButton onClick={onRotate} label={t("viewer.rotateRight")}>
-          <Icon d="M21 12a9 9 0 1 1-3-6.7M21 3v4h-4" />
-        </IconButton>
+        {fitPage && (
+          <IconButton onClick={() => onFit("page")} active={fit === "page"} label={t("pdf.fitPage")}>
+            <Icon d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />
+          </IconButton>
+        )}
+        {onRotate && (
+          <IconButton onClick={onRotate} label={t("viewer.rotateRight")}>
+            <Icon d="M21 12a9 9 0 1 1-3-6.7M21 3v4h-4" />
+          </IconButton>
+        )}
+        {onSwitch && switchLabel && (
+          <IconButton onClick={onSwitch} label={switchLabel}>
+            <Icon d="M12 3 3 8l9 5 9-5-9-5zM3 13l9 5 9-5M3 18l9 5 9-5" />
+          </IconButton>
+        )}
         <a
           href={href}
           download={download ?? ""}

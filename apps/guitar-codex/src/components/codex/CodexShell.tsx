@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
-import { m, useReducedMotion } from "framer-motion";
 import clsx from "clsx";
 import type { Lang } from "@/lib/languages";
+import { useReducedMotion } from "@/lib/motion";
 import { audio } from "@/lib/audio";
 import { useI18n } from "@/lib/i18n";
 import { usePreference } from "@/lib/settings";
@@ -169,19 +169,21 @@ export function CodexShell({
   }, []);
 
   return (
-    <m.div
-      className="codex-overlay fixed inset-0 z-40 flex items-center justify-center"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: closing ? 0 : 1 }}
-      // Nothing is left to fade: `closing` has already taken this to zero.
-      exit={{ opacity: 0, transition: { duration: 0 } }}
-      transition={{ duration: closing ? closeMs / 1000 : 0.25 }}
+    <div
+      // Fades in over 0.25 s; `closing` fades it out on the CLOSE_MS clock and
+      // leaves it at zero, so nothing is left to fade when App unmounts it
+      // (`mo-book`, styles/motion.css).
+      className={clsx(
+        "codex-overlay mo-book fixed inset-0 z-40 flex items-center justify-center",
+        closing && "mo-book--closing",
+      )}
+      style={{ "--mo-close": `${closeMs}ms` } as CSSProperties}
       role="dialog"
       aria-modal="true"
       aria-label={ariaLabel}
     >
       {/* Backdrop — dimmed sepia, like a reading desk in lamplight */}
-      <div className="absolute inset-0 bg-ink-950/55 backdrop-blur-sm" onClick={handleClose} />
+      <div className="absolute inset-0 bg-ink-950/70" onClick={handleClose} />
 
       {/* Book panel with 3D page-turn */}
       <div
@@ -321,6 +323,6 @@ export function CodexShell({
           </div>
         </div>
       </div>
-    </m.div>
+    </div>
   );
 }

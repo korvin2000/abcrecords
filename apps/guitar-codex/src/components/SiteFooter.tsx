@@ -1,5 +1,4 @@
-import { useCallback, useState } from "react";
-import { m, useReducedMotion, type Variants } from "framer-motion";
+import { memo, useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import type { MsgKey } from "@/lib/messages";
 import { SITE } from "@/config";
 import { audio } from "@/lib/audio";
@@ -49,20 +48,36 @@ const FOOTER_ITEMS = [
   preload?: () => void;
 }[];
 
-const listVariants: Variants = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.045 } },
-};
+/**
+ * `true` from the first moment the element intersects the viewport by
+ * `amount` (a fraction of its own box), and for good after that.
+ *
+ * The footer's entrance is CSS (`.site-footer`, `.footer-menu-cell` in
+ * footer.css); this only says when to start it, through `data-inview`. Where
+ * there is no IntersectionObserver there is nothing to wait for, so the answer
+ * is `true` from the start — the content is simply visible.
+ */
+function useInViewOnce<T extends Element>(amount: number) {
+  const ref = useRef<T>(null);
+  const [inView, setInView] = useState(() => typeof IntersectionObserver === "undefined");
 
-const itemVariants: Variants = {
-  hidden: { opacity: 0, y: 14, scale: 0.97 },
-  show: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] },
-  },
-};
+  useEffect(() => {
+    const element = ref.current;
+    if (inView || !element) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return;
+        observer.disconnect();
+        setInView(true);
+      },
+      { threshold: amount },
+    );
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [inView, amount]);
+
+  return [ref, inView] as const;
+}
 
 interface Props {
   /** Slugs the app can actually open — index entries plus the reserved
@@ -76,9 +91,10 @@ interface Props {
  * a matching catalogue entry exists; the rest give translated feedback
  * instead of navigating to a broken route.
  */
-export function SiteFooter({ canOpen, onOpenEntry }: Props) {
+export const SiteFooter = memo(function SiteFooter({ canOpen, onOpenEntry }: Props) {
   const { t } = useI18n();
-  const reduced = useReducedMotion();
+  const [footerRef, footerInView] = useInViewOnce<HTMLElement>(0.12);
+  const [listRef, listInView] = useInViewOnce<HTMLUListElement>(0.18);
   const [announcement, setAnnouncement] = useState<string | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
 
@@ -108,12 +124,10 @@ export function SiteFooter({ canOpen, onOpenEntry }: Props) {
   };
 
   return (
-    <m.footer
-      className="relative z-10 mt-stack px-gutter pb-[max(1rem,env(safe-area-inset-bottom))]"
-      initial={reduced ? undefined : { opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.12 }}
-      transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+    <footer
+      ref={footerRef}
+      className="site-footer relative z-10 mt-stack px-gutter pb-[max(1rem,env(safe-area-inset-bottom))]"
+      data-inview={footerInView}
       aria-labelledby="site-footer-title"
     >
       <div className="site-footer-shell page-wide relative overflow-hidden">
@@ -148,17 +162,15 @@ export function SiteFooter({ canOpen, onOpenEntry }: Props) {
 
           <div ref={shareRef}>
             <nav aria-label={t("footer.navLabel")}>
-              <m.ul
+              <ul
+                ref={listRef}
                 // Nine sections. Two columns meant five rows of tiles — the
                 // single largest block of furniture on a phone. Three fits the
                 // longest label ("LITERATURE") at 360 px and costs three rows.
-                className="m-0 grid list-none grid-cols-3 gap-1 p-0 sm:grid-cols-5 sm:gap-2.5 lg:grid-cols-9"
-                variants={listVariants}
-                initial={reduced ? undefined : "hidden"}
-                whileInView="show"
-                viewport={{ once: true, amount: 0.18 }}
+                className="footer-menu m-0 grid list-none grid-cols-3 gap-1 p-0 sm:grid-cols-5 sm:gap-2.5 lg:grid-cols-9"
+                data-inview={listInView}
               >
-                {FOOTER_ITEMS.map((item) => {
+                {FOOTER_ITEMS.map((item, index) => {
                   const label = t(item.key);
                   const slug = "slug" in item && canOpen(item.slug) ? item.slug : null;
                   const preload = "preload" in item ? item.preload : undefined;
@@ -172,8 +184,6 @@ export function SiteFooter({ canOpen, onOpenEntry }: Props) {
                       // hover is long enough to have it in memory by the click.
                       if (slug) preload?.();
                     },
-                    whileHover: reduced ? undefined : { y: -3, scale: 1.015 },
-                    whileTap: { scale: 0.97 },
                   } as const;
                   const face = (
                     <>
@@ -188,9 +198,13 @@ export function SiteFooter({ canOpen, onOpenEntry }: Props) {
                   );
 
                   return (
-                    <m.li key={item.key} variants={itemVariants} className="min-w-0">
+                    <li
+                      key={item.key}
+                      className="footer-menu-cell min-w-0"
+                      style={{ "--i": index } as CSSProperties}
+                    >
                       {slug ? (
-                        <m.a
+                        <a
                           {...shared}
                           href={`#/${slug}`}
                           onClick={(e) => {
@@ -199,17 +213,17 @@ export function SiteFooter({ canOpen, onOpenEntry }: Props) {
                           }}
                         >
                           {face}
-                        </m.a>
+                        </a>
                       ) : href ? (
                         // Left to the browser on purpose: `mailto:` is the
                         // platform's business, and intercepting it is how a link
                         // that works everywhere becomes one that works wherever
                         // the interception was tested.
-                        <m.a {...shared} href={href} onClick={() => audio.click()}>
+                        <a {...shared} href={href} onClick={() => audio.click()}>
                           {face}
-                        </m.a>
+                        </a>
                       ) : panel === "share" ? (
-                        <m.button
+                        <button
                           {...shared}
                           type="button"
                           onClick={toggleShare}
@@ -217,21 +231,21 @@ export function SiteFooter({ canOpen, onOpenEntry }: Props) {
                           aria-controls="footer-share"
                         >
                           {face}
-                        </m.button>
+                        </button>
                       ) : (
-                        <m.button
+                        <button
                           {...shared}
                           type="button"
                           onClick={() => activatePlaceholder(label)}
                           title={t("footer.placeholderTitle")}
                         >
                           {face}
-                        </m.button>
+                        </button>
                       )}
-                    </m.li>
+                    </li>
                   );
                 })}
-              </m.ul>
+              </ul>
             </nav>
 
             {/* The flyout unfolds here — under the whole grid, in the footer's
@@ -239,11 +253,11 @@ export function SiteFooter({ canOpen, onOpenEntry }: Props) {
 
                 Mounted and unmounted outright, with the unfolding done by a
                 CSS keyframe on the panel itself (`.share-flyout`, footer.css)
-                — the same way `.leaf-in` and `.page-turn-open` are done. An
-                `AnimatePresence` around it would buy an animated *close* as
-                well, at the cost of a `height: auto → 0` exit and framer's
-                presence bookkeeping for eight links and a live region. The
-                cheaper trade is worth it here: opening unfolds, shutting is
+                — the same way `.leaf-in` and `.page-turn-open` are done.
+                Keeping it mounted through an exit (`useLinger`) would buy an
+                animated *close* as well, at the cost of a `height: auto → 0`
+                exit for eight links and a live region. The cheaper trade is
+                worth it here: opening unfolds, shutting is
                 immediate, and a closed menu is gone from the document rather
                 than collapsed inside it. */}
             <div id="footer-share">{shareOpen && <ShareMenu />}</div>
@@ -270,6 +284,6 @@ export function SiteFooter({ canOpen, onOpenEntry }: Props) {
           </div>
         </div>
       </div>
-    </m.footer>
+    </footer>
   );
-}
+});

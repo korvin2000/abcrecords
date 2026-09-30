@@ -10,7 +10,7 @@
 @import "tailwindcss";
 
 /* ============================================================
-   КОДЕКС ГИТАРИСТОВ — the stylesheet, in sixteen parts
+   КОДЕКС ГИТАРИСТОВ — the stylesheet, in seventeen parts
 
    This file is the running order, nothing else. The sheet is unlayered on
    purpose (see `styles/base.css`), so **the order of these imports is the
@@ -20,6 +20,7 @@
      • `tokens.css` must come first — everything else spends its variables.
      • `chrome.css` defines `btn-rpg`, which `codex.css` and `viewers.css`
        both narrow. It has to stay above them.
+     • `perf.css` must come last — it exists to override the others.
 
    Within a file, ordering is local and free. Add a new component as a new
    file rather than at the end of an existing one, and give it a line here.
@@ -78,3 +79,8 @@
 
 /* effects — optional ornaments and the shared keyframes */
 @import "./styles/effects.css";
+@import "./styles/motion.css";
+
+/* perf — the paint profile: what a weak machine, or a reader in lite mode, is
+   spared. Last on purpose — it overrides the files above by position. */
+@import "./styles/perf.css";

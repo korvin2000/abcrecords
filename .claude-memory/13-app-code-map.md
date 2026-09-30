@@ -18,7 +18,7 @@
 ## Layered architecture (bottom → top)
 
 ```
-main.tsx  ─ providers: LazyMotion(strict) › I18nProvider › ImageViewerProvider › AsciiTabViewerProvider › PdfViewerProvider › App
+main.tsx  ─ providers: I18nProvider › ImageViewerProvider › AsciiTabViewerProvider › PdfViewerProvider › App
 App.tsx   ─ single orchestrator: catalog load, search criteria, facts crawl gate, hash route, audio toggles, body scroll-lock, codex mount
   ├─ Feature switches     config.ts  (FEATURES · GRID · EFFECTS · DOSSIER · HERALD — one place to turn a feature off/tune it)
   ├─ Data/content layer   catalog.ts · paths.ts · types.ts · metadata.ts · languages.ts · hooks.ts · dismiss.ts
@@ -49,8 +49,8 @@ App.tsx   ─ single orchestrator: catalog load, search criteria, facts crawl ga
 ### Entry & orchestration
 | File | Role / key exports |
 |---|---|
-| `src/main.tsx` | Root render + provider nesting (see above). `LazyMotion features={domAnimation} strict` → only `m.*` allowed, no full `motion.*`. |
-| `src/App.tsx` | The one orchestrator. Owns: the single `SearchCriteria` value (+ `useDeferredValue`) and its `compile()`, the `useFacts` gate, `useCatalog`, `useHashRoute`, `useAudioUnlock`, sound/ambient toggles, **body scroll-lock (single owner — do not move to the modal)**, facets (sorted by *label* with `Intl.Collator`), native/foreign result split + `nativeCount`, `turnPage` (← →), `openLinkedEntry(slug)` (cross-entry links, already classified by `BioArticle`), footer section links. Browse UI reads `catalog.listed`; routing reads `catalog.bySlug` (**all** records, so hidden pages stay reachable). Mounts `LazyCodexModal` under `Suspense`+`AnimatePresence`, **deliberately unkeyed** (see [14](14-app-patterns-and-gotchas.md)), and warms the two entries either side of the open one at idle so ← → resolves from memory. |
+| `src/main.tsx` | Root render + provider nesting (see above). Preloads two font faces, awaits the opening UI dictionary (bounded at 4 s), then renders. **No animation library** since 2026-09-30 — every animation is CSS (`styles/motion.css` and the owning stylesheets) with `lib/motion.ts` (`useLinger`, `useReducedMotion`) and the card's `lib/tilt.ts` + `lib/spring.ts`; see [18](18-performance-profile.md). |
+| `src/App.tsx` | The one orchestrator. Owns: the single `SearchCriteria` value (+ `useDeferredValue`) and its `compile()`, the `useFacts` gate, `useCatalog`, `useHashRoute`, `useAudioUnlock`, sound/ambient toggles, **body scroll-lock (single owner — do not move to the modal)**, facets (sorted by *label* with `Intl.Collator`), native/foreign result split + `nativeCount`, `turnPage` (← →), `openLinkedEntry(slug)` (cross-entry links, already classified by `BioArticle`), footer section links. Browse UI reads `catalog.listed`; routing reads `catalog.bySlug` (**all** records, so hidden pages stay reachable). Mounts `LazyCodexModal` under `Suspense`, **deliberately unkeyed** (see [14](14-app-patterns-and-gotchas.md)), and warms the two entries either side of the open one at idle so ← → resolves from memory. |
 | `src/index.css` | **The running order, and nothing else** — the font imports, `@import "tailwindcss"`, and fifteen `@import "./styles/*.css"` lines. Since the sheet is unlayered, that list *is* the cascade; the file says so and names the two orderings that matter (`tokens` first, `chrome`'s `btn-rpg` above everything that narrows it). |
 | `src/styles/*.css` | The stylesheet itself, split by concern (2 528 lines in one file → 47–318 each): `tokens` · `base` · `chrome` (parchment, gold frame, `btn-rpg`) · `topbar` · `home` (frontispiece, page band, catalogue grid) · `search` · `herald` · `footer` · `codex` · `article` · `figures` (incl. `.fx-curl`) · `blocks` (the BioMD `:::` constructs) · `viewers` (audio pill, ASCII tab) · `counter` (the visitor plate, its odometer, the chronicle panel) · `effects`. **Still unlayered → beats Tailwind utilities (footgun).** |
 | `index.html` | Static shell, `lang="ru"`, inline "Кодекс открывается…" fallback, ❧ emoji-SVG favicon. No SSR. |
@@ -79,7 +79,7 @@ App.tsx   ─ single orchestrator: catalog load, search criteria, facts crawl ga
 
 ### Visitor counter (the odometer in the bar, and the chronicle behind it)
 
-*Added 2026-08-31. The app's **only** server dependency: `server/counter.php`
+*Added 2026-08-31. Until 2026-09-30 the app's only server dependency; `server/` now also holds `facts.php` and `log.php`, both optional (see [18](18-performance-profile.md)). `server/counter.php`
 (one file, no database — see `server/README.md`). Two requests per reader, no
 polling: one on load, one more if they open the panel.*
 
@@ -151,10 +151,15 @@ polling: one on load, one more if they open the panel.*
 | `src/components/AsciiTabViewer.tsx` | SVG "score" + raw fallback + zoom + approximate playback. |
 
 ### Document viewer (`pdf/`) — added 2026-08-30
+
+> ⚠️ **Rewritten 2026-09-30** — the table below describes the first version.
+> Current shape: `PdfViewer` (chooser) → lazy `PdfDocumentView` (pdf.js,
+> **legacy** build) or `PdfImageView` (pre-rendered page JPEGs), `readerShared`,
+> `lib/pdf/{engine,queue,pages}`. See [18](18-performance-profile.md).
 An index row with `pdf` and no `md` **is** a PDF (`docs/Catalog-Index.md` §9.1);
 App mounts `LazyPdfModal` for it instead of `LazyCodexModal`, under the same
-`Suspense`/`AnimatePresence`/`ErrorBoundary`. Constant keys `"pdf"`/`"codex"`
-let AnimatePresence tell the two apart when ← → crosses between them.
+`Suspense`/`ErrorBoundary`. Constant keys `"pdf"`/`"codex"` make React remount
+when ← → crosses between the two kinds of book.
 
 | File | Role |
 |---|---|
@@ -178,7 +183,7 @@ let AnimatePresence tell the two apart when ← → crosses between them.
 | `.../search/AdvancedSearchPanel.tsx` | The refinement leaf: language scope · gender · craft · country · given/family name · birth & death year ranges. **Controlled and stateless** — every control reports a `Partial<SearchCriteria>` patch. Reading order = coarsest sieve to finest = the order the engine applies them. |
 | `.../search/AdvancedToggle.tsx` · `DossierProgress.tsx` | Disclosure button (`aria-expanded`/`aria-controls`) with the refinement-count badge — with the panel shut, the badge is the only sign something other than the name is narrowing results. `DossierProgress` says *why* the list is still settling instead of blocking the page. |
 | `src/components/form/*` | Codex-themed atoms: `Field` (label + control + hint), `TextField`, `SelectField` (native `<select>`, only the closed control restyled), `TokenSelect` (chosen values as removable tokens + a picker of the rest — the shape that survives 100 countries), `SegmentedControl` (radiogroup), `Chip`/`ChipGroup`, `YearRangeField`. |
-| `src/components/herald/*` | `HeraldBanner` (the `useHerald` + `AnimatePresence mode="wait"` crossfade), `HeraldFrame` (tone-tinted plaque + `CornerOrnament`s), `HeraldMessageView` (the union's only exhaustive switch), `AnniversaryLine` (gender picks the **whole sentence**; `{name}` is spliced in as a node so the line can lead into the codex), `QuoteLine`, `tones.ts` (the static tone table: frame class, accent, glyph pair, label key, text classes). |
+| `src/components/herald/*` | `HeraldBanner` (the `useHerald` + a hand-written "wait" cross-fade, `useMessageSwap`, in CSS), `HeraldFrame` (tone-tinted plaque + `CornerOrnament`s), `HeraldMessageView` (the union's only exhaustive switch), `AnniversaryLine` (gender picks the **whole sentence**; `{name}` is spliced in as a node so the line can lead into the codex), `QuoteLine`, `tones.ts` (the static tone table: frame class, accent, glyph pair, label key, text classes). |
 | `src/components/AnimatedTitle.tsx` · `Background.tsx` · `SiteFooter.tsx` | Title letter-reveal (`useReducedMotion`); static memoized backdrop; colophon whose nine sections are one table — most name a `slug`, `VI` the reserved guestbook route, `VII` `panel: "share"` (was "Search", which the live search bar made pointless), `VIII` `href: mailto:` from `SITE.email`; anything with no target left is still a placeholder. |
 | `src/components/ShareMenu.tsx` + `src/lib/share.ts` | **The share flyout (2026-09-01).** `share.ts` is the registry the legacy `share42` block should have been: `SHARE_SERVICES` (VK · Telegram · WhatsApp · X · Facebook · OK) each building its URL through one `buildUrl` (`URL` + `URLSearchParams`, raw Unicode in, encoded once — never pre-encoded strings in a dictionary), plus `openSharePopup` (centred, `noopener,noreferrer`), `nativeShare` (Web Share API, `AbortError` counts as handled) and `copyLink` (clipboard → `execCommand` fallback). Dead services are absent, not commented out (Google+ 2019, memori.ru unverifiable); Mail.ru and LiveJournal are left out as "legacy — verify first". Spec: [`docs/social-share-i18n.md`](../docs/social-share-i18n.md). `ShareMenu.tsx` draws it: monoline emblems, **not** brand logos, and it unfolds **under the whole section grid** rather than out of the tile — a popover anchored to "VII" hangs off a 320 px screen, and the footer's own width has no edges to collide with. |
 | `src/lib/fx/tier.ts` · `store.ts` | **Budgeted ornaments (2026-08-13).** `tier.ts`: async probe of **hardware only** → `PerfTier` (`low`/`mid`/`high`), measured once per tab and cached in `sessionStorage`. Static hints first (Save-Data / cores / `deviceMemory`) so a grade exists before first paint; then an arithmetic probe with a **fixed time budget and variable work** (never blocks a slow device longer than a fast one) and a median-rAF paint probe (timeout-guarded — a tab that never composites must not hang it). `store.ts`: module store + `useSyncExternalStore` over three separate axes — machine grade × reader switch (localStorage `codex-fx`) × `prefers-reduced-motion` (which only picks the switch's *default*) → `{tier, on, spin, glyphs}`. A grade scales `DENSITY`, never zeroes an effect. `window.__fx.state` in DEV answers "why is nothing moving". |

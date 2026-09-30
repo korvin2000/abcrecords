@@ -6,7 +6,6 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { AnimatePresence } from "framer-motion";
 import { LazyPdfModal, preloadPdfModal } from "@/components/pdf/LazyPdfModal";
 import { isCrossOrigin } from "./paths";
 
@@ -78,18 +77,18 @@ export function PdfViewerProvider({ children }: { children: ReactNode }) {
     <PdfViewerContext.Provider value={open}>
       {children}
       <Suspense fallback={null}>
-        <AnimatePresence>
-          {pdf && (
-            <LazyPdfModal
-              key={pdf.src}
-              src={pdf.src}
-              title={pdf.title ?? basename(pdf.src)}
-              download={pdf.download}
-              z={60}
-              onClose={close}
-            />
-          )}
-        </AnimatePresence>
+        {/* No exit to wait for: PdfModal runs its own closing clock and calls
+            `close` only once it has faded. */}
+        {pdf && (
+          <LazyPdfModal
+            key={pdf.src}
+            src={pdf.src}
+            title={pdf.title ?? basename(pdf.src)}
+            download={pdf.download}
+            z={60}
+            onClose={close}
+          />
+        )}
       </Suspense>
     </PdfViewerContext.Provider>
   );

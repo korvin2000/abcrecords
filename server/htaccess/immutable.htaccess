@@ -1,0 +1,15 @@
+# ---------------------------------------------------------------------------
+# КОДЕКС ГИТАРИСТОВ — .htaccess for /assets/ and /pdfjs/.
+#
+# Every file in these two directories is content-hashed (Vite's /assets/) or
+# version-pinned (/pdfjs/): a new build writes new names instead of changing
+# old ones. The browser may therefore keep them for a year and never ask.
+#
+# The build copies this file to dist/assets/.htaccess and dist/pdfjs/.htaccess;
+# keep its name. Wrapped in <IfModule>, so a host without mod_headers ignores
+# it instead of answering 500.
+# ---------------------------------------------------------------------------
+
+<IfModule mod_headers.c>
+  Header set Cache-Control "public, max-age=31536000, immutable"
+</IfModule>

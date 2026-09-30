@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useReducedMotion } from "framer-motion";
+import { useReducedMotion } from "@/lib/motion";
 import { COUNTER, EFFECTS } from "@/config";
 import { formatCount, primeCounter, useCounter } from "@/lib/counter";
 import { useFx } from "@/lib/fx";
