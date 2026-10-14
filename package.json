@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Кодекс Гитаристов — the guitar-codex catalogue and its two lazy-loaded feature applications (guestbook, demoscene), built and deployed as one product.",
+  "description": "Гитаристы и композиторы (ABC-Guitars) — the guitar-codex catalogue and its two lazy-loaded feature applications (guestbook, demoscene), built and deployed as one product.",
   "workspaces": [
     "apps/*",
     "packages/*"

@@ -1,4 +1,4 @@
-# Кодекс Гитаристов · The Guitar Codex
+# Гитаристы и композиторы · ABC-Guitars
 
 A light-manuscript, RPG-codex-styled catalogue of musicians. Pure renderer:
 **all content lives in `../../pages/`** (`index.json`, `<slug>.bio.json`,

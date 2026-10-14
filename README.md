@@ -1,4 +1,4 @@
-# Кодекс Гитаристов — the workspace
+# Гитаристы и композиторы (ABC-Guitars) — the workspace
 
 An antique-manuscript RPG-codex encyclopaedia of musicians, and the two
 auxiliary React applications it composes at runtime.

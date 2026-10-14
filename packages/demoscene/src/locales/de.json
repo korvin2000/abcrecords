@@ -22,17 +22,17 @@
       {
         "role": "PROJEKTGRÜNDER",
         "sub": "Doktor der Philosophie",
-        "names": ["Тавровский Виктор"]
+        "names": ["Viktor Tavrovsky"]
       },
       {
         "role": "MITAUTOR",
         "sub": "Musiker und Gitarrist",
-        "names": ["Тавровский Сергей"]
+        "names": ["Sergej Tavrovsky"]
       },
       {
         "role": "UNTERSTÜTZUNG",
         "sub": "Programmierer",
-        "names": ["Тавровский Александр"]
+        "names": ["Alexander Tavrovsky"]
       },
       {
         "role": "ÜBERSETZUNG",
@@ -52,7 +52,7 @@
     ],
     "blocks": [
       "Gewidmet",
-      "der klassischen sechssaitigen Gitarre",
+      "der klassischen Gitarre",
       "Gitarristen und Komponisten",
       "Musikerinnen und Musikern — professionell wie leidenschaftlich",
       "Musik ist Magie, übermittelt durch Klang.",

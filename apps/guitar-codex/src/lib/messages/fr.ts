@@ -2,11 +2,11 @@ import type { Message } from "./types";
 import type { MsgKey } from "./ru";
 
 export const fr: Record<MsgKey, Message> = {
-  "app.title": "Le Codex de la Guitare",
+  "app.title": "ABC-Guitares",
   "app.volume": "✦ Tome I · La guitare classique ✦",
   "app.subtitle":
     "Une encyclopédie des musiciens — leurs noms, leurs destins et leurs légendes, couchés sur des pages jaunies.",
-  "app.brand": "CODEX",
+  "app.brand": "ABC-GUITARS",
   "app.footer": "✦ Relié d'or · un nom dans la chronique ouvre sa page · utilisez ← → pour feuilleter les entrées ✦",
   "app.loadError": "La chronique ne s'est pas ouverte. Le parchemin index.json est introuvable.",
   "app.retry": "Réessayer",
@@ -84,6 +84,7 @@ export const fr: Record<MsgKey, Message> = {
   "type.musician": "Musicien",
   "type.composer": "Compositeur",
   "type.conductor": "Chef d'orchestre",
+  "type.guitar-historian": "Historien de la guitare",
   "type.luthier": "Luthier",
   "type.magazine": "Revue",
 

@@ -2,11 +2,11 @@ import type { Message } from "./types";
 import type { MsgKey } from "./ru";
 
 export const es: Record<MsgKey, Message> = {
-  "app.title": "El Códice de la Guitarra",
+  "app.title": "ABC-Guitarras",
   "app.volume": "✦ Tomo I · La guitarra clásica ✦",
   "app.subtitle":
     "Una enciclopedia de músicos — sus nombres, destinos y leyendas, escritos en páginas amarillentas.",
-  "app.brand": "CÓDICE",
+  "app.brand": "ABC-GUITARS",
   "app.footer": "✦ Encuadernado en oro · un nombre en la crónica abre su página · use ← → para hojear las entradas ✦",
   "app.loadError": "La crónica no se abrió. El pergamino index.json no está disponible.",
   "app.retry": "Intentar de nuevo",
@@ -84,6 +84,7 @@ export const es: Record<MsgKey, Message> = {
   "type.musician": "Músico",
   "type.composer": "Compositor",
   "type.conductor": "Director",
+  "type.guitar-historian": "Historiador de la guitarra",
   "type.luthier": "Luthier",
   "type.magazine": "Revista",
 

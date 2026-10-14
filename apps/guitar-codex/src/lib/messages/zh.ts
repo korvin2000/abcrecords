@@ -2,10 +2,10 @@ import type { Message } from "./types";
 import type { MsgKey } from "./ru";
 
 export const zh: Record<MsgKey, Message> = {
-  "app.title": "吉他法典",
+  "app.title": "ABC-吉他",
   "app.volume": "✦ 卷一 · 古典吉他 ✦",
   "app.subtitle": "一部音乐家百科全书 — 他们的名字、命运与传说,铭刻于泛黄的书页。",
-  "app.brand": "法典",
+  "app.brand": "ABC-GUITARS",
   "app.footer": "✦ 以金装帧 · 编年史中的名字会翻开它的一页 · 使用 ← → 翻阅条目 ✦",
   "app.loadError": "编年史无法开启。卷轴 index.json 不可达。",
   "app.retry": "重试",
@@ -82,6 +82,7 @@ export const zh: Record<MsgKey, Message> = {
   "type.musician": "音乐家",
   "type.composer": "作曲家",
   "type.conductor": "指挥家",
+  "type.guitar-historian": "吉他史学家",
   "type.luthier": "制琴师",
   "type.magazine": "杂志",
 

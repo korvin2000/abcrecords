@@ -2,11 +2,11 @@ import type { Message, Plural } from "./types";
 
 /** Russian — the catalogue's primary language and the reference key set. */
 export const ru = {
-  "app.title": "Кодекс Гитаристов",
+  "app.title": "Гитаристы и композиторы",
   "app.volume": "✦ Том I · Классическая гитара ✦",
   "app.subtitle":
     "Энциклопедия музыкантов — их имена, судьбы и предания, записанные на пожелтевших страницах.",
-  "app.brand": "КОДЕКС",
+  "app.brand": "ABC-GUITARS",
   "app.footer": "✦ Переплетено золотом · имя в летописи откроет её страницу · клавиши ← → листают записи ✦",
   "app.loadError": "Летопись не открылась. Свиток index.json недоступен.",
   "app.retry": "Попробовать снова",
@@ -95,6 +95,7 @@ export const ru = {
   "type.musician": "Музыкант",
   "type.composer": "Композитор",
   "type.conductor": "Дирижёр",
+  "type.guitar-historian": "Историк гитары",
   "type.luthier": "Мастер",
   "type.magazine": "Журнал",
 

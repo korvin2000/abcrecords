@@ -3,11 +3,11 @@ import type { MsgKey } from "./ru";
 
 /** Ukrainian. */
 export const uk: Record<MsgKey, Message> = {
-  "app.title": "Кодекс Гітаристів",
+  "app.title": "Гітаристи та композитори",
   "app.volume": "✦ Том I · Класична гітара ✦",
   "app.subtitle":
     "Енциклопедія музикантів — їхні імена, долі та перекази, записані на пожовклих сторінках.",
-  "app.brand": "КОДЕКС",
+  "app.brand": "ABC-GUITARS",
   "app.footer": "✦ Оправлений золотом · ім'я в літописі відкриє її сторінку · клавіші ← → гортають записи ✦",
   "app.loadError": "Літопис не відкрився. Сувій index.json недоступний.",
   "app.retry": "Спробувати ще раз",
@@ -95,6 +95,7 @@ export const uk: Record<MsgKey, Message> = {
   "type.musician": "Музикант",
   "type.composer": "Композитор",
   "type.conductor": "Диригент",
+  "type.guitar-historian": "Історик гітари",
   "type.luthier": "Майстер",
   "type.magazine": "Журнал",
 

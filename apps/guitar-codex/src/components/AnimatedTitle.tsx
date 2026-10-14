@@ -2,6 +2,10 @@ import { memo, useMemo, type CSSProperties } from "react";
 import { Divider } from "./OrnateFrame";
 import { useI18n } from "@/lib/i18n";
 
+/** U+00A0, spelled out: an ordinary space alone in an inline-block collapses
+ *  to nothing and the words run together. Also the glue of a short word. */
+const NBSP = "\u00A0";
+
 /**
  * The headline: letters condense out of ink-blur one by one, then a single
  * light-sweep passes over — engraved burgundy on paper, no neon glow.
@@ -19,9 +23,22 @@ export const AnimatedTitle = memo(function AnimatedTitle() {
   // words stay unbreakable; letters animate individually inside them. Each
   // letter carries its running index across the whole title (spaces do not
   // count), which is what the stagger in `.hero-letter` is derived from.
+  //
+  // A word of one or two letters — и, та, de, y — never ends a line: it is set
+  // with the word after it, as the typographic rule goes, so a title that has
+  // to wrap on a phone breaks as "Гитаристы / и композиторы", never as
+  // "Гитаристы и / композиторы". The glue is a no-break space inside the group;
+  // it takes no place in the stagger.
   const words = useMemo(() => {
+    const groups: string[] = [];
+    let glue = false;
+    for (const w of title.split(" ")) {
+      if (glue) groups[groups.length - 1] += NBSP + w;
+      else groups.push(w);
+      glue = w.length <= 2;
+    }
     let n = 0;
-    return title.split(" ").map((w) => Array.from(w, (ch) => ({ ch, i: n++ })));
+    return groups.map((w) => Array.from(w, (ch) => ({ ch, i: ch === NBSP ? -1 : n++ })));
   }, [title]);
 
   return (
@@ -58,18 +75,22 @@ export const AnimatedTitle = memo(function AnimatedTitle() {
         >
           {words.map((word, wi) => (
             <span key={wi} className="inline-block whitespace-nowrap">
-              {word.map(({ ch, i }) => (
-                <span
-                  key={i}
-                  className="hero-letter burgundy-gradient-text inline-block"
-                  style={{ "--i": i } as CSSProperties}
-                >
-                  {ch}
-                </span>
-              ))}
-              {/* U+00A0, spelled out: an ordinary space alone in an inline-block
-                  collapses to nothing and the words run together. */}
-              {wi < words.length - 1 && <span className="inline-block">{"\u00A0"}</span>}
+              {word.map(({ ch, i }, li) =>
+                ch === NBSP ? (
+                  <span key={`glue-${li}`} className="inline-block">
+                    {ch}
+                  </span>
+                ) : (
+                  <span
+                    key={i}
+                    className="hero-letter burgundy-gradient-text inline-block"
+                    style={{ "--i": i } as CSSProperties}
+                  >
+                    {ch}
+                  </span>
+                ),
+              )}
+              {wi < words.length - 1 && <span className="inline-block">{NBSP}</span>}
             </span>
           ))}
         </span>

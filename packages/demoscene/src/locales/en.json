@@ -22,17 +22,17 @@
       {
         "role": "PROJECT CREATOR",
         "sub": "Doctor of Philosophy",
-        "names": ["Тавровский Виктор"]
+        "names": ["Viktor Tavrovsky"]
       },
       {
         "role": "CO-AUTHOR",
         "sub": "musician and guitarist",
-        "names": ["Тавровский Сергей"]
+        "names": ["Sergey Tavrovsky"]
       },
       {
         "role": "SUPPORT",
         "sub": "programmer",
-        "names": ["Тавровский Александр"]
+        "names": ["Alexander Tavrovsky"]
       },
       {
         "role": "TRANSLATION",
@@ -52,7 +52,7 @@
     ],
     "blocks": [
       "Dedicated to",
-      "the classical six-string guitar",
+      "the classical guitar",
       "guitarists and composers",
       "musicians — professional and amateur alike",
       "Music is magic, conveyed through sound.",

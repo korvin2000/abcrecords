@@ -2,11 +2,11 @@ import type { Message } from "./types";
 import type { MsgKey } from "./ru";
 
 export const en: Record<MsgKey, Message> = {
-  "app.title": "The Guitar Codex",
+  "app.title": "ABC-Guitars",
   "app.volume": "✦ Volume I · The Classical Guitar ✦",
   "app.subtitle":
     "An encyclopaedia of musicians — their names, fates and legends, inked on yellowed pages.",
-  "app.brand": "CODEX",
+  "app.brand": "ABC-GUITARS",
   "app.footer": "✦ Bound in gold · a name within a tale opens its page · use ← → to turn between entries ✦",
   "app.loadError": "The chronicle would not open. The index.json scroll is unreachable.",
   "app.retry": "Try again",
@@ -84,6 +84,7 @@ export const en: Record<MsgKey, Message> = {
   "type.musician": "Musician",
   "type.composer": "Composer",
   "type.conductor": "Conductor",
+  "type.guitar-historian": "Guitar historian",
   "type.luthier": "Luthier",
   "type.magazine": "Magazine",
 

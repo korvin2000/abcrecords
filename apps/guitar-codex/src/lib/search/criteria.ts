@@ -63,6 +63,40 @@ export const EMPTY_CRITERIA: SearchCriteria = {
   died: NO_YEARS,
 };
 
+/**
+ * "musician" is the umbrella craft, not one more sibling of the others: a
+ * guitarist, a composer, a conductor or a guitar historian is a musician too,
+ * and the finer label only says which kind. Choosing it in the refinement
+ * panel therefore matches every one of these, not just the entries that carry
+ * no finer label.
+ */
+export const MUSICIAN = "musician";
+export const MUSICIAN_TYPES: readonly string[] = [
+  MUSICIAN,
+  "guitarist",
+  "composer",
+  "conductor",
+  "guitar-historian",
+];
+
+/**
+ * The set the predicate tests, widened by the umbrella. Memoized per input set
+ * so `compile` keeps handing the engine one identity per form state —
+ * `search/cache.ts` compares `types` by reference to tell "the reader typed
+ * one more letter" from "the reader changed a filter".
+ */
+const widened = new WeakMap<ReadonlySet<string>, ReadonlySet<string>>();
+function widenTypes(types: ReadonlySet<string>): ReadonlySet<string> | null {
+  if (!types.size) return null;
+  if (!types.has(MUSICIAN)) return types;
+  let out = widened.get(types);
+  if (!out) {
+    out = new Set([...types, ...MUSICIAN_TYPES]);
+    widened.set(types, out);
+  }
+  return out;
+}
+
 /** Add or remove one value of a multi-select criterion, immutably. */
 export function toggleValue(values: ReadonlySet<string>, value: string): ReadonlySet<string> {
   const next = new Set(values);
@@ -145,7 +179,7 @@ export function compile(c: SearchCriteria): CompiledCriteria {
   return {
     tokens: tokenize(text),
     text,
-    types: c.types.size ? c.types : null,
+    types: widenTypes(c.types),
     countries: c.countries.size ? c.countries : null,
     gender: c.gender === "any" ? null : c.gender,
     currentLangOnly: c.scope === "current",

@@ -22,17 +22,17 @@
       {
         "role": "CREATORE DEL PROGETTO",
         "sub": "dottore in filosofia",
-        "names": ["Тавровский Виктор"]
+        "names": ["Viktor Tavrovsky"]
       },
       {
         "role": "CO-AUTORE",
         "sub": "musicista e chitarrista",
-        "names": ["Тавровский Сергей"]
+        "names": ["Sergej Tavrovsky"]
       },
       {
         "role": "SUPPORTO",
         "sub": "programmatore",
-        "names": ["Тавровский Александр"]
+        "names": ["Aleksandr Tavrovsky"]
       },
       {
         "role": "TRADUZIONE",
@@ -52,7 +52,7 @@
     ],
     "blocks": [
       "Dedicato a",
-      "la chitarra classica a sei corde",
+      "la chitarra classica",
       "ai chitarristi e ai compositori",
       "ai musicisti, professionisti e dilettanti",
       "La musica è magia trasmessa attraverso il suono.",

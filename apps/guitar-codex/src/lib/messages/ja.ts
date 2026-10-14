@@ -2,10 +2,10 @@ import type { Message } from "./types";
 import type { MsgKey } from "./ru";
 
 export const ja: Record<MsgKey, Message> = {
-  "app.title": "ギターの写本",
+  "app.title": "ABC-ギター",
   "app.volume": "✦ 第一巻 · クラシックギター ✦",
   "app.subtitle": "音楽家たちの百科事典 — その名と運命と伝説を、黄ばんだ頁に記す。",
-  "app.brand": "写本",
+  "app.brand": "ABC-GUITARS",
   "app.footer": "✦ 金で装丁された書 · 記された名はその頁を開く · ← → キーで記録をめくる ✦",
   "app.loadError": "年代記を開けませんでした。巻物 index.json に届きません。",
   "app.retry": "再試行",
@@ -82,6 +82,7 @@ export const ja: Record<MsgKey, Message> = {
   "type.musician": "音楽家",
   "type.composer": "作曲家",
   "type.conductor": "指揮者",
+  "type.guitar-historian": "ギター史研究家",
   "type.luthier": "弦楽器職人",
   "type.magazine": "雑誌",
 

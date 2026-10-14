@@ -1,4 +1,4 @@
-# Responsive Web Design Audit — `app/` (Guitar Codex · Кодекс Гитаристов)
+# Responsive Web Design Audit — `app/` (ABC-Guitars · Гитаристы и композиторы)
 
 **Composite edition.** Merged from four independent audits (A1–A4) of the same
 codebase, reconciled against each other, with conflicts resolved or flagged.

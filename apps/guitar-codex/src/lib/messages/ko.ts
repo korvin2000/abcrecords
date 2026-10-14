@@ -2,10 +2,10 @@ import type { Message } from "./types";
 import type { MsgKey } from "./ru";
 
 export const ko: Record<MsgKey, Message> = {
-  "app.title": "기타 코덱스",
+  "app.title": "ABC-기타",
   "app.volume": "✦ 제1권 · 클래식 기타 ✦",
   "app.subtitle": "음악가들의 백과사전 — 그들의 이름과 운명과 전설이 빛바랜 책장에 기록되어 있다.",
-  "app.brand": "코덱스",
+  "app.brand": "ABC-GUITARS",
   "app.footer": "✦ 금으로 장정된 책 · 연대기 속 이름은 그 페이지를 연다 · ← → 키로 기록을 넘긴다 ✦",
   "app.loadError": "연대기가 열리지 않았습니다. 두루마리 index.json에 닿을 수 없습니다.",
   "app.retry": "다시 시도",
@@ -82,6 +82,7 @@ export const ko: Record<MsgKey, Message> = {
   "type.musician": "음악가",
   "type.composer": "작곡가",
   "type.conductor": "지휘자",
+  "type.guitar-historian": "기타 역사가",
   "type.luthier": "현악기 장인",
   "type.magazine": "잡지",
 

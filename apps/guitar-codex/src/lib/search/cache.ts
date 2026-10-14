@@ -101,6 +101,7 @@ export function resetSearchCache(): void {
 /**
  * Everything except the free-text query. `types`/`countries` are compared by
  * identity because `compile` passes the criteria's own sets straight through
+ * (or, for the "musician" umbrella, one memoized widening of them)
  * and `toggleValue` always builds a new one; the year bounds are compared by
  * value because `compile` builds them fresh every time.
  */

@@ -2,11 +2,11 @@ import type { Message } from "./types";
 import type { MsgKey } from "./ru";
 
 export const de: Record<MsgKey, Message> = {
-  "app.title": "Der Gitarren-Kodex",
+  "app.title": "ABC-Gitarren",
   "app.volume": "✦ Band I · Die klassische Gitarre ✦",
   "app.subtitle":
     "Eine Enzyklopädie der Musiker — ihre Namen, Schicksale und Legenden, auf vergilbten Seiten festgehalten.",
-  "app.brand": "KODEX",
+  "app.brand": "ABC-GUITARS",
   "app.footer": "✦ In Gold gebunden · ein Name in der Chronik öffnet ihre Seite · mit ← → blättern Sie durch die Einträge ✦",
   "app.loadError": "Die Chronik ließ sich nicht öffnen. Die Schriftrolle index.json ist unerreichbar.",
   "app.retry": "Erneut versuchen",
@@ -84,6 +84,7 @@ export const de: Record<MsgKey, Message> = {
   "type.musician": "Musiker",
   "type.composer": "Komponist",
   "type.conductor": "Dirigent",
+  "type.guitar-historian": "Gitarrenhistoriker",
   "type.luthier": "Gitarrenbauer",
   "type.magazine": "Zeitschrift",
 

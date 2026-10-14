@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "Кодекс Гитаристов — an antique-manuscript RPG-codex catalogue of musicians, rendered from pages/*.bio.json + *.bio.md",
+  "description": "Гитаристы и композиторы (ABC-Guitars) — an antique-manuscript RPG-codex catalogue of musicians, rendered from pages/*.bio.json + *.bio.md",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",

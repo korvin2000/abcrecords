@@ -22,17 +22,17 @@
       {
         "role": "CRIADOR DO PROJETO",
         "sub": "doutor em filosofia",
-        "names": ["Тавровский Виктор"]
+        "names": ["Viktor Tavrovsky"]
       },
       {
         "role": "COAUTOR",
         "sub": "músico e violonista",
-        "names": ["Тавровский Сергей"]
+        "names": ["Serguei Tavrovsky"]
       },
       {
         "role": "SUPORTE",
         "sub": "programador",
-        "names": ["Тавровский Александр"]
+        "names": ["Aleksandr Tavrovsky"]
       },
       {
         "role": "TRADUÇÃO",
@@ -52,7 +52,7 @@
     ],
     "blocks": [
       "Dedicado a",
-      "o violão clássico de seis cordas",
+      "o violão clássico",
       "aos violonistas e compositores",
       "aos músicos, profissionais e amadores",
       "Música é magia transmitida através do som.",
