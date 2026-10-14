@@ -58,7 +58,7 @@ interface SiteConfig {
 /** Who this site *is*, as the outside world addresses it. */
 export const SITE: SiteConfig = {
   url: "https://www.abc-guitars.com",
-  email: "xyz@mail.ru",
+  email: "guitar@abc-guitars.com",
 };
 
 interface GuestbookConfig {
