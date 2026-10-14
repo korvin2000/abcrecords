@@ -2,7 +2,7 @@ import type { Message } from "./types";
 import type { MsgKey } from "./ru";
 
 export const ja: Record<MsgKey, Message> = {
-  "app.title": "ABC-ギター",
+  "app.title": "ギタリストと作曲家",
   "app.volume": "✦ 第一巻 · クラシックギター ✦",
   "app.subtitle": "音楽家たちの百科事典 — その名と運命と伝説を、黄ばんだ頁に記す。",
   "app.brand": "ABC-GUITARS",

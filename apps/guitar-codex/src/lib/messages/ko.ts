@@ -2,7 +2,7 @@ import type { Message } from "./types";
 import type { MsgKey } from "./ru";
 
 export const ko: Record<MsgKey, Message> = {
-  "app.title": "ABC-기타",
+  "app.title": "기타리스트와 작곡가",
   "app.volume": "✦ 제1권 · 클래식 기타 ✦",
   "app.subtitle": "음악가들의 백과사전 — 그들의 이름과 운명과 전설이 빛바랜 책장에 기록되어 있다.",
   "app.brand": "ABC-GUITARS",

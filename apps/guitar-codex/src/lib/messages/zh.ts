@@ -2,7 +2,7 @@ import type { Message } from "./types";
 import type { MsgKey } from "./ru";
 
 export const zh: Record<MsgKey, Message> = {
-  "app.title": "ABC-吉他",
+  "app.title": "吉他手与作曲家",
   "app.volume": "✦ 卷一 · 古典吉他 ✦",
   "app.subtitle": "一部音乐家百科全书 — 他们的名字、命运与传说,铭刻于泛黄的书页。",
   "app.brand": "ABC-GUITARS",
